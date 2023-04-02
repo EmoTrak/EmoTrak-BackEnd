@@ -32,7 +32,7 @@ public class Daily {
     private User user;
 
     @Column(nullable = false)
-    private String desc;
+    private String content;
 
     @Column(nullable = false)
     private int star;
