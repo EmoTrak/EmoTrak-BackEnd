@@ -18,6 +18,12 @@ public enum CustomErrorCode {
     NOT_PROPER_URLFORM(BAD_REQUEST, "x-1001", "입력한 URL 형식이 맞지 않습니다."),
     NOT_AUTHOR(BAD_REQUEST, "x-1001", "작성자만 삭제/수정할 수 있습니다."),
     NOT_INPUT(BAD_REQUEST, "x-1001", "입력한 문자열 조건이 맞지 않습니다."),
+    NOT_ADMIN (BAD_REQUEST, "x-1001", "관리자 암호가 아닙니다.."),
+    NOT_EMAIL_PATTERN (BAD_REQUEST, "x-1001", "올바른 이메일 형식이 아닙니다."),
+    NOT_PASSWORD_PATTERN (BAD_REQUEST, "x-1001", "숫자와 영어 소문자와 특수문자를 사용해 8-15자리 비밀번호를 입력해주세요."),
+
+    EMAIL_BLANK (BAD_REQUEST, "x-1001", "이메일을 입력해주세요."),
+    PASSWORD_BLANK (BAD_REQUEST, "x-1001", "비밀번호를 입력해주세요."),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     USER_NOT_FOUND(NOT_FOUND, "x-1001", "등록된 사용자가 없습니다"),
