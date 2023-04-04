@@ -1,9 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
-import com.example.emotrak.dto.CommentDetailResponseDto;
-import com.example.emotrak.entity.Comment;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.Emotion;
 import com.example.emotrak.entity.User;

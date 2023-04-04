@@ -1,6 +1,7 @@
 package com.example.emotrak.jwt;
 
-import com.example.emotrak.dto.SecurityExceptionDto;
+import com.example.emotrak.exception.CustomErrorCode;
+import com.example.emotrak.exception.ResponseMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if(token != null) {
             if(!jwtUtil.validateToken(token)){
-                jwtExceptionHandler(response, "Token Error", HttpStatus.UNAUTHORIZED.value());
+                jwtExceptionHandler(response, HttpStatus.UNAUTHORIZED.value());
                 return;
             }
             Claims info = jwtUtil.getUserInfoFromToken(token);
@@ -47,11 +48,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         SecurityContextHolder.setContext(context);
     }
 
-    public void jwtExceptionHandler(HttpServletResponse response, String msg, int statusCode) {
+    public void jwtExceptionHandler(HttpServletResponse response, int statusCode) {
         response.setStatus(statusCode);
         response.setContentType("application/json");
         try {
-            String json = new ObjectMapper().writeValueAsString(new SecurityExceptionDto(statusCode, msg));
+            String json = new ObjectMapper().writeValueAsString(new ResponseMessage(CustomErrorCode.INVALID_TOKEN));
             response.getWriter().write(json);
         } catch (Exception e) {
             log.error(e.getMessage());
