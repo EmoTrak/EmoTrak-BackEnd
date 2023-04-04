@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -47,6 +48,9 @@ public class Daily extends Timestamped {
 
     @Column(nullable = false)
     private boolean share;
+
+    @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
+    private List<Comment> comments;
 
     //생성자
     public Daily(String imageUrl, BoardRequestDto boardRequestDto, User user, Emotion emotion) {

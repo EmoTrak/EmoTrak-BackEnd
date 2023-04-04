@@ -47,8 +47,10 @@ public class FileUploadService {
     //s3파일수정(파일삭제 후 새 파일 업로드)
     public String updateFile(String oldFileUrl, MultipartFile newFile) {
         try {
-            // 이전 파일 삭제
-            deleteFile(oldFileUrl);
+            // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
+            if (oldFileUrl != null && !oldFileUrl.isEmpty()) {
+                deleteFile(oldFileUrl);
+            }
             // 새 파일 업로드
             return uploadFile(newFile);
         } catch (S3FileUploadException e) {
