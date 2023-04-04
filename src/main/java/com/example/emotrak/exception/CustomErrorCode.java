@@ -24,6 +24,7 @@ public enum CustomErrorCode {
 
     EMAIL_BLANK (BAD_REQUEST, "x-1001", "이메일을 입력해주세요."),
     PASSWORD_BLANK (BAD_REQUEST, "x-1001", "비밀번호를 입력해주세요."),
+    FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1001" ,"파일 업로드 중 에러가 발생했습니다" ),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     USER_NOT_FOUND(NOT_FOUND, "x-1001", "등록된 사용자가 없습니다"),
