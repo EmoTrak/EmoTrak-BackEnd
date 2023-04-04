@@ -34,5 +34,14 @@ public class User {
         this.email = email;
         this.role = role;
     }
-
+    public User(String password, String email,Long kakaoId, UserRoleEnum role) {
+        this.password = password;
+        this.email = email;
+        this.kakaoId = kakaoId;
+        this.role = role;
+    }
+    public User kakaoIdUpdate(Long kakaoId) {
+        this.kakaoId = kakaoId;
+        return this;
+    }
 }
