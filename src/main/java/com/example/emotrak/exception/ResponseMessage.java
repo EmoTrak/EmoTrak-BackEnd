@@ -15,6 +15,13 @@ public class ResponseMessage {
     private final String errorCode;
     private final Object data;
 
+    public ResponseMessage(CustomErrorCode errorCode) {
+        this.message = errorCode.getMessage();
+        this.statusCode = errorCode.getHttpStatus().value();
+        this.errorCode = errorCode.getErrorCode();
+        this.data = null;
+    }
+
     public static ResponseEntity errorResponse(CustomErrorCode errorCode) {
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
