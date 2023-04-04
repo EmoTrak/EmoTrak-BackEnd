@@ -51,7 +51,9 @@ public class UserService {
         if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_EMAIL_PATTERN);
 
         // 비밀번호 형식이 일치하는지 체크
-        passPattern1 = Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$");
+        //passPattern1 = Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$");
+        //숫자와 소문자와 특수문자 !@#$%^&*()중 1개가 포함되어야 하며 8자~15자 사이 인 값
+        passPattern1 = Pattern.compile("^(?=.*\\d)(?=.*[a-z])[a-z\\d!@#$%^&*()]{8,15}$");
         matcher = passPattern1.matcher(signupRequestDto.getPassword());
         if (!matcher.find())throw new CustomException(CustomErrorCode.NOT_PASSWORD_PATTERN);
 
