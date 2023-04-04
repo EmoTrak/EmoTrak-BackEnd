@@ -12,6 +12,7 @@ public enum CustomErrorCode {
     /* 400 BAD_REQUEST : 잘못된 요청 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "토큰이 유효하지 않습니다"),
     EXPIRE_TOKEN(FORBIDDEN, "x-1002", "토큰이 만료되었습니다"),
+    REFRESH_TOKEN_IS_EXPIRED(FORBIDDEN, "x-1002", "리프레쉬 토큰이 만료되었습니다"),
     NOT_PROPER_PASSWORD(BAD_REQUEST, "x-1001", "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(BAD_REQUEST, "x-1002", "중복된 이메일이 존재합니다"),
     NOT_LENGTH(BAD_REQUEST, "x-1001","입력한 문자열 길이가 맞지 않습니다."),
