@@ -2,6 +2,7 @@ package com.example.emotrak.config;
 
 import com.example.emotrak.jwt.JwtAuthFilter;
 import com.example.emotrak.jwt.JwtUtil;
+import com.example.emotrak.security.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class WebSecurityConfig {
 
     private final JwtUtil jwtUtil;
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -55,6 +58,9 @@ public class WebSecurityConfig {
                 .and().addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         http.cors();
+
+        // 401 Error 처리, Authorization 즉, 인증과정에서 실패할 시 처리(토큰이 없는 경우)
+        http.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
 
         return http.build();
     }

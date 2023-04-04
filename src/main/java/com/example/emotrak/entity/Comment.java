@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -31,13 +30,10 @@ public class Comment extends Timestamped {
         this.comment = commentRequestDto.getComment();
         this.daily = daily;
         this.user = user;
-        this.createdAt = LocalDateTime.now();
-        this.modifiedAt = LocalDateTime.now();
     }
 
     public void updateComment(CommentRequestDto commentRequestDto) {
         this.comment = commentRequestDto.getComment();
-        this.modifiedAt = LocalDateTime.now();
     }
 
 }
