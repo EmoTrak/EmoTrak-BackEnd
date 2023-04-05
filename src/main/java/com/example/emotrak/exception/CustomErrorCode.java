@@ -14,6 +14,7 @@ public enum CustomErrorCode {
     NOT_EMAIL_PATTERN (BAD_REQUEST, "x-1001", "올바른 이메일 형식이 아닙니다."),
     EMAIL_BLANK (BAD_REQUEST, "x-1002", "이메일을 입력해주세요."),
     PASSWORD_BLANK (BAD_REQUEST, "x-1003", "비밀번호를 입력해주세요."),
+    NICKNAME_BLANK (BAD_REQUEST, "x-1003", "닉네임을 입력해주세요."),
     NOT_PASSWORD_PATTERN (BAD_REQUEST, "x-1004", "비밀번호 조건을 확인해주세요."),
     USER_NOT_FOUND(BAD_REQUEST, "x-1005", "등록된 사용자가 없습니다."),
     NOT_PROPER_PASSWORD(BAD_REQUEST, "x-1006", "비밀번호가 일치하지 않습니다."),
@@ -38,9 +39,8 @@ public enum CustomErrorCode {
 
 
     /* 409 CONFLICT : 중복 */
-    DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다")
-
-    ;
+    DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다"),
+    DUPLICATE_NICKNAME(CONFLICT, "x-1001", "중복된 닉네임이 존재합니다");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
