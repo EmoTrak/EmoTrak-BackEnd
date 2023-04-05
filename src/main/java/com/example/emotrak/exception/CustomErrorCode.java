@@ -19,6 +19,8 @@ public enum CustomErrorCode {
     NOT_PROPER_PASSWORD(BAD_REQUEST, "x-1006", "비밀번호가 일치하지 않습니다."),
     NOT_ADMIN (BAD_REQUEST, "x-1007", "관리자 암호가 일치하지 않습니다."),
     FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다" ),
+    FILE_DELETION_ERROR(BAD_REQUEST, "x-1009", "파일 삭제 중 에러가 발생했습니다"),
+
 
 
     /* 401 UNAUTHORIZED : 권한 없음 */

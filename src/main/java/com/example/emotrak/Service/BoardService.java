@@ -1,9 +1,7 @@
 package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.BoardRequestDto;
-import com.example.emotrak.entity.Daily;
-import com.example.emotrak.entity.Emotion;
-import com.example.emotrak.entity.User;
+import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.BoardRepository;
@@ -18,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -31,47 +31,36 @@ public class BoardService {
 
 
     //감정글 추가
-    public Daily createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) throws IOException {
-        String imageUrl = null;
-        if (image != null && !image.isEmpty()) {
-            // 이미지 파일 업로드
-            imageUrl = fileUploadService.uploadFile(image);
-        }
-        //Emotion 객체 찾기
-        Emotion emotion = emotionRepository.findById(boardRequestDto.getEmoId())
-                .orElseThrow(() -> new CustomException(CustomErrorCode.CONTENT_NOT_FOUND));
+    public void createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
+        /*
+        중복되는 이미지 처리 코드를 별도의 메서드로 분리
+        업로드하려는 새 이미지 파일, 현재 이미지의 URL(createDaily 에서는 이미지가 없으므로 null 값을 전달)
+        삭제할지 여부를 나타내는 boolean 값(요청에 이미지 삭제가 포함되어 있으면 true 값을 전달)
+        */
+        String imageUrl = handleImage(image, null, false);
+        // Emotion 객체 찾기
+        Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
-        return boardRepository.save(daily);
+        boardRepository.save(daily);
     }
 
     // 글 수정
-    public Daily updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) throws IOException {
-        Daily daily = boardRepository.findById(dailyId)
-                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
-        String newImageUrl = daily.getImgUrl();
-        if (image != null) {
-            if (!image.isEmpty()) {
-                // S3에서 이전 파일 삭제 및 새 파일 업로드
-                newImageUrl = fileUploadService.updateFile(daily.getImgUrl(), image);
-            } else {
-                // 이미지를 null로 설정하여 이전 이미지 삭제
-                fileUploadService.deleteFile(daily.getImgUrl());
-                newImageUrl = null;
-            }
-        }
-        //Emotion 객체 찾기
-        Emotion emotion = emotionRepository.findById(boardRequestDto.getEmoId())
-                .orElseThrow(() -> new CustomException(CustomErrorCode.CONTENT_NOT_FOUND)); //Invalid emotion ID 추가필요 (이진님파일함칠때바뀜)
+    public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) throws IOException {
+        Daily daily = findDailyById(dailyId);
+        validateUserOrAdmin(user, daily);
+        String newImageUrl = handleImage(image, daily.getImgUrl(), boardRequestDto.isDeleteImg());
+        // Emotion 객체 찾기
+        Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
         daily.update(newImageUrl, boardRequestDto, emotion);
-        return boardRepository.save(daily);
+        boardRepository.save(daily);
     }
 
     // 글 삭제
     public void deleteDaily(Long dailyId, User user) {
-        Daily daily = boardRepository.findById(dailyId)
-                .orElseThrow(() -> new  CustomException(CustomErrorCode.CONTENT_NOT_FOUND));
+        Daily daily = findDailyById(dailyId);
+        validateUserOrAdmin(user, daily);
         // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
         if (daily.getImgUrl() != null) {
             fileUploadService.deleteFile(daily.getImgUrl());
@@ -80,11 +69,48 @@ public class BoardService {
         boardRepository.delete(daily);
     }
 
-    // 이미지 유효성 검사 예외처리
+    //예외처리
     public void validateImage(MultipartFile image) {
-        if (image.getSize() > MAX_FILE_SIZE) throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
-        if (!ALLOWED_IMAGE_CONTENT_TYPES.contains(image.getContentType())) throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);  //상의후결정
+        if (image.getSize() > MAX_FILE_SIZE || !ALLOWED_IMAGE_CONTENT_TYPES.contains(image.getContentType())) {
+            throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);}
     }
+
+    private Daily findDailyById(Long dailyId) {
+        return boardRepository.findById(dailyId)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
+    }
+
+    private Emotion findEmotionById(Long emotionId) {
+        return emotionRepository.findById(emotionId)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.CONTENT_NOT_FOUND));
+    }
+
+    private String handleImage(MultipartFile image, String currentImageUrl, boolean deleteImg) {
+        String newImageUrl = currentImageUrl;
+        //deleteImg가 true(이미지삭제요청)인 경우, 기존 이미지 삭제 및 업로드
+        if (deleteImg) {
+            if (currentImageUrl != null) {
+                fileUploadService.deleteFile(currentImageUrl);
+            }
+            newImageUrl = null;
+        }
+        // 이미지가 null이 아니고 비어있지 않은 경우, 새로운 이미지 업로드
+        if (image != null && !image.isEmpty()) {
+            validateImage(image);
+            newImageUrl = fileUploadService.uploadFile(image);
+        }
+        return newImageUrl;
+    }
+
+    private void validateUserOrAdmin(User user, Daily daily) {
+        if (daily.getUser().getId() != user.getId() && user.getRole() != ADMIN) {
+            throw new CustomException(CustomErrorCode.NOT_AUTHOR);
+        }
+    }
+
+
+
+
 
 //    public BoardDetailResponseDto getBoardDetail(Long dailyId, User user) {
 //        Daily daily = boardRepository.findById(dailyId)
