@@ -99,10 +99,10 @@ public class UserService {
         if(!encoder.matches(loginRequestDto.getPassword(), encodePassword)){
             throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
         }
-        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
-        validation.tokenToHeaders(tokenDto,response);
+//        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
+//        validation.tokenToHeaders(tokenDto,response);
 
-        //response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
     }
 
     // 이메일 중복 체크. 이메일이 있으면 true - 중복된 이메일 반환 / 이메일이 없으면 false 사용가능한 이메일
