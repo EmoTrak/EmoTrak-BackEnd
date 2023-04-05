@@ -2,22 +2,16 @@ package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.UserService;
 import com.example.emotrak.dto.CheckEmailRequestDto;
+import com.example.emotrak.dto.CheckNicknameRequestDto;
 import com.example.emotrak.dto.LoginRequestDto;
 import com.example.emotrak.dto.SignupRequestDto;
-import com.example.emotrak.exception.CustomErrorCode;
-import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.exception.ResponseMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import com.example.emotrak.exception.CustomExceptionHandler;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,6 +30,13 @@ public class UserController {
     public ResponseEntity<?> signupEmailCheck(@RequestBody CheckEmailRequestDto checkEmailRequestDto){
         userService.signupEmailCheck(checkEmailRequestDto);
         return ResponseMessage.successResponse(HttpStatus.OK, "사용가능한 이메일 입니다.", null);
+
+    }
+    // 1-2. 회원 가입시 닉네임 체크
+    @PostMapping("/nick-check")
+    public ResponseEntity<?> signupNicknameCheck(@RequestBody CheckNicknameRequestDto checkNicknameRequestDto){
+        userService.signupNicknameCheck((checkNicknameRequestDto));
+        return ResponseMessage.successResponse(HttpStatus.OK, "사용가능한 닉네임 입니다.", null);
 
     }
 
