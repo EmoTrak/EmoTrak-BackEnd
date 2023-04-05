@@ -1,31 +1,21 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.domain.HashTag;
-import com.example.emotrak.domain.Message;
+
 import com.example.emotrak.dto.*;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.JwtUtil;
-import com.example.emotrak.jwt.TokenProvider;
-import com.example.emotrak.repository.HashTagRepository;
-import com.example.emotrak.repository.RefreshTokenRepository;
+
 import com.example.emotrak.repository.UserRepository;
-import com.example.emotrak.util.RefreshToken;
-import com.example.emotrak.util.Validation;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,11 +25,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
-    private final TokenProvider tokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final HttpServletResponse response;
-    private final Validation validation;
-    private final HashTagRepository hashTagRepository;
+//    private final TokenProvider tokenProvider;
+//    private final RefreshTokenRepository refreshTokenRepository;
+//    private final HttpServletResponse response;
+//    private final Validation validation;
+//    private final HashTagRepository hashTagRepository;
     // ADMIN_TOKEN
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 

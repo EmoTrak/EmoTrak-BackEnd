@@ -14,14 +14,12 @@ public enum CustomErrorCode {
     NOT_EMAIL_PATTERN (BAD_REQUEST, "x-1001", "올바른 이메일 형식이 아닙니다."),
     EMAIL_BLANK (BAD_REQUEST, "x-1002", "이메일을 입력해주세요."),
     PASSWORD_BLANK (BAD_REQUEST, "x-1003", "비밀번호를 입력해주세요."),
-    NICKNAME_BLANK (BAD_REQUEST, "x-1003", "닉네임을 입력해주세요."),
     NOT_PASSWORD_PATTERN (BAD_REQUEST, "x-1004", "비밀번호 조건을 확인해주세요."),
     USER_NOT_FOUND(BAD_REQUEST, "x-1005", "등록된 사용자가 없습니다."),
     NOT_PROPER_PASSWORD(BAD_REQUEST, "x-1006", "비밀번호가 일치하지 않습니다."),
     NOT_ADMIN (BAD_REQUEST, "x-1007", "관리자 암호가 일치하지 않습니다."),
     FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다" ),
-
-
+    NICKNAME_BLANK (BAD_REQUEST, "x-1009", "닉네임을 입력해주세요."),
     /* 401 UNAUTHORIZED : 권한 없음 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "Expired JWT token"),
     NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다"),
