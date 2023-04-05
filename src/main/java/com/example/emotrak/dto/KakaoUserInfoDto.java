@@ -9,8 +9,11 @@ public class KakaoUserInfoDto {
     private Long id;
     private String email;
 
-    public KakaoUserInfoDto(Long id, String email) {
+    private String nickname;
+
+    public KakaoUserInfoDto(Long id, String email,String nickname) {
         this.id = id;
         this.email = email;
+        this.nickname = nickname;
     }
 }
