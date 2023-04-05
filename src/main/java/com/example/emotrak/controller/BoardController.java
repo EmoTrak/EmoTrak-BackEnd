@@ -1,6 +1,7 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.BoardService;
+import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
@@ -50,22 +51,13 @@ public class BoardController {
         return ResponseMessage.successResponse(HttpStatus.OK, "글삭제 성공", null);
     }
 
-
-
-
-
-
-
-
-    //공유게시판 전체조회 > 이건 나중에 api 완성된다....
-
-
     //공유게시판 상세페이지
-//    @GetMapping(value = "/boards/{boardId}")
-//    public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
-//                                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-//        // 게시글 정보 조회 처리
-//        BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, userDetails.getUser());
-//        return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardDetailResponseDto);
-//    }
+    @GetMapping(value = "/boards/{boardId}")
+    public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
+                                             @RequestParam(value = "page", defaultValue = "0") int page,
+                                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 게시글 정보 조회 처리
+        BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, userDetails.getUser(), page);
+        return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardDetailResponseDto);
+    }
 }

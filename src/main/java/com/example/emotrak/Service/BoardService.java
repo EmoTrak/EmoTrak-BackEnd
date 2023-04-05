@@ -1,6 +1,8 @@
 package com.example.emotrak.Service;
 
+import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.CommentDetailResponseDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
@@ -8,6 +10,10 @@ import com.example.emotrak.repository.BoardRepository;
 import com.example.emotrak.repository.CommentRepository;
 import com.example.emotrak.repository.EmotionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
@@ -108,26 +115,17 @@ public class BoardService {
         }
     }
 
-
-
-
-
-//    public BoardDetailResponseDto getBoardDetail(Long dailyId, User user) {
-//        Daily daily = boardRepository.findById(dailyId)
-//                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
-//        // 댓글 목록 조회
-//        List<Comment> commentList = commentRepository.findAllByDaily(daily);
-//        // 댓글 목록을 CommentDto로 변환
-//        List<CommentDetailResponseDto> commentDetailResponseDtoList = commentList.stream()
-//                .map(comment -> new CommentDetailResponseDto(
-//                        comment.getId(),
-//                        comment.getUser().getEmail(),
-//                        comment.getComment(),
-//                        comment.getCreatedAt().toString(),
-//                        comment.getUser().getId().equals(user.getId())))
-//                .collect(Collectors.toList());
-//        // 게시글 정보를 BoardDetailsDto로 변환
-//        BoardDetailResponseDto boardDetailResponseDto = new BoardDetailResponseDto(daily, commentDetailResponseDtoList);
-//        return boardDetailsDto;
-//    }
+    //공유게시판 상세페이지
+    public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
+        Daily daily = boardRepository.findById(id).orElseThrow(
+                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
+        );
+        // 페이지네이션을 적용하여 댓글 목록 가져오기
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
+        List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
+                .map(comment -> new CommentDetailResponseDto(comment, user))
+                .collect(Collectors.toList());
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList);
+    }
 }

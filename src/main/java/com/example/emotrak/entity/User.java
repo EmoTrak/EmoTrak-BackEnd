@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 
 @Getter
 @NoArgsConstructor
@@ -43,5 +42,10 @@ public class User {
     public User kakaoIdUpdate(Long kakaoId) {
         this.kakaoId = kakaoId;
         return this;
+    }
+
+    public boolean hasAdmin() {
+        // 관리자 권한을 확인하는 로직을 작성합니다.
+        return this.role == UserRoleEnum.ADMIN;
     }
 }
