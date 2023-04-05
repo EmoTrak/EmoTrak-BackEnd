@@ -14,8 +14,6 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @RequiredArgsConstructor
-@ComponentScan(basePackages = "com.example")
-@PropertySource("classpath:application-mysql.properties")
 public class FileUploadConfig {
 
     @Value("${cloud.aws.credentials.access-key}")
