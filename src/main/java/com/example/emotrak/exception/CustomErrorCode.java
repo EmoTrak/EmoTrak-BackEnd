@@ -41,8 +41,8 @@ public enum CustomErrorCode {
 
 
     /* 409 CONFLICT : 중복 */
-    DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다")
-
+    DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다"),
+    DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다");
     ;
 
     private final HttpStatus httpStatus;
