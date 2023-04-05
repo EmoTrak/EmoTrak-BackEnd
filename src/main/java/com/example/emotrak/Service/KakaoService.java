@@ -98,13 +98,13 @@ public class KakaoService {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         Long id = jsonNode.get("id").asLong();
-//        String nickname = jsonNode.get("properties")
-//                .get("nickname").asText();
+        String nickname = jsonNode.get("properties")
+                .get("nickname").asText();
         String email = jsonNode.get("kakao_account")
                 .get("email").asText();
 
         log.info("카카오 사용자 정보: " + id + ", " + email);
-        return new KakaoUserInfoDto(id, email);
+        return new KakaoUserInfoDto(id, email,nickname);
     }
     // 3. 필요시에 회원가입
     private User registerKakaoUserIfNeeded(KakaoUserInfoDto kakaoUserInfo) {
@@ -128,8 +128,9 @@ public class KakaoService {
 
                 // email: kakao email
                 String email = kakaoUserInfo.getEmail();
+                String nickname = kakaoUserInfo.getNickname()+"_"+ kakaoUserInfo.getId();
 
-                kakaoUser = new User(encodedPassword, email, kakaoId, UserRoleEnum.USER);
+                kakaoUser = new User(encodedPassword, email,nickname,kakaoId, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
         }

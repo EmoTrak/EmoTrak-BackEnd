@@ -17,6 +17,8 @@ public class SignupRequestDto {
     //@Pattern(regexp = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$", message = "숫자와 영어 소문자와 특수문자를 사용해 8-15자리 비밀번호를 입력해주세요.")
     private String password;
 
+    private String nickname;
+
     private boolean admin = false;
 
     private String adminToken ="";
