@@ -20,6 +20,10 @@ public enum CustomErrorCode {
     NOT_ADMIN (BAD_REQUEST, "x-1007", "관리자 암호가 일치하지 않습니다."),
     FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다" ),
     NICKNAME_BLANK (BAD_REQUEST, "x-1009", "닉네임을 입력해주세요."),
+    FILE_DELETION_ERROR(BAD_REQUEST, "x-1010", "파일 삭제 중 에러가 발생했습니다"),
+
+
+
     /* 401 UNAUTHORIZED : 권한 없음 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "Expired JWT token"),
     NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다"),
@@ -38,7 +42,7 @@ public enum CustomErrorCode {
 
     /* 409 CONFLICT : 중복 */
     DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다"),
-    DUPLICATE_NICKNAME(CONFLICT, "x-1001", "중복된 닉네임이 존재합니다");
+    DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
