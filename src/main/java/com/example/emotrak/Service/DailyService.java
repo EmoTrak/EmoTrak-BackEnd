@@ -1,9 +1,13 @@
 package com.example.emotrak.Service;
 
+import com.example.emotrak.dto.DailyDetailResponseDto;
 import com.example.emotrak.dto.DailyMonthResponseDto;
 import com.example.emotrak.dto.DailyRequestDto;
 import com.example.emotrak.dto.DailyResponseDto;
+import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
+import com.example.emotrak.exception.CustomErrorCode;
+import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.DailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +22,20 @@ public class DailyService {
 
     @Transactional
     public DailyResponseDto<DailyMonthResponseDto> getDailyMonth(DailyRequestDto dailyRequestDto, User user) {
-        List<DailyMonthResponseDto> dailyMonthResponseDtoList = dailyRepository.getDailyMonth(dailyRequestDto.getYear(), dailyRequestDto.getMonth(), user.getId());
+        List<DailyMonthResponseDto> dailyMonthResponseDtoList
+                = dailyRepository.getDailyMonth(dailyRequestDto.getYear(), dailyRequestDto.getMonth(), user.getId());
         return new DailyResponseDto(dailyRequestDto.getYear(), dailyRequestDto.getMonth(), dailyMonthResponseDtoList);
+    }
+
+    @Transactional
+    public DailyResponseDto getDailyDetail(Long dailyId) {
+        Daily daily = getDaily(dailyId);
+        List<DailyDetailResponseDto> dailyDetailResponseDtoList = dailyRepository.getDailyDetail(dailyId);
+        return new DailyResponseDto(daily.getYear(), daily.getMonth(), dailyDetailResponseDtoList);
+    }
+
+    public Daily getDaily(Long dailyId) {
+        return dailyRepository.findById(dailyId)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
     }
 }

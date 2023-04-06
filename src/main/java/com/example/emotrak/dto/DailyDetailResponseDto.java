@@ -9,11 +9,12 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DailyMonthResponseDto {
-
+public class DailyDetailResponseDto {
     private Long id;
     private int day;
     private Long emoId;
+    private int star;
     private String detail;
+    private String imgUrl;
 
 }
