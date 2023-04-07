@@ -1,21 +1,30 @@
 package com.example.emotrak.Service;
 
-
+import com.example.emotrak.domain.Message;
 import com.example.emotrak.dto.*;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-import com.example.emotrak.jwt.JwtUtil;
 
+import com.example.emotrak.jwt.TokenProvider;
+import com.example.emotrak.repository.RefreshTokenRepository;
 import com.example.emotrak.repository.UserRepository;
 
+import com.example.emotrak.util.RefreshToken;
+import com.example.emotrak.util.Validation;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,13 +32,11 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
+    //private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
-//    private final TokenProvider tokenProvider;
-//    private final RefreshTokenRepository refreshTokenRepository;
-//    private final HttpServletResponse response;
-//    private final Validation validation;
-//    private final HashTagRepository hashTagRepository;
+    private final TokenProvider tokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final Validation validation;
     // ADMIN_TOKEN
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
@@ -71,7 +78,7 @@ public class UserService {
     }
 
     // 로그인
-    @Transactional(readOnly = true)
+    @Transactional
     public void login(LoginRequestDto loginRequestDto, HttpServletResponse response){
         String email = loginRequestDto.getEmail();
 
@@ -89,11 +96,11 @@ public class UserService {
         if(!encoder.matches(loginRequestDto.getPassword(), encodePassword)){
             throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
         }
-//        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
-//        validation.tokenToHeaders(tokenDto,response);
+        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
+        validation.tokenToHeaders(tokenDto,response);
 
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
-        response.addHeader("nickname", user.getNickname());
+//        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
+//        response.addHeader("nickname", user.getNickname());
     }
 
     // 이메일 중복 체크. 이메일이 있으면 true - 중복된 이메일 반환 / 이메일이 없으면 false 사용가능한 이메일
@@ -125,30 +132,30 @@ public class UserService {
     }
 
     //============ 리프레시토큰 발급
-//    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-//        tokenProvider.validateToken(request.getHeader("Refresh-Token"));
-//        User requestingUser = validation.validateUserToRefresh(request);
-//        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
-//        long now = (new Date().getTime());
-//
-//        if (now>accessTokenExpire){
-//            tokenProvider.deleteRefreshToken(requestingUser);
-//            throw new CustomException(CustomErrorCode.INVALID_TOKEN);}
-//
-//        RefreshToken refreshTokenConfirm = refreshTokenRepository.findByUser(requestingUser).orElse(null);
-//        if (refreshTokenConfirm == null) {
-//            throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
-//        }
-//        if (Objects.equals(refreshTokenConfirm.getValue(), request.getHeader("Refresh-Token"))) {
-//            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
-//            validation.accessTokenToHeaders(tokenDto, response);
-//            return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
-//        } else {
-//            tokenProvider.deleteRefreshToken(requestingUser);
-//            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
-//        }
-//    }
-//
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        tokenProvider.validateToken(request.getHeader("Refresh-Token"));
+        User requestingUser = validation.validateUserToRefresh(request);
+        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
+        long now = (new Date().getTime());
+
+        if (now>accessTokenExpire){
+            tokenProvider.deleteRefreshToken(requestingUser);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);}
+
+        RefreshToken refreshTokenConfirm = refreshTokenRepository.findByUser(requestingUser).orElse(null);
+        if (refreshTokenConfirm == null) {
+            throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
+        }
+        if (Objects.equals(refreshTokenConfirm.getValue(), request.getHeader("Refresh-Token"))) {
+            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
+            validation.accessTokenToHeaders(tokenDto, response);
+            return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
+        } else {
+            tokenProvider.deleteRefreshToken(requestingUser);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+        }
+    }
+
 //    public void hashTagSave(List<String> hashtag, User user){
 //        for(String tag : hashtag){
 //            hashTagRepository.save(

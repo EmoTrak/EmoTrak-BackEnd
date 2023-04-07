@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -45,5 +46,11 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response){
             userService.login(loginRequestDto, response);
             return ResponseMessage.successResponse(HttpStatus.OK, "로그인 완료", null);
+    }
+
+    //3. 리프레시 토큰 발급
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshTokenCheck(HttpServletRequest request, HttpServletResponse response){
+        return userService.refreshToken(request, response);
     }
 }
