@@ -28,4 +28,16 @@ public interface DailyRepository extends JpaRepository<Daily, Long> {
                  + "   and d.user.id = c.user.id "
                  + "   and c.id = :dailyId")
     List<DailyDetailResponseDto> getDailyDetail(@Param("dailyId") Long dailyId);
+
+    @Query(value = "SELECT d.emotion_id, d.month, COUNT(*) "
+                 + "     , ROUND((sum(star) * 100/ (COUNT(*) * total.emotion_total)), 2) as percentage "
+                 + "  FROM daily d, (SELECT d2.user_id, COUNT(*) as emotion_total "
+                 + "                   FROM daily d2 "
+                 + "                  WHERE d2.year = :year AND d2.user_id = :userId "
+                 + "                  GROUP BY d2.user_id) total "
+                 + " WHERE d.year = :year AND d.user_id = :userId "
+                 + "   AND d.user_id = total.user_id "
+                 + " GROUP BY d.emotion_id "
+                 + " ORDER BY d.emotion_id", nativeQuery = true)
+    List<Object[]> getDailyCount(@Param("year") int year, @Param("userId") Long userId);
 }
