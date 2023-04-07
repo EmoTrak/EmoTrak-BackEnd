@@ -26,4 +26,8 @@ public class DailyController {
         return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyDetail(dailyId));
     }
 
+    @GetMapping("/test")
+    public ResponseEntity getTest(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getTest(userDetails.getUser()));
+    }
 }
