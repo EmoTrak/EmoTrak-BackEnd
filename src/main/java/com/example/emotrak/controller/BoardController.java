@@ -51,7 +51,14 @@ public class BoardController {
         return ResponseMessage.successResponse(HttpStatus.OK, "글삭제 성공", null);
     }
 
-    //공유게시판 상세페이지
+    // 공유게시판 전체 조회 (이미지)
+    @GetMapping("/boards")
+    public ResponseEntity getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
+        System.out.println("page = " + page);
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo));
+    }
+
+    // 공유게시판 상세페이지
     @GetMapping(value = "/boards/{boardId}")
     public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
                                              @RequestParam(value = "page", defaultValue = "0") int page,
