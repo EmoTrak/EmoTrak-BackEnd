@@ -1,9 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.DailyDetailResponseDto;
-import com.example.emotrak.dto.DailyMonthResponseDto;
-import com.example.emotrak.dto.DailyRequestDto;
-import com.example.emotrak.dto.DailyResponseDto;
+import com.example.emotrak.dto.*;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -38,4 +35,5 @@ public class DailyService {
         return dailyRepository.findById(dailyId)
                 .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
     }
+
 }

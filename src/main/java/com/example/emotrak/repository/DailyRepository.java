@@ -28,4 +28,5 @@ public interface DailyRepository extends JpaRepository<Daily, Long> {
                  + "   and d.user.id = c.user.id "
                  + "   and c.id = :dailyId")
     List<DailyDetailResponseDto> getDailyDetail(@Param("dailyId") Long dailyId);
+
 }
