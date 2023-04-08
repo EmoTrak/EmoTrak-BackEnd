@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,16 +36,4 @@ public class DailyService {
                 .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
     }
 
-    public List<GraphResponseTestDto> getTest(User user) {
-        int year = 2023;
-        Long userId = user.getId();
-        List<Object[]> objects = dailyRepository.getDailyCount(year, userId);
-
-        List<GraphResponseTestDto> graphResponseTestDtoList = new ArrayList<>();
-        for (Object[] object : objects) {
-            GraphResponseTestDto graphResponseTestDto = new GraphResponseTestDto(object);
-            graphResponseTestDtoList.add(graphResponseTestDto);
-        }
-        return graphResponseTestDtoList;
-    }
 }
