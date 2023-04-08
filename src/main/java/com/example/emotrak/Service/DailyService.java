@@ -9,6 +9,7 @@ import com.example.emotrak.repository.DailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -18,10 +19,10 @@ public class DailyService {
     private final DailyRepository dailyRepository;
 
     @Transactional
-    public DailyResponseDto<DailyMonthResponseDto> getDailyMonth(DailyRequestDto dailyRequestDto, User user) {
+    public DailyResponseDto<DailyMonthResponseDto> getDailyMonth(int year, int month, User user) {
         List<DailyMonthResponseDto> dailyMonthResponseDtoList
-                = dailyRepository.getDailyMonth(dailyRequestDto.getYear(), dailyRequestDto.getMonth(), user.getId());
-        return new DailyResponseDto(dailyRequestDto.getYear(), dailyRequestDto.getMonth(), dailyMonthResponseDtoList);
+                = dailyRepository.getDailyMonth(year, month, user.getId());
+        return new DailyResponseDto(year, month, dailyMonthResponseDtoList);
     }
 
     @Transactional
