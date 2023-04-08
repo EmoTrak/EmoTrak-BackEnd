@@ -7,19 +7,19 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
-public class GraphResponseTestDto {
-    private Long id;
+public class GraphResponseDto {
     private int month;
+    private Long id;
     private Long count;
-    private float avg;
+    private float percentage;
 
-    public GraphResponseTestDto(Object[] object) {
-        this.id = ((BigInteger) object[0]).longValue();
-        this.month = ((Integer)object[1]).intValue();
+    public GraphResponseDto(Object[] object) {
+        this.month = ((Integer)object[0]).intValue();
+        this.id = ((BigInteger) object[1]).longValue();
         this.count = ((BigInteger) object[2]).longValue();
-        this.avg = ((BigDecimal) object[3]).floatValue();
+        this.percentage = ((BigDecimal) object[3]).floatValue();
     }
 }
