@@ -1,8 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.BoardDetailResponseDto;
-import com.example.emotrak.dto.BoardRequestDto;
-import com.example.emotrak.dto.CommentDetailResponseDto;
+import com.example.emotrak.dto.*;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
@@ -20,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -115,7 +114,19 @@ public class BoardService {
         }
     }
 
-    //공유게시판 상세페이지
+    // 공유게시판 전체조회(이미지)
+    public List<BoardImgRequestDto> getBoardImages(Long page, Long size, String emo) {
+        List<Object[]> objectList = boardRepository.getBoardImages(page, size, emo);
+
+        List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+        for (Object[] object : objectList) {
+            BoardImgRequestDto boardImgRequestDto = new BoardImgRequestDto(object);
+            boardImgRequestDtoList.add(boardImgRequestDto);
+        }
+        return boardImgRequestDtoList;
+    }
+
+    // 공유게시판 상세페이지
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
@@ -128,4 +139,5 @@ public class BoardService {
                 .collect(Collectors.toList());
         return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList);
     }
+
 }

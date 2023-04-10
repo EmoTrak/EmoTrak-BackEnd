@@ -1,7 +1,6 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.DailyService;
-import com.example.emotrak.dto.DailyRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +16,8 @@ public class DailyController {
 
     private final DailyService dailyService;
     @GetMapping("")
-    public ResponseEntity getDailyMonth(@RequestBody DailyRequestDto dailyRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyMonth(dailyRequestDto, userDetails.getUser()));
+    public ResponseEntity getDailyMonth(@RequestParam int year, @RequestParam int month, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyMonth(year, month, userDetails.getUser()));
     }
 
     @GetMapping("/{dailyId}")
