@@ -55,8 +55,7 @@ public class BoardController {
 
     // 공유게시판 전체 조회 (이미지)
     @GetMapping("/boards")
-    public ResponseEntity getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
-        System.out.println("page = " + page);
+    public ResponseEntity<?> getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
         return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo));
     }
 
