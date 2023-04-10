@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -84,6 +85,14 @@ public class BoardController {
     public ResponseEntity<?> deleteReport(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         boardService.deleteReport(userDetails.getUser(), boardId);
         return ResponseMessage.successResponse(HttpStatus.OK, "게시물 신고 삭제 성공", null);
+    }
+
+    //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
+    @PostMapping("/boards/likes/{boardId}")
+    public ResponseEntity<?> boardlikes(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Map<String, Object> response = boardService.boardlikes(userDetails.getUser(), boardId);
+        String message = (String) response.get("message");
+        return ResponseMessage.successResponse(HttpStatus.OK, message, null);
     }
 
 }
