@@ -25,8 +25,12 @@ public class DailyService {
     }
 
     @Transactional
-    public DailyResponseDto getDailyDetail(Long dailyId) {
+    public DailyResponseDto getDailyDetail(Long dailyId, User user) {
         Daily daily = getDaily(dailyId);
+        if (!daily.getUser().getId().equals(user.getId())) {
+            throw new CustomException(CustomErrorCode.NOT_AUTHOR);
+        }
+
         List<DailyDetailResponseDto> dailyDetailResponseDtoList = dailyRepository.getDailyDetail(dailyId);
         return new DailyResponseDto(daily.getYear(), daily.getMonth(), dailyDetailResponseDtoList);
     }
