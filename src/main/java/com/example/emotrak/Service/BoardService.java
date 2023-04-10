@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
@@ -125,7 +126,9 @@ public class BoardService {
 
     // 공유게시판 전체조회(이미지)
     public List<BoardImgRequestDto> getBoardImages(Long page, Long size, String emo) {
-        List<Object[]> objectList = boardRepository.getBoardImages(page, size, emo);
+        Stream<String> stringStream = Arrays.stream(emo.split(","));
+        List<Long> longImo = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+        List<Object[]> objectList = boardRepository.getBoardImages(page, size, longImo);
 
         List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
         for (Object[] object : objectList) {
