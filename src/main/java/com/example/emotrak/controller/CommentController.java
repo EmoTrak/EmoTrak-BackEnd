@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,7 +54,7 @@ public class CommentController {
                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 게시글 신고 처리
         commentService.createReport(reportRequestDto, userDetails.getUser(), commentId);
-        return ResponseMessage.successResponse(HttpStatus.CREATED, "게시글 신고 성공", null);
+        return ResponseMessage.successResponse(HttpStatus.CREATED, "댓글 신고 성공", null);
     }
 
     //댓글 신고 삭제하기
@@ -61,8 +62,15 @@ public class CommentController {
     public ResponseEntity<?> deleteReport(@PathVariable Long commentId,
                                           @AuthenticationPrincipal UserDetailsImpl userDetails) {
         commentService.deleteReport(userDetails.getUser(), commentId);
-        return ResponseMessage.successResponse(HttpStatus.OK, "게시물 신고 삭제 성공", null);
+        return ResponseMessage.successResponse(HttpStatus.OK, "댓글 신고 삭제 성공", null);
     }
 
+        //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
+        @PostMapping("/comments/likes/{commentId}")
+        public ResponseEntity<?> commentlikes(@PathVariable Long commentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+            Map<String, Object> response = commentService.commentlikes(userDetails.getUser(), commentId);
+            String message = (String) response.get("message");
+            return ResponseMessage.successResponse(HttpStatus.OK, message, null);
+        }
 
 }

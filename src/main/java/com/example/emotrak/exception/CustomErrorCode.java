@@ -29,6 +29,7 @@ public enum CustomErrorCode {
     NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다"),
     REFRESH_TOKEN_IS_EXPIRED(UNAUTHORIZED, "x-1003", "리프레쉬 토큰이 만료되었습니다"),
     NOT_AUTHOR(UNAUTHORIZED, "x-1004", "작성자만 수정/삭제가 가능합니다."),
+    UNAUTHORIZED_ACCESS(UNAUTHORIZED,"x-1005", "권한이 없습니다."),
 
 
     /* 403 FORBIDDEN : 권한 */

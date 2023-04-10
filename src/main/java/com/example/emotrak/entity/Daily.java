@@ -49,6 +49,9 @@ public class Daily extends Timestamped {
     @Column(nullable = false)
     private boolean share;
 
+    @Column(nullable = false)
+    private int boardLikesCnt;
+
     @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
     private List<Comment> comments;
 
@@ -75,6 +78,14 @@ public class Daily extends Timestamped {
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
         this.share = boardRequestDto.isShare();
+    }
+
+    public void plusLikesCount() {
+        this.boardLikesCnt++;
+    }
+
+    public void minusLikesCount() {
+        this.boardLikesCnt--;
     }
 
 }
