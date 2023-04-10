@@ -44,7 +44,7 @@ public class KakaoService {
         // 4. JWT 토큰 반환
         String createToken =  jwtUtil.createToken(kakaoUser.getEmail(), kakaoUser.getRole());
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, createToken);
-
+        response.addHeader("nickname", kakaoUser.getNickname());
     }
     // 1. "인가 코드"로 "액세스 토큰" 요청
     private String getToken(String code) throws JsonProcessingException {
@@ -129,7 +129,12 @@ public class KakaoService {
 
                 // email: kakao email
                 String email = kakaoUserInfo.getEmail();
-                String nickname = kakaoUserInfo.getNickname()+"_"+ kakaoUserInfo.getId();
+
+                String nickname = kakaoUserInfo.getNickname();
+                boolean hasNickname = userRepository.existsByNickname(nickname);
+                if (hasNickname) {
+                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getKakaoName(nickname);
+                }
 
                 kakaoUser = new User(encodedPassword, email,nickname,kakaoId, UserRoleEnum.USER);
             }

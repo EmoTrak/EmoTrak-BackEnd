@@ -2,6 +2,7 @@ package com.example.emotrak.Service;
 
 
 import com.example.emotrak.dto.*;
+import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -16,8 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -124,38 +128,63 @@ public class UserService {
         }
     }
 
-    //============ 리프레시토큰 발급
-//    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
-//        tokenProvider.validateToken(request.getHeader("Refresh-Token"));
-//        User requestingUser = validation.validateUserToRefresh(request);
-//        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
-//        long now = (new Date().getTime());
-//
-//        if (now>accessTokenExpire){
-//            tokenProvider.deleteRefreshToken(requestingUser);
-//            throw new CustomException(CustomErrorCode.INVALID_TOKEN);}
-//
-//        RefreshToken refreshTokenConfirm = refreshTokenRepository.findByUser(requestingUser).orElse(null);
-//        if (refreshTokenConfirm == null) {
-//            throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
-//        }
-//        if (Objects.equals(refreshTokenConfirm.getValue(), request.getHeader("Refresh-Token"))) {
-//            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
-//            validation.accessTokenToHeaders(tokenDto, response);
-//            return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
-//        } else {
-//            tokenProvider.deleteRefreshToken(requestingUser);
-//            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
-//        }
-//    }
-//
-//    public void hashTagSave(List<String> hashtag, User user){
-//        for(String tag : hashtag){
-//            hashTagRepository.save(
-//                    HashTag.builder()
-//                            .user(user)
-//                            .hashtag(tag)
-//                            .build());
-//        }
-//    }
+    public void delete(Long userId, User user) {
+
+        if(userId != user.getId() && user.getRole() != ADMIN) throw new CustomException(CustomErrorCode.NOT_AUTHOR);
+
+        userRepository.delete(user);
+
+    }
+
+    public UserResponseDto userMypage(PasswordRequestDto passwordRequestDto, User user) {
+        //유저인증 객체로 유저정보 가져오기
+        Optional<User> getUser = userRepository.findById(user.getId());
+        if(!getUser.isPresent()){
+            throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
+        User requestUser = getUser.get();
+        // 패스워드가 일치하는지 검증
+        if(!encoder.matches(passwordRequestDto.getPassword(), requestUser.getPassword())){
+                throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
+        }
+
+        return new UserResponseDto(requestUser.getEmail(),requestUser.getNickname());
+    }
+
+    public void nicknameUpdate(NicknameRequestDto nicknameRequestDto, User user) {
+        // 유저 엔티티 가져오기
+        Optional<User> getUser = userRepository.findById(user.getId());
+        User updateUser = getUser.get();
+        // 닉네임이 비어있는지 체크
+        if(nicknameRequestDto.getNickname().equals("")) throw new CustomException(CustomErrorCode.NICKNAME_BLANK);
+
+        // 중복된 닉네임이 있는지 체크
+        boolean isEmailExist = userRepository.existsByNickname(nicknameRequestDto.getNickname());
+        if(isEmailExist){
+            throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
+        }
+        // 유저 닉네임 업데이트 및 저장
+        updateUser.nicknameUpdate(nicknameRequestDto.getNickname());
+        userRepository.save(updateUser);
+    }
+
+    public void passwordUpdate(PasswordRequestDto passwordRequestDto, User user) {
+        // 유저 엔티티 가져오기
+        Optional<User> getUser = userRepository.findById(user.getId());
+        User updateUser = getUser.get();
+        // 패스워드가 비어있는지 체크
+        if(passwordRequestDto.getPassword().equals("")) throw new CustomException(CustomErrorCode.PASSWORD_BLANK);
+
+        // 비밀번호 형식이 일치하는지 체크
+        //passPattern1 = Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$");
+        //숫자와 소문자와 특수문자 !@#$%^&*()중 1개가 포함되어야 하며 8자~15자 사이 인 값
+        Pattern passPattern1 = Pattern.compile("^(?=.*\\d)(?=.*[a-z])[a-z\\d!@#$%^&*()]{8,15}$");
+        Matcher matcher = passPattern1.matcher(passwordRequestDto.getPassword());
+        if (!matcher.find())throw new CustomException(CustomErrorCode.NOT_PASSWORD_PATTERN);
+        // 패스워드 암호화
+        String password = encoder.encode(passwordRequestDto.getPassword());
+        // 패스워드 업데이트 및 저장
+        updateUser.passwordUpdate(password);
+        userRepository.save(updateUser);
+    }
 }

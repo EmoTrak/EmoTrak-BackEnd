@@ -3,6 +3,7 @@ package com.example.emotrak.controller;
 import com.example.emotrak.Service.BoardService;
 import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,8 +55,7 @@ public class BoardController {
 
     // 공유게시판 전체 조회 (이미지)
     @GetMapping("/boards")
-    public ResponseEntity getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
-        System.out.println("page = " + page);
+    public ResponseEntity<?> getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
         return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo));
     }
 
@@ -67,4 +68,30 @@ public class BoardController {
         BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, userDetails.getUser(), page);
         return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardDetailResponseDto);
     }
+
+    //게시물 신고하기
+    @PostMapping(value = "/boards/report/{boardId}")
+    public ResponseEntity<?> reportBoard(@PathVariable Long boardId,
+                                         @RequestBody @Valid ReportRequestDto reportRequestDto,
+                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 게시글 신고 처리
+        boardService.createReport(reportRequestDto, userDetails.getUser(), boardId);
+        return ResponseMessage.successResponse(HttpStatus.CREATED, "게시글 신고 성공", null);
+    }
+
+    //게시물 신고 삭제하기
+    @DeleteMapping("/boards/report/{boardId}")
+    public ResponseEntity<?> deleteReport(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boardService.deleteReport(userDetails.getUser(), boardId);
+        return ResponseMessage.successResponse(HttpStatus.OK, "게시물 신고 삭제 성공", null);
+    }
+
+    //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
+    @PostMapping("/boards/likes/{boardId}")
+    public ResponseEntity<?> boardlikes(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Map<String, Object> response = boardService.boardlikes(userDetails.getUser(), boardId);
+        String message = (String) response.get("message");
+        return ResponseMessage.successResponse(HttpStatus.OK, message, null);
+    }
+
 }
