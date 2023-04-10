@@ -53,6 +53,7 @@ public class WebSecurityConfig {
 
         http.authorizeRequests().antMatchers("/users/**").permitAll()
                 .antMatchers("/kakao/callback").permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
                 .anyRequest().authenticated()
                 // JWT 인증/인가를 사용하기 위한 설정
                 .and().addFilterBefore(new JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
@@ -77,6 +78,7 @@ public class WebSecurityConfig {
         // 특정 헤더를 클라이언트 측에서 사용할 수 있게 지정
         // 만약 지정하지 않는다면, Authorization 헤더 내의 토큰 값을 사용할 수 없음
         config.addExposedHeader("Authorization");
+        config.addExposedHeader("nickname");
 
         // 본 요청에 허용할 HTTP method(예비 요청에 대한 응답 헤더에 추가됨)
         config.addAllowedMethod("*");
