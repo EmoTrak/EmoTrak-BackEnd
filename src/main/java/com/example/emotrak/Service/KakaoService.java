@@ -129,7 +129,12 @@ public class KakaoService {
 
                 // email: kakao email
                 String email = kakaoUserInfo.getEmail();
-                String nickname = kakaoUserInfo.getNickname()+"_"+ kakaoUserInfo.getId();
+
+                String nickname = kakaoUserInfo.getNickname();
+                boolean hasNickname = userRepository.existsByNickname(nickname);
+                if (hasNickname) {
+                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getKakaoName(nickname);
+                }
 
                 kakaoUser = new User(encodedPassword, email,nickname,kakaoId, UserRoleEnum.USER);
             }
