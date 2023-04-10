@@ -46,8 +46,8 @@ public class DailyController {
                     )
             })
     @GetMapping("/{dailyId}")
-    public ResponseEntity getDailyDetail(@PathVariable Long dailyId) {
-        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyDetail(dailyId));
+    public ResponseEntity getDailyDetail(@PathVariable Long dailyId, @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyDetail(dailyId, userDetails.getUser()));
     }
 
 }
