@@ -1,14 +1,13 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.UserService;
-import com.example.emotrak.dto.CheckEmailRequestDto;
-import com.example.emotrak.dto.CheckNicknameRequestDto;
-import com.example.emotrak.dto.LoginRequestDto;
-import com.example.emotrak.dto.SignupRequestDto;
+import com.example.emotrak.dto.*;
 import com.example.emotrak.exception.ResponseMessage;
+import com.example.emotrak.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -46,4 +45,34 @@ public class UserController {
             userService.login(loginRequestDto, response);
             return ResponseMessage.successResponse(HttpStatus.OK, "로그인 완료", null);
     }
+    // 3. 마이 페이지 입장
+    @PostMapping("/mypage")
+    public ResponseEntity<?> userInfo(@RequestBody PasswordRequestDto passwordRequestDto,
+            @AuthenticationPrincipal UserDetailsImpl userDetails){
+        return ResponseMessage.successResponse(HttpStatus.OK, "본인 인증 완료", userService.userMypage(passwordRequestDto, userDetails.getUser()));
+    }
+
+    // 3-1. 닉네입 수정
+    @PatchMapping("/nickname")
+    public ResponseEntity<?> userNicknameUpdate(@RequestBody NicknameRequestDto nicknameRequestDto
+            ,@AuthenticationPrincipal UserDetailsImpl userDetails){
+        userService.nicknameUpdate(nicknameRequestDto, userDetails.getUser());
+        return ResponseMessage.successResponse(HttpStatus.OK, "닉네임 수정 완료", null);
+    }
+
+    // 3-2. 패스워드 수정
+    @PatchMapping("/password")
+    public ResponseEntity<?> userPasswordUpdate(@RequestBody PasswordRequestDto passwordRequestDto
+            ,@AuthenticationPrincipal UserDetailsImpl userDetails){
+        userService.passwordUpdate(passwordRequestDto, userDetails.getUser());
+        return ResponseMessage.successResponse(HttpStatus.OK, "패스워드 수정 완료", null);
+    }
+
+//    // 5. 회원 탈퇴
+//    @DeleteMapping ("/{userId}")
+//    public ResponseEntity<?> userDelete(@PathVariable Long userId
+//            ,@AuthenticationPrincipal UserDetailsImpl userDetails){
+//        userService.delete(userId, userDetails.getUser());
+//        return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
+//    }
 }
