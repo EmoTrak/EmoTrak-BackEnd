@@ -48,6 +48,16 @@ public class User {
         return this;
     }
 
+    public User nicknameUpdate(String nickname) {
+        this.nickname = nickname;
+        return this;
+    }
+
+    public User passwordUpdate(String password) {
+        this.password = password;
+        return this;
+    }
+
     public boolean hasAdmin() {
         // 관리자 권한을 확인하는 로직을 작성합니다.
         return this.role == UserRoleEnum.ADMIN;
