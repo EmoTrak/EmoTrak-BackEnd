@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 public class KakaoUserInfoDto {
     private Long id;
     private String email;
-
     private String nickname;
 
     public KakaoUserInfoDto(Long id, String email,String nickname) {
