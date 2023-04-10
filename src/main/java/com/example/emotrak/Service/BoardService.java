@@ -7,6 +7,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.BoardRepository;
 import com.example.emotrak.repository.CommentRepository;
 import com.example.emotrak.repository.EmotionRepository;
+import com.example.emotrak.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
@@ -32,6 +34,7 @@ public class BoardService {
     private final FileUploadService fileUploadService;
     private final EmotionRepository emotionRepository;
     private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
     private static final long MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB,이부분은 수정이 필요함 1048576 bytes=1MB
     private static final List<String> ALLOWED_IMAGE_CONTENT_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/gif");
 
@@ -140,4 +143,24 @@ public class BoardService {
         return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList);
     }
 
+
+    //게시물 신고하기
+    public void createReport(ReportRequestDto reportRequestDto, User user, Long id) {
+        Daily daily = boardRepository.findById(id).orElseThrow(
+                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
+        );
+        Optional<Report> existingReport = reportRepository.findByUserAndDailyId(user, id);
+        if (existingReport.isPresent()) {
+            throw new CustomException(CustomErrorCode.DUPLICATE_REPORT); // 이미 신고한 게시물입니다.
+        }
+        Report report = new Report(reportRequestDto, user, daily);
+        reportRepository.save(report);
+    }
+
+    // 게시물 신고 삭제하기
+    public void deleteReport(User user, Long id) {
+        Report report = reportRepository.findByUserAndDailyId(user, id)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.REPORT_NOT_FOUND));
+        reportRepository.delete(report);
+    }
 }

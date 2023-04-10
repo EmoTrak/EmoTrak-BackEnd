@@ -38,11 +38,13 @@ public enum CustomErrorCode {
     BOARD_NOT_FOUND(NOT_FOUND, "x-1001", "선택한 게시물을 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(NOT_FOUND, "x-1002", "선택한 댓글을 찾을 수 없습니다."),
     CONTENT_NOT_FOUND(NOT_FOUND, "x-1003", "찾을 수 없는 유형입니다."),
+    REPORT_NOT_FOUND(NOT_FOUND,"x-1004","신고내역을 찾을 수 없습니다"),
 
 
     /* 409 CONFLICT : 중복 */
     DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다"),
-    DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다");
+    DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다"),
+    DUPLICATE_REPORT(CONFLICT,"x-1003" ,"이미 신고한 게시물입니다" );
 
     private final HttpStatus httpStatus;
     private final String errorCode;

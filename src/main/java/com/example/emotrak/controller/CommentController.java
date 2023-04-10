@@ -2,6 +2,7 @@ package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.CommentService;
 import com.example.emotrak.dto.CommentRequestDto;
+import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,4 +45,24 @@ public class CommentController {
         commentService.deleteComment(commentId, userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "댓글 삭제 성공", null);
     }
+
+    //댓글 신고하기
+    @PostMapping("/comments/report/{commentId}")
+    public ResponseEntity<?> reportBoard(@PathVariable Long commentId,
+                                         @RequestBody ReportRequestDto reportRequestDto,
+                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 게시글 신고 처리
+        commentService.createReport(reportRequestDto, userDetails.getUser(), commentId);
+        return ResponseMessage.successResponse(HttpStatus.CREATED, "게시글 신고 성공", null);
+    }
+
+    //댓글 신고 삭제하기
+    @DeleteMapping("/comments/report/{commentId}")
+    public ResponseEntity<?> deleteReport(@PathVariable Long commentId,
+                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        commentService.deleteReport(userDetails.getUser(), commentId);
+        return ResponseMessage.successResponse(HttpStatus.OK, "게시물 신고 삭제 성공", null);
+    }
+
+
 }
