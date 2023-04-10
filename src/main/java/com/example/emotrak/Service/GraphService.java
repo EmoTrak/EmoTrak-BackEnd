@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,9 +23,18 @@ public class GraphService {
         List<Object[]> objects = graphRepository.getGraph(year, userId);
 
         List<GraphResponseDto> graphResponseDtoList = new ArrayList<>();
+        GraphResponseDto graphResponseDto = null;
         for (Object[] object : objects) {
-            GraphResponseDto graphResponseDto = new GraphResponseDto(object);
-            graphResponseDtoList.add(graphResponseDto);
+            int month = ((Integer)object[0]).intValue();
+            Long id = ((BigInteger) object[1]).longValue();
+            Long count = ((BigInteger) object[2]).longValue();
+            float percentage = ((BigDecimal) object[3]).floatValue();
+
+            if (graphResponseDto == null || graphResponseDto.getMonth() != month) {
+                graphResponseDto = new GraphResponseDto(object);
+                graphResponseDtoList.add(graphResponseDto);
+            }
+            graphResponseDto.addidCountPercentage(id, count, percentage);
         }
         return graphResponseDtoList;
     }

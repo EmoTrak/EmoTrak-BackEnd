@@ -4,22 +4,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 @Setter
 @Getter
 @NoArgsConstructor
 public class GraphResponseDto {
     private int month;
-    private Long id;
-    private Long count;
-    private float percentage;
+    private List<GraphIdCountResponseDto> graph;
 
     public GraphResponseDto(Object[] object) {
         this.month = ((Integer)object[0]).intValue();
-        this.id = ((BigInteger) object[1]).longValue();
-        this.count = ((BigInteger) object[2]).longValue();
-        this.percentage = ((BigDecimal) object[3]).floatValue();
+        this.graph = new ArrayList<>();
+    }
+
+    public void addidCountPercentage(Long id, Long count, float percentage){
+        this.graph.add(new GraphIdCountResponseDto(id,count,percentage));
     }
 }
