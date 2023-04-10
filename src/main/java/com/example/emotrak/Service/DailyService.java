@@ -28,7 +28,7 @@ public class DailyService {
     public DailyResponseDto getDailyDetail(Long dailyId, User user) {
         Daily daily = getDaily(dailyId);
         if (!daily.getUser().getId().equals(user.getId())) {
-            throw new CustomException(CustomErrorCode.NOT_AUTHOR);
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         List<DailyDetailResponseDto> dailyDetailResponseDtoList = dailyRepository.getDailyDetail(dailyId);
