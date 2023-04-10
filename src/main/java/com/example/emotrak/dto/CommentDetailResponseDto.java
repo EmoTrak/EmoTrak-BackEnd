@@ -18,6 +18,7 @@ public class CommentDetailResponseDto {
     private String comment;
     private String createdAt;
     private boolean hasAuth;
+    private String nickname;
 
     private String formatCreatedAt(LocalDateTime createdAt) {
        return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -29,5 +30,6 @@ public class CommentDetailResponseDto {
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
         this.hasAuth = comment.getUser().equals(user) || user.hasAdmin();
+        this.nickname = user.getNickname();
     }
 }

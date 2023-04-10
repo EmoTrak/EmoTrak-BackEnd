@@ -21,6 +21,7 @@ public class BoardDetailResponseDto {
     private String detail;
     private String imgUrl;
     private boolean hasAuth;
+    private String nickname;
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
     private String formatCreatedAt(LocalDateTime createdAt) {
@@ -43,6 +44,7 @@ public class BoardDetailResponseDto {
         this.imgUrl = daily.getImgUrl();
         this.hasAuth = daily.getUser().equals(user) || user.hasAdmin();
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
+        this.nickname = user.getNickname();
 
     }
 }
