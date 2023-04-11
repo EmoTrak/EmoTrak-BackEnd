@@ -1,8 +1,7 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.ReportBoardResponseDto;
-import com.example.emotrak.dto.ReportCommentResponseDto;
-import com.example.emotrak.entity.Daily;
+import com.example.emotrak.dto.ReportResponseDto;
+
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,49 +23,35 @@ public class AdminService {
     private final BoardRepository boardRepository;
 
     //신고 게시글 조회
-    public List<ReportBoardResponseDto> reportBoard(User user) {
+    public List<ReportResponseDto> reportBoard(User user) {
         if (user.getRole() != UserRoleEnum.ADMIN) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         List<Object[]> objectList = adminRepository.getReportBoard();
 
-        List<ReportBoardResponseDto> reportBoardResponseDtoList = new ArrayList<>();
-        ReportBoardResponseDto reportBoardResponseDto = null;
+        List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
         for (Object[] object : objectList) {
-            Long id = ((BigInteger) object[0]).longValue();
-            String reason = (String) object[2];
-
-            if (reportBoardResponseDto == null || reportBoardResponseDto.getId() != id) {
-                reportBoardResponseDto = new ReportBoardResponseDto(object);
-                reportBoardResponseDtoList.add(reportBoardResponseDto);
-            }
-            reportBoardResponseDto.addReasom(reason);
+            ReportResponseDto reportResponseDto = new ReportResponseDto(object);
+            reportBoardResponseDtoList.add(reportResponseDto);
         }
         return reportBoardResponseDtoList;
     }
 
-    public List<ReportCommentResponseDto> reportComment(User user) {
+    public List<ReportResponseDto> reportComment(User user) {
         if (user.getRole() != UserRoleEnum.ADMIN) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
         List<Object[]> objectList = adminRepository.getReportComment();
 
-        List<ReportCommentResponseDto> reportCommentResponseDtoList = new ArrayList<>();
-        ReportCommentResponseDto reportCommentResponseDto = null;
+        List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
 
         for (Object[] object : objectList) {
-            Long id = ((BigInteger) object[0]).longValue();
-            String reason = (String) object[2];
-            if (reportCommentResponseDto == null || reportCommentResponseDto.getId() != id) {
-                reportCommentResponseDto = new ReportCommentResponseDto(object);
-                reportCommentResponseDtoList.add(reportCommentResponseDto);
-            }
-            reportCommentResponseDto.addComment(reason);
+            ReportResponseDto reportResponseDto = new ReportResponseDto(object);
+            reportBoardResponseDtoList.add(reportResponseDto);
         }
-        return reportCommentResponseDtoList;
+        return reportBoardResponseDtoList;
     }
-
 
     public void restrictBoard(Long boardId, User user) {
         if (user.getRole() != UserRoleEnum.ADMIN) {
