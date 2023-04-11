@@ -103,10 +103,6 @@ public class NaverService {
         String id = responseNode.get("id").asText(); // 변경된 부분
         String email = responseNode.get("email").asText();
         String nickname = responseNode.get("nickname").asText();
-        System.out.println("naverId = " + id);
-        System.out.println("email = " + email);
-        System.out.println("nickname = " + nickname);
-        System.out.println(responseBody);
         return new NaverUserInfoDto(id, email, nickname);
     }
     private User registerNaverUserIfNeeded (NaverUserInfoDto naverUserInfo){
