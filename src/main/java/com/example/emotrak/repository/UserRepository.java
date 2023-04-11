@@ -18,4 +18,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
                  + "  WHERE SUBSTRING_INDEX(nickname, '_', 1) = :nickname"
                  + "    AND nickname <> :nickname ")
     Long getKakaoName(@Param("nickname") String nickname);
+
+    Optional<User> findByNaverId(String naverId);
+
+    @Query(value = " SELECT COALESCE(MAX(SUBSTRING_INDEX(nickname, '_', -1)), 0) + 1"
+            + "   FROM users"
+            + "  WHERE SUBSTRING_INDEX(nickname, '_', 1) = :nickname"
+            + "    AND nickname <> :nickname ",
+            nativeQuery = true) //nativeQuery = true를 추가
+    Long getNaverName(@Param("nickname") String nickname);
+
 }
