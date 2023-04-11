@@ -127,7 +127,7 @@ public class BoardService {
 
 
     // 공유게시판 전체조회(이미지)
-    public List<BoardImgRequestDto> getBoardImages(int page, int size, String emo, String sort) {
+    public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
@@ -136,16 +136,22 @@ public class BoardService {
             sortPage = Sort.by(Sort.Direction.DESC, "created_at");
         else  sortPage = Sort.by(Sort.Direction.DESC, "board_likes_cnt").and(Sort.by(Sort.Direction.DESC, "created_at"));
 
-        Pageable pageable = PageRequest.of(page-1, size, sortPage);
+        Pageable pageable = PageRequest.of(page-1, size+1, sortPage);
 
         List<Object[]> objectList = boardRepository.getBoardImages(emoList, pageable);
 
+        boolean lastPage = true;
         List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-        for (Object[] object : objectList) {
-            BoardImgRequestDto boardImgRequestDto = new BoardImgRequestDto(object);
+        for (int i = 0; i < objectList.size(); i++){
+            if (i == size) {
+                lastPage = false;
+                break;
+            }
+            BoardImgRequestDto boardImgRequestDto = new BoardImgRequestDto(objectList.get(i));
             boardImgRequestDtoList.add(boardImgRequestDto);
         }
-        return boardImgRequestDtoList;
+
+        return new BoardImgPageRequestDto(lastPage, boardImgRequestDtoList);
     }
 
     // 공유게시판 상세페이지
