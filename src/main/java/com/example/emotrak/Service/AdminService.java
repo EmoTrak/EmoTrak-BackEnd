@@ -2,6 +2,7 @@ package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.ReportResponseDto;
 
+import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
