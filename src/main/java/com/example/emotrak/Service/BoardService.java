@@ -4,15 +4,12 @@ import com.example.emotrak.dto.*;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +37,7 @@ public class BoardService {
 
 
     //감정글 추가
-    public void createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
+    public BoardIdResponseDto createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
         /*
         중복되는 이미지 처리 코드를 별도의 메서드로 분리
         업로드하려는 새 이미지 파일, 현재 이미지의 URL(createDaily 에서는 이미지가 없으므로 null 값을 전달)
@@ -52,11 +49,16 @@ public class BoardService {
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
         boardRepository.save(daily);
+        return new BoardIdResponseDto(daily);
     }
 
     // 글 수정
     public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) throws IOException {
         Daily daily = findDailyById(dailyId);
+        if (daily.isHasRestrict() && daily.isShare()){
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
         validateUserOrAdmin(user, daily);
         String newImageUrl = handleImage(image, daily.getImgUrl(), boardRequestDto.isDeleteImg());
         // Emotion 객체 찾기
@@ -125,10 +127,18 @@ public class BoardService {
 
 
     // 공유게시판 전체조회(이미지)
-    public List<BoardImgRequestDto> getBoardImages(Long page, Long size, String emo) {
+    public List<BoardImgRequestDto> getBoardImages(int page, int size, String emo, String sort) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
-        List<Long> longImo = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
-        List<Object[]> objectList = boardRepository.getBoardImages(page, size, longImo);
+        List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+
+        Sort sortPage;
+        if (sort.equals("recent"))
+            sortPage = Sort.by(Sort.Direction.DESC, "created_at");
+        else  sortPage = Sort.by(Sort.Direction.DESC, "board_likes_cnt").and(Sort.by(Sort.Direction.DESC, "created_at"));
+
+        Pageable pageable = PageRequest.of(page-1, size, sortPage);
+
+        List<Object[]> objectList = boardRepository.getBoardImages(emoList, pageable);
 
         List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
         for (Object[] object : objectList) {
@@ -143,10 +153,16 @@ public class BoardService {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
         );
+
         // share가 false이고, 사용자와 작성자가 다를 경우 예외 처리
-        if (!daily.isShare() && daily.getUser().getId() != user.getId()) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        if (!daily.isShare()){
+            if (user == null)
+                throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+
+            if (daily.getUser().getId() != user.getId())
+                throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
+
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
