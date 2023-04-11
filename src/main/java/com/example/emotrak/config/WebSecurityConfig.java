@@ -53,6 +53,7 @@ public class WebSecurityConfig {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.authorizeRequests().antMatchers("/users/**").permitAll()
+                .antMatchers("/kakao/callback","/naver/callback").permitAll()
                 .antMatchers(HttpMethod.GET,"/boards", "/boards/{boardId}").permitAll()
                 .antMatchers("/kakao/callback").permitAll()
                 .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()

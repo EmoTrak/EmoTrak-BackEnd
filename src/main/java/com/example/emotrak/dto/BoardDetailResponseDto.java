@@ -46,7 +46,7 @@ public class BoardDetailResponseDto {
         this.star = daily.getStar();
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
-        if (user != null) this.hasAuth = daily.getUser().equals(user) || user.hasAdmin();
+        if (user != null) this.hasAuth = daily.getUser().getId() == user.getId();
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
         this.nickname = daily.getUser().getNickname();
         this.boardLikesCnt = daily.getBoardLikesCnt();
