@@ -18,16 +18,17 @@ public enum CustomErrorCode {
     USER_NOT_FOUND(BAD_REQUEST, "x-1005", "등록된 사용자가 없습니다."),
     NOT_PROPER_PASSWORD(BAD_REQUEST, "x-1006", "비밀번호가 일치하지 않습니다."),
     NOT_ADMIN (BAD_REQUEST, "x-1007", "관리자 암호가 일치하지 않습니다."),
-    FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다" ),
+    FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다." ),
     NICKNAME_BLANK (BAD_REQUEST, "x-1009", "닉네임을 입력해주세요."),
-    FILE_DELETION_ERROR(BAD_REQUEST, "x-1010", "파일 삭제 중 에러가 발생했습니다"),
+    FILE_DELETION_ERROR(BAD_REQUEST, "x-1010", "파일 삭제 중 에러가 발생했습니다."),
+    RESTRICT_ERROR(BAD_REQUEST, "x-1011", "공유 중지된 글은 다시 공유할 수 없습니다."),
 
 
 
     /* 401 UNAUTHORIZED : 권한 없음 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "Expired JWT token"),
-    NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다"),
-    REFRESH_TOKEN_IS_EXPIRED(UNAUTHORIZED, "x-1003", "리프레쉬 토큰이 만료되었습니다"),
+    NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다."),
+    REFRESH_TOKEN_IS_EXPIRED(UNAUTHORIZED, "x-1003", "리프레쉬 토큰이 만료되었습니다."),
     NOT_AUTHOR(UNAUTHORIZED, "x-1004", "작성자만 수정/삭제가 가능합니다."),
     UNAUTHORIZED_ACCESS(UNAUTHORIZED,"x-1005", "권한이 없습니다."),
 
