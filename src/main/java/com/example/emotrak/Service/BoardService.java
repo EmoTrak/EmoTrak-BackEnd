@@ -56,7 +56,7 @@ public class BoardService {
     public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) throws IOException {
         Daily daily = findDailyById(dailyId);
         if (daily.isHasRestrict() && daily.isShare()){
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+            throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
         }
 
         validateUserOrAdmin(user, daily);
@@ -65,7 +65,6 @@ public class BoardService {
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
         daily.update(newImageUrl, boardRequestDto, emotion);
-        boardRepository.save(daily);
     }
 
     // 글 삭제
@@ -76,6 +75,19 @@ public class BoardService {
         if (daily.getImgUrl() != null) {
             fileUploadService.deleteFile(daily.getImgUrl());
         }
+
+        // 댓글 좋아요 날리기
+        likesRepository.deleteCommentLike(daily.getId());
+
+        // 댓글 신고 날리기
+        reportRepository.deleteByDaily(daily.getId());
+
+        // 댓글 날리기
+        commentRepository.deleteByDaily(daily.getId());
+
+        // 게시글 좋아요 날리기
+        likesRepository.deleteBoardLike(daily.getId());
+
         // 데이터베이스에서 Daily 객체 삭제
         boardRepository.delete(daily);
     }

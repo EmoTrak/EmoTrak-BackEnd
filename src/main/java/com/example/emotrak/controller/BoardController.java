@@ -35,7 +35,7 @@ public class BoardController {
     }
 
     // 글 수정 : 이미지 수정이 없을 경우 빈블럭으로 만들어서 받음, >  required = false를 추가하여 이미지가 선택적으로 전달
-    @PatchMapping(value = "/daily/{dailyId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/daily/{dailyId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> updateDaily(@PathVariable Long dailyId,
                                          @RequestParam(value = "image", required = false) MultipartFile image,
                                          @RequestPart("contents") @Valid BoardRequestDto boardRequestDto,

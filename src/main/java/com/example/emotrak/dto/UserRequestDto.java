@@ -3,7 +3,6 @@ import lombok.Getter;
 
 @Getter
 public class UserRequestDto {
-    String email;
-
-    String nickname;
+    private String email;
+    private String nickname;
 }

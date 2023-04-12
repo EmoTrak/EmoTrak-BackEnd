@@ -9,13 +9,15 @@ import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.JwtUtil;
 
-import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.repository.*;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -27,6 +29,10 @@ import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final LikesRepository likesRepository;
+    private final ReportRepository reportRepository;
+    private final CommentRepository commentRepository;
+    private final BoardRepository boardRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
 //    private final TokenProvider tokenProvider;
@@ -56,15 +62,26 @@ public class UserService {
         boolean isEmailExist = userRepository.existsByEmail(signupRequestDto.getEmail());
         if (isEmailExist) throw new CustomException(CustomErrorCode.DUPLICATE_EMAIL);
 
+        //닉네임이 중복되는지 체크
+        boolean isNickExist = userRepository.existsByNickname(signupRequestDto.getNickname());
+        if(isNickExist){
+            throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
+        }
+
         // 이메일 형식이 일치하는지 체크
         Pattern passPattern1 = Pattern.compile("^[A-Za-z0-9_\\.\\-]+@[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-]+$"); // 정규식을 적는부분 e+을 지우고 쓰세요
         Matcher matcher = passPattern1.matcher(email);
         if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_EMAIL_PATTERN);
 
+        // 닉네임 형식이 일치하는지 체크
+        passPattern1 = Pattern.compile("^[ㄱ-ㅎ|가-힣|a-z|A-Z|\\d$@!%*#?&()^]{1,8}$"); // 특수문자를 제외하는 정규식
+        matcher = passPattern1.matcher(nickname);
+        if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_NICKNAME_PATTERN);
+
         // 비밀번호 형식이 일치하는지 체크
         //passPattern1 = Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$");
         //숫자와 소문자와 특수문자 !@#$%^&*()중 1개가 포함되어야 하며 8자~15자 사이 인 값
-        passPattern1 = Pattern.compile("^(?=.*\\d)(?=.*[a-z])[a-z\\d!@#$%^&*()]{8,15}$");
+        passPattern1 = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d|$@!%*#?&()^]{8,15}$");
         matcher = passPattern1.matcher(signupRequestDto.getPassword());
         if (!matcher.find())throw new CustomException(CustomErrorCode.NOT_PASSWORD_PATTERN);
 
@@ -111,6 +128,7 @@ public class UserService {
         Matcher matcher = passPattern1.matcher(checkEmailRequestDto.getEmail());
         if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_EMAIL_PATTERN);
 
+        // 중복된 이메일이 존재하는지 체크
         boolean isEmailExist = userRepository.existsByEmail(checkEmailRequestDto.getEmail());
         if(isEmailExist){
             throw new CustomException(CustomErrorCode.DUPLICATE_EMAIL);
@@ -122,63 +140,83 @@ public class UserService {
         if(checkNicknameRequestDto.getNickname().equals("")) throw new CustomException(CustomErrorCode.NICKNAME_BLANK);
 
         // 중복된 닉네임이 있는지 체크
-        boolean isEmailExist = userRepository.existsByNickname(checkNicknameRequestDto.getNickname());
-        if(isEmailExist){
+        boolean isNickExist = userRepository.existsByNickname(checkNicknameRequestDto.getNickname());
+        if(isNickExist){
             throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
         }
+
+        // 닉네임 형식이 일치하는지 체크
+        Pattern passPattern1 = Pattern.compile("^[ㄱ-ㅎ|가-힣|a-z|A-Z|\\d$@!%*#?&()^]{1,8}$"); // 특스문자를 제외하는 정규식
+        Matcher matcher = passPattern1.matcher(checkNicknameRequestDto.getNickname());
+        if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_NICKNAME_PATTERN);
     }
 
-    public void delete(Long userId, User user) {
-
-        if(userId != user.getId() && user.getRole() != ADMIN) throw new CustomException(CustomErrorCode.NOT_AUTHOR);
-
-        userRepository.delete(user);
-
-    }
-
-    public UserResponseDto userMypage(PasswordRequestDto passwordRequestDto, User user) {
-        //유저인증 객체로 유저정보 가져오기
+    public UserResponseDto userMypage(User user) {
+        // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
+        // 유저 엔티티가 없으면 에러
         if(!getUser.isPresent()){
             throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
         }
         User requestUser = getUser.get();
-        // 패스워드가 일치하는지 검증
-        if(!encoder.matches(passwordRequestDto.getPassword(), requestUser.getPassword())){
-                throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
-        }
 
-        return new UserResponseDto(requestUser.getEmail(),requestUser.getNickname());
+        return new UserResponseDto(requestUser.getEmail(),requestUser.getNickname(),requestUser.isHasSocial());
     }
 
+    @Transactional
     public void nicknameUpdate(NicknameRequestDto nicknameRequestDto, User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
+        // 유저 엔티티가 없으면 에러
+        if(!getUser.isPresent()){
+            throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
         User updateUser = getUser.get();
         // 닉네임이 비어있는지 체크
         if(nicknameRequestDto.getNickname().equals("")) throw new CustomException(CustomErrorCode.NICKNAME_BLANK);
 
+        // 닉네임이 현재와 같은지 체크
+        if(nicknameRequestDto.getNickname().equals(updateUser.getNickname())) throw new CustomException(CustomErrorCode.SAME_NICKNAME);
+
         // 중복된 닉네임이 있는지 체크
-        boolean isEmailExist = userRepository.existsByNickname(nicknameRequestDto.getNickname());
-        if(isEmailExist){
+        boolean isNickExist = userRepository.existsByNickname(nicknameRequestDto.getNickname());
+        if(isNickExist){
             throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
         }
+
+        // 닉네임 형식이 일치하는지 체크
+        Pattern passPattern1 = Pattern.compile("^[ㄱ-ㅎ|가-힣|a-z|A-Z|\\d$@!%*#?&()^]{1,8}$");
+        Matcher matcher = passPattern1.matcher(nicknameRequestDto.getNickname());
+        if(!matcher.find()) throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
+
         // 유저 닉네임 업데이트 및 저장
         updateUser.nicknameUpdate(nicknameRequestDto.getNickname());
         userRepository.save(updateUser);
     }
 
+    @Transactional
     public void passwordUpdate(PasswordRequestDto passwordRequestDto, User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
+        // 유저 엔티티가 없으면 에러
+        if(!getUser.isPresent()){
+            throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
         User updateUser = getUser.get();
+
         // 패스워드가 비어있는지 체크
         if(passwordRequestDto.getPassword().equals("")) throw new CustomException(CustomErrorCode.PASSWORD_BLANK);
+
+        // 패스워드가 현재와 같은지 체크
+        String encodePassword = updateUser.getPassword();
+        if(encoder.matches(passwordRequestDto.getPassword(), encodePassword)){
+            throw new CustomException(CustomErrorCode.SAME_PASSWORD);
+        }
 
         // 비밀번호 형식이 일치하는지 체크
         //passPattern1 = Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$");
         //숫자와 소문자와 특수문자 !@#$%^&*()중 1개가 포함되어야 하며 8자~15자 사이 인 값
-        Pattern passPattern1 = Pattern.compile("^(?=.*\\d)(?=.*[a-z])[a-z\\d!@#$%^&*()]{8,15}$");
+        Pattern passPattern1 = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d|$@!%*#?&()^]{8,15}$");
         Matcher matcher = passPattern1.matcher(passwordRequestDto.getPassword());
         if (!matcher.find())throw new CustomException(CustomErrorCode.NOT_PASSWORD_PATTERN);
         // 패스워드 암호화
@@ -186,5 +224,41 @@ public class UserService {
         // 패스워드 업데이트 및 저장
         updateUser.passwordUpdate(password);
         userRepository.save(updateUser);
+    }
+
+    @Transactional
+    public void userDelete(User user) {
+        // 유저 엔티티 가져오기
+        Optional<User> getUser = userRepository.findById(user.getId());
+        // 유저 엔티티가 없으면 에러
+        if(!getUser.isPresent()){
+            throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
+
+        // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
+        likesRepository.deleteAllByUser(user);
+
+        // 내가 신고한 내역 모두 날리기 (댓글, 게시글)
+        reportRepository.deleteAllByUser(user);
+
+        // 내가 쓴 댓글의 모든 좋아요 날리기
+        likesRepository.deleteCommentLikeByUser(user.getId());
+        // 내가 쓴 댓글의 모든 신고 날리기
+        reportRepository.deleteCommentLikeByUser(user.getId());
+        // 내가 쓴 모든 댓글 날리기
+        commentRepository.deleteAllByUser(user);
+
+        // 내가 쓴 게시글의 모든 좋아요 날리기
+        likesRepository.deleteBoardLikeByUser(user.getId());
+        // 내가 쓴 게시글의 모든 신고 날리기
+        reportRepository.deleteByUser(user.getId());
+        // 내가 쓴 게시글의 모든 댓글 날리기
+        commentRepository.deleteByUser(user.getId());
+
+        // 내가 쓴 모든 게시글 날리기
+        boardRepository.deleteAllByUser(user);
+
+        //유저 날리기
+        userRepository.delete(user);
     }
 }
