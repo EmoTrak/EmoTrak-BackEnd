@@ -52,6 +52,14 @@ public class CommentService {
                 () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
         );
         validateComment(user, comment);
+
+        // 댓글 좋아요 날리기
+        likesRepository.deleteAllByComment(comment);
+
+        // 댓글 신고 날리기
+        reportRepository.deleteAllByComment(comment);
+
+        // 댓글 날리기
         commentRepository.delete(comment);
     }
 
