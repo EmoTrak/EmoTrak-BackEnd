@@ -21,7 +21,7 @@ public enum CustomErrorCode {
     FILE_UPLOAD_ERROR(BAD_REQUEST,"x-1008" ,"파일 업로드 중 에러가 발생했습니다." ),
     NICKNAME_BLANK (BAD_REQUEST, "x-1009", "닉네임을 입력해주세요."),
     FILE_DELETION_ERROR(BAD_REQUEST, "x-1010", "파일 삭제 중 에러가 발생했습니다."),
-    RESTRICT_ERROR(BAD_REQUEST, "x-1011", "공유 중지된 글은 다시 공유할 수 없습니다."),
+    RESTRICT_ERROR(BAD_REQUEST, "x-1011", "공유 중지된 글입니다."),
 
 
 

@@ -26,8 +26,8 @@ public class Comment extends Timestamped {
     @JoinColumn(name = "dailyId")
     private Daily daily;
 
-        @Column(nullable = false)
-        private int cmtLikesCnt;
+    @Column(nullable = false)
+    private int cmtLikesCnt;
 
     public Comment(CommentRequestDto commentRequestDto, Daily daily, User user) {
         this.comment = commentRequestDto.getComment();
