@@ -20,11 +20,11 @@ public class GraphService {
     @Transactional
     public List<GraphResponseDto> graph(int year, User user){
         Long userId = user.getId();
-        List<Object[]> objects = graphRepository.getGraph(year, userId);
+        List<Object[]> objectList = graphRepository.getGraph(year, userId);
 
         List<GraphResponseDto> graphResponseDtoList = new ArrayList<>();
         GraphResponseDto graphResponseDto = null;
-        for (Object[] object : objects) {
+        for (Object[] object : objectList) {
             int month = ((Integer)object[0]).intValue();
             Long id = ((BigInteger) object[1]).longValue();
             Long count = ((BigInteger) object[2]).longValue();

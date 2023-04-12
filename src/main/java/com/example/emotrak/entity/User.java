@@ -24,7 +24,7 @@ public class User {
 
     private Long kakaoId;
 
-    private Long naverId;
+    private String naverId;
 
     @Column(nullable = false)
     private boolean hasSocial;
@@ -39,16 +39,23 @@ public class User {
         this.nickname = nickname;
         this.role = role;
     }
-    public User(String password, String email,String nickname,Long kakaoId, UserRoleEnum role) {
+    public User(String password, String email,String nickname,Long kakaoId,String naverId, UserRoleEnum role) {
         this.password = password;
         this.email = email;
         this.nickname = nickname;
         this.kakaoId = kakaoId;
+        this.naverId = naverId;
         this.role = role;
         this.hasSocial = true;
     }
+
     public User kakaoIdUpdate(Long kakaoId) {
         this.kakaoId = kakaoId;
+        return this;
+    }
+
+    public User naverIdUpdate(String naverId) {
+        this.naverId = naverId;
         return this;
     }
 

@@ -24,6 +24,7 @@ public class BoardDetailResponseDto {
     private boolean hasAuth;
     private String nickname;
     private int boardLikesCnt;
+    private boolean hasRestrict;
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
@@ -45,10 +46,10 @@ public class BoardDetailResponseDto {
         this.star = daily.getStar();
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
-        this.hasAuth = daily.getUser().equals(user) || user.hasAdmin();
+        if (user != null) this.hasAuth = daily.getUser().getId() == user.getId();
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
         this.nickname = daily.getUser().getNickname();
         this.boardLikesCnt = daily.getBoardLikesCnt();
-
+        this.hasRestrict = daily.isHasRestrict();
     }
 }

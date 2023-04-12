@@ -4,6 +4,7 @@ import com.example.emotrak.Service.BoardService;
 import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
 import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +31,7 @@ public class BoardController {
                                          @RequestPart("contents") @Valid BoardRequestDto boardRequestDto,
                                          @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
         // 이미지 파일 업로드 및 글 작성 처리
-        boardService.createDaily(boardRequestDto, userDetails.getUser(), image);
-        return ResponseMessage.successResponse(HttpStatus.CREATED, "글작성 성공", null);
+        return ResponseMessage.successResponse(HttpStatus.CREATED, "글작성 성공", boardService.createDaily(boardRequestDto, userDetails.getUser(), image));
     }
 
     // 글 수정 : 이미지 수정이 없을 경우 빈블럭으로 만들어서 받음, >  required = false를 추가하여 이미지가 선택적으로 전달
@@ -55,8 +55,11 @@ public class BoardController {
 
     // 공유게시판 전체 조회 (이미지)
     @GetMapping("/boards")
-    public ResponseEntity<?> getBoardImages(@RequestParam Long page, @RequestParam String emo, @RequestParam Long size) {
-        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo));
+    public ResponseEntity<?> getBoardImages(@RequestParam(value = "page", defaultValue = "1") int page
+                                          , @RequestParam(value = "size", defaultValue = "10") int size
+                                          , @RequestParam(value = "emo", defaultValue = "1,2,3,4,5,6") String emo
+                                          , @RequestParam(value = "sort", defaultValue = "recent") String sort) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo, sort));
     }
 
     // 공유게시판 상세페이지
@@ -64,8 +67,10 @@ public class BoardController {
     public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
                                              @RequestParam(value = "page", defaultValue = "0") int page,
                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = null;
+        if (userDetails != null) user = userDetails.getUser();
         // 게시글 정보 조회 처리
-        BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, userDetails.getUser(), page);
+        BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, user, page);
         return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardDetailResponseDto);
     }
 

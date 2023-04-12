@@ -136,7 +136,7 @@ public class KakaoService {
                     nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getKakaoName(nickname);
                 }
 
-                kakaoUser = new User(encodedPassword, email,nickname,kakaoId, UserRoleEnum.USER);
+                kakaoUser = new User(encodedPassword, email,nickname,kakaoId,null, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
         }
