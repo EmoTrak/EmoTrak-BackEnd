@@ -14,7 +14,6 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 public class CommentDetailResponseDto {
     private Long id;
-    private String email;
     private String comment;
     private String createdAt;
     private boolean hasAuth;
@@ -27,10 +26,9 @@ public class CommentDetailResponseDto {
 
     public CommentDetailResponseDto(Comment comment, User user) {
         this.id = comment.getId();
-        this.email = comment.getUser().getEmail();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
-        if (user != null) this.hasAuth = comment.getUser().getId() == user.getId() || user.hasAdmin();
+        if (user != null) this.hasAuth = comment.getUser().getId().equals(user.getId()) || user.hasAdmin();
         this.nickname = comment.getUser().getNickname();
         this.cmtLikesCnt = comment.getCmtLikesCnt();
     }
