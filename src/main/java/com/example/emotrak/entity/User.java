@@ -27,6 +27,9 @@ public class User {
     private Long naverId;
 
     @Column(nullable = false)
+    private boolean hasSocial;
+
+    @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
 
@@ -42,6 +45,7 @@ public class User {
         this.nickname = nickname;
         this.kakaoId = kakaoId;
         this.role = role;
+        this.hasSocial = true;
     }
     public User kakaoIdUpdate(Long kakaoId) {
         this.kakaoId = kakaoId;
@@ -55,6 +59,10 @@ public class User {
 
     public User passwordUpdate(String password) {
         this.password = password;
+        return this;
+    }
+    public User updateHasSocial(boolean hasSocial) {
+        this.hasSocial = hasSocial;
         return this;
     }
 
