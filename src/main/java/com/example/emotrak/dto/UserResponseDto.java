@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserResponseDto {
 
-    String email;
-    String nickname;
-
+    private String email;
+    private String nickname;
+    private boolean hasSocial;
 }
