@@ -20,6 +20,10 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     void deleteByUserAndComment(User user, Comment comment);
 
+    void deleteAllByComment(Comment comment);
+
+    void deleteAllByUser(User user);
+
     @Modifying
     @Query(value = " DELETE FROM likes "
                  + "  WHERE comment_id IN ("
@@ -34,5 +38,23 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
                  + "  WHERE daily_id = :dailyId"
                  , nativeQuery = true)
     void deleteBoardLike(@Param("dailyId") Long dailyId);
+
+    @Modifying
+    @Query(value = " DELETE FROM likes "
+                 + "  WHERE comment_id IN ("
+                 + "                         select c.id as comment_id "
+                 + "                           from comment c "
+                 + "                          where c.user_id = :userId)"
+                 , nativeQuery = true)
+    void deleteCommentLikeByUser(@Param("userId") Long userId);
+
+    @Modifying
+    @Query(value = " DELETE FROM likes "
+                 + "  WHERE board_id IN ("
+                 + "                         select c.id as board_id "
+                 + "                           from board c "
+                 + "                          where c.user_id = :userId)"
+                 , nativeQuery = true)
+    void deleteBoardLikeByUser(@Param("userId") Long userId);
 
 }

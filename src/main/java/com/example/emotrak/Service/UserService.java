@@ -9,7 +9,7 @@ import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.JwtUtil;
 
-import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.repository.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +29,10 @@ import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final LikesRepository likesRepository;
+    private final ReportRepository reportRepository;
+    private final CommentRepository commentRepository;
+    private final BoardRepository boardRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
 //    private final TokenProvider tokenProvider;
@@ -221,17 +225,40 @@ public class UserService {
         updateUser.passwordUpdate(password);
         userRepository.save(updateUser);
     }
+
     @Transactional
-    public void delete(User user) {
+    public void userDelete(User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러
         if(!getUser.isPresent()){
             throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
         }
-        User deleteUser = getUser.get();
 
-        // 유저 아이디 삭제 체크 컬럼 Y 로 변경
-        userRepository.delete(deleteUser);
+        // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
+        likesRepository.deleteAllByUser(user);
+
+        // 내가 신고한 내역 모두 날리기 (댓글, 게시글)
+        reportRepository.deleteAllByUser(user);
+
+        // 내가 쓴 댓글의 모든 좋아요 날리기
+        likesRepository.deleteCommentLikeByUser(user.getId());
+        // 내가 쓴 댓글의 모든 신고 날리기
+        reportRepository.deleteCommentLikeByUser(user.getId());
+        // 내가 쓴 모든 댓글 날리기
+        commentRepository.deleteAllByUser(user);
+
+        // 내가 쓴 게시글의 모든 좋아요 날리기
+        likesRepository.deleteBoardLikeByUser(user.getId());
+        // 내가 쓴 게시글의 모든 신고 날리기
+        reportRepository.deleteByUser(user.getId());
+        // 내가 쓴 게시글의 모든 댓글 날리기
+        commentRepository.deleteByUser(user.getId());
+
+        // 내가 쓴 모든 게시글 날리기
+        boardRepository.deleteAllByUser(user);
+
+        //유저 날리기
+        userRepository.delete(user);
     }
 }

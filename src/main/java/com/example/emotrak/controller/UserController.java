@@ -71,7 +71,7 @@ public class UserController {
     // 5. 회원 탈퇴
     @DeleteMapping ("/delete")
     public ResponseEntity<?> userDelete(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        userService.delete(userDetails.getUser());
+        userService.userDelete(userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
     }
 }
