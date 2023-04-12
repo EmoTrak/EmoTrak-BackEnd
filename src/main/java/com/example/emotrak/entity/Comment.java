@@ -33,6 +33,7 @@ public class Comment extends Timestamped {
         this.comment = commentRequestDto.getComment();
         this.daily = daily;
         this.user = user;
+        this.cmtLikesCnt = 0;
     }
 
     public void updateComment(CommentRequestDto commentRequestDto) {
