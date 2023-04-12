@@ -22,7 +22,7 @@ public enum CustomErrorCode {
     NICKNAME_BLANK (BAD_REQUEST, "x-1009", "닉네임을 입력해주세요."),
     FILE_DELETION_ERROR(BAD_REQUEST, "x-1010", "파일 삭제 중 에러가 발생했습니다."),
     RESTRICT_ERROR(BAD_REQUEST, "x-1011", "공유 중지된 글입니다."),
-
+    NOT_NICKNAME_PATTERN (BAD_REQUEST, "x-1012", "닉네임 조건을 확인해주세요."),
 
 
     /* 401 UNAUTHORIZED : 권한 없음 */
@@ -46,7 +46,9 @@ public enum CustomErrorCode {
     /* 409 CONFLICT : 중복 */
     DUPLICATE_EMAIL(CONFLICT, "x-1001", "중복된 이메일이 존재합니다"),
     DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다"),
-    DUPLICATE_REPORT(CONFLICT,"x-1003" ,"이미 신고한 게시물입니다" );
+    DUPLICATE_REPORT(CONFLICT,"x-1003" ,"이미 신고한 게시물입니다" ),
+    SAME_PASSWORD(CONFLICT, "x-1004", "패스워드가 동일합니다"),
+    SAME_NICKNAME(CONFLICT, "x-1005", "닉네임이 동일합니다");
 
     private final HttpStatus httpStatus;
     private final String errorCode;

@@ -46,10 +46,10 @@ public class UserController {
             return ResponseMessage.successResponse(HttpStatus.OK, "로그인 완료", null);
     }
     // 3. 마이 페이지 입장
-    @PostMapping("/mypage")
-    public ResponseEntity<?> userInfo(@RequestBody PasswordRequestDto passwordRequestDto,
-            @AuthenticationPrincipal UserDetailsImpl userDetails){
-        return ResponseMessage.successResponse(HttpStatus.OK, "본인 인증 완료", userService.userMypage(passwordRequestDto, userDetails.getUser()));
+    @GetMapping("/mypage")
+    public ResponseEntity<?> userInfo(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return ResponseMessage.successResponse(HttpStatus.OK,
+                "마이 페이지 입장", userService.userMypage(userDetails.getUser()));
     }
 
     // 3-1. 닉네입 수정
@@ -68,11 +68,10 @@ public class UserController {
         return ResponseMessage.successResponse(HttpStatus.OK, "패스워드 수정 완료", null);
     }
 
-//    // 5. 회원 탈퇴
-//    @DeleteMapping ("/{userId}")
-//    public ResponseEntity<?> userDelete(@PathVariable Long userId
-//            ,@AuthenticationPrincipal UserDetailsImpl userDetails){
-//        userService.delete(userId, userDetails.getUser());
-//        return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
-//    }
+    // 5. 회원 탈퇴
+    @DeleteMapping ("/delete")
+    public ResponseEntity<?> userDelete(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        userService.delete(userDetails.getUser());
+        return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
+    }
 }
