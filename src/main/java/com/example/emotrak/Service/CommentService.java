@@ -96,17 +96,24 @@ public class CommentService {
                 () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
         );
                 Map<String, Object> response = new HashMap<>();
+                boolean hasLike;
                 if (likesRepository.findByUserAndComment(user, comment).isEmpty()) {
                     // 좋아요 추가
                     likesRepository.save(new Likes(comment, user));
                     comment.plusLikesCount();
                     response.put("message", "좋아요 성공");
+                    hasLike = true;
                 } else {
                     // 이미 좋아요한 경우, 좋아요 취소
                     likesRepository.deleteByUserAndComment(user, comment);
                     comment.minusLikesCount();
                     response.put("message", "좋아요 취소 성공");
+                    hasLike = false;
                 }
+
+                int likesCount = comment.getCmtLikesCnt();
+                response.put("hasLike", hasLike);
+                response.put("likesCount", likesCount);
                 return response;
             }
     }

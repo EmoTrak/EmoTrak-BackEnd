@@ -181,13 +181,21 @@ public class BoardService {
                 throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 
+        // 사용자와 게시물 간의 좋아요 관계 확인
+        boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
+
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> new CommentDetailResponseDto(comment, user))
+//                .map(comment -> new CommentDetailResponseDto(comment, user, hasLike))
+                .map(comment -> {
+        // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
+                    boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
+                    return new CommentDetailResponseDto(comment, user, commentHasLike);
+                })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, hasLike);
     }
 
 
@@ -215,17 +223,24 @@ public class BoardService {
     public Map<String, Object> boardlikes(User user, Long boardId) {
         Daily daily = findDailyById(boardId);
         Map<String, Object> response = new HashMap<>();
+        boolean hasLike;
         if (likesRepository.findByUserAndDaily(user, daily).isEmpty()) {
             // 좋아요 추가
             likesRepository.save(new Likes(daily, user));
             daily.plusLikesCount();
             response.put("message", "좋아요 성공");
+            hasLike = true;
         } else {
             // 이미 좋아요한 경우, 좋아요 취소
             likesRepository.deleteByUserAndDaily(user, daily);
             daily.minusLikesCount();
             response.put("message", "좋아요 취소 성공");
+            hasLike = false;
         }
+
+        int likesCount = daily.getBoardLikesCnt();
+        response.put("hasLike", hasLike);
+        response.put("likesCount", likesCount);
         return response;
     }
 }

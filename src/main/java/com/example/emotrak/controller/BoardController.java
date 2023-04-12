@@ -3,6 +3,7 @@ package com.example.emotrak.controller;
 import com.example.emotrak.Service.BoardService;
 import com.example.emotrak.dto.BoardDetailResponseDto;
 import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.LikeResponseDto;
 import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.ResponseMessage;
@@ -95,8 +96,11 @@ public class BoardController {
     @PostMapping("/boards/likes/{boardId}")
     public ResponseEntity<?> boardlikes(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Map<String, Object> response = boardService.boardlikes(userDetails.getUser(), boardId);
+        boolean hasLike = (boolean) response.get("hasLike");
+        int likesCount = (int) response.get("likesCount");
         String message = (String) response.get("message");
-        return ResponseMessage.successResponse(HttpStatus.OK, message, null);
+        LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
+        return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
     }
 
 }

@@ -41,7 +41,7 @@ public class NaverService {
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, state);
-        // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
+        // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
         NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
         User naverUser = registerNaverUserIfNeeded(naverUserInfo);

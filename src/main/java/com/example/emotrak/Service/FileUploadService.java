@@ -1,5 +1,7 @@
 package com.example.emotrak.Service;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -38,6 +40,10 @@ public class FileUploadService {
             return amazonS3.getUrl(bucketName, fileName).toString();
         } catch (IOException e) {
             throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
+        } catch (AmazonServiceException e) {
+            throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
+        } catch (AmazonClientException e) {
+            throw new CustomException(CustomErrorCode.AWS_CLIENT_ERROR);
         }
     }
 
@@ -61,6 +67,10 @@ public class FileUploadService {
         try {
             String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
+        } catch (AmazonServiceException e) {
+            throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
+        } catch (AmazonClientException e) {
+            throw new CustomException(CustomErrorCode.AWS_CLIENT_ERROR);
         } catch (Exception e) {
             throw new CustomException(CustomErrorCode.FILE_DELETION_ERROR);
         }
