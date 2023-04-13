@@ -79,7 +79,11 @@ public class NaverService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
+        System.out.println("jsonNode = " + jsonNode);
+        System.out.println("jsonNode.toString() = " + jsonNode.toString());
+        log.info("JSON Data: {}", jsonNode.toString());
         return jsonNode.get("access_token").asText();
+
     }
     // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
     private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
