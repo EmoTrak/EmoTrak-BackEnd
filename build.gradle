@@ -34,6 +34,9 @@ dependencies {
 
     // swagger 적용
     implementation 'io.springfox:springfox-boot-starter:3.0.0'
+
+    // null 포인터 예외 방지
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 }
 
 tasks.named('test') {
