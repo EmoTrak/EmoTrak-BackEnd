@@ -21,13 +21,13 @@ public class Daily extends Timestamped {
     private Long id;
 
     @Column(nullable = false)
-    private int year;
+    private int DailyYear;
 
     @Column(nullable = false)
-    private int month;
+    private int dailyMonth;
 
     @Column(nullable = false)
-    private int day;
+    private int dailyDay;
 
     @ManyToOne
     @JoinColumn(name = "emotionId")
@@ -62,9 +62,9 @@ public class Daily extends Timestamped {
     public Daily(String imageUrl, BoardRequestDto boardRequestDto, User user, Emotion emotion) {
         this.imgUrl = imageUrl;
         this.user = user;
-        this.year = boardRequestDto.getYear();
-        this.month = boardRequestDto.getMonth();
-        this.day = boardRequestDto.getDay();
+        this.DailyYear = boardRequestDto.getYear();
+        this.dailyMonth = boardRequestDto.getMonth();
+        this.dailyDay = boardRequestDto.getDay();
         this.emotion = emotion;
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
@@ -75,9 +75,9 @@ public class Daily extends Timestamped {
     //board 업데이트 메서드
     public void update(String newImageUrl, BoardRequestDto boardRequestDto, Emotion emotion) {
         this.imgUrl = newImageUrl;
-        this.year = boardRequestDto.getYear();
-        this.month = boardRequestDto.getMonth();
-        this.day = boardRequestDto.getDay();
+        this.DailyYear = boardRequestDto.getYear();
+        this.dailyMonth = boardRequestDto.getMonth();
+        this.dailyDay = boardRequestDto.getDay();
         this.emotion = emotion;
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
