@@ -2,6 +2,7 @@ package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.CommentService;
 import com.example.emotrak.dto.CommentRequestDto;
+import com.example.emotrak.dto.LikeResponseDto;
 import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
@@ -69,8 +70,11 @@ public class CommentController {
         @PostMapping("/comments/likes/{commentId}")
         public ResponseEntity<?> commentlikes(@PathVariable Long commentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
             Map<String, Object> response = commentService.commentlikes(userDetails.getUser(), commentId);
+            boolean hasLike = (boolean) response.get("hasLike");
+            int likesCount = (int) response.get("likesCount");
             String message = (String) response.get("message");
-            return ResponseMessage.successResponse(HttpStatus.OK, message, null);
+            LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
+            return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
         }
 
 }

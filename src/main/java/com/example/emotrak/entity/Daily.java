@@ -69,6 +69,7 @@ public class Daily extends Timestamped {
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
         this.share = boardRequestDto.isShare();
+        this.boardLikesCnt = 0;
     }
 
     //board 업데이트 메서드

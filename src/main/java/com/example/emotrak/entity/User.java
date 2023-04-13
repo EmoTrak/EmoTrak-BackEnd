@@ -39,7 +39,7 @@ public class User {
         this.nickname = nickname;
         this.role = role;
     }
-    public User(String password, String email,String nickname,Long kakaoId,String naverId, UserRoleEnum role) {
+    public User(String password, String email, String nickname, Long kakaoId, String naverId, UserRoleEnum role) {
         this.password = password;
         this.email = email;
         this.nickname = nickname;
