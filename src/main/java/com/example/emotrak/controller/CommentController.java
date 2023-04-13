@@ -66,15 +66,10 @@ public class CommentController {
         return ResponseMessage.successResponse(HttpStatus.OK, "댓글 신고 삭제 성공", null);
     }
 
-        //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
-        @PostMapping("/comments/likes/{commentId}")
-        public ResponseEntity<?> commentlikes(@PathVariable Long commentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-            Map<String, Object> response = commentService.commentlikes(userDetails.getUser(), commentId);
-            boolean hasLike = (boolean) response.get("hasLike");
-            int likesCount = (int) response.get("likesCount");
-            String message = (String) response.get("message");
-            LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
-            return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
-        }
+    //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
+    @PostMapping("/comments/likes/{commentId}")
+    public ResponseEntity<?> commentLikes(@PathVariable Long commentId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "좋아요 성공", commentService.commentLikes(userDetails.getUser(), commentId));
+    }
 
 }

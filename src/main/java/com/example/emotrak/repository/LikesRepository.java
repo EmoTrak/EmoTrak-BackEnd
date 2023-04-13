@@ -16,6 +16,8 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     int countByDaily(Daily daily);
 
+    int countByComment(Comment comment);
+
     Optional<Likes> findByUserAndComment(User user, Comment comment);
 
     void deleteByUserAndComment(User user, Comment comment);

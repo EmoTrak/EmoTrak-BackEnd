@@ -1,6 +1,7 @@
 package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.CommentRequestDto;
+import com.example.emotrak.dto.LikeResponseDto;
 import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -91,29 +92,22 @@ public class CommentService {
     }
 
     //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
-    public Map<String, Object> commentlikes(User user, Long commentId) {
+    public LikeResponseDto commentLikes(User user, Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(
                 () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
         );
-                Map<String, Object> response = new HashMap<>();
-                boolean hasLike;
-                if (likesRepository.findByUserAndComment(user, comment).isEmpty()) {
-                    // 좋아요 추가
-                    likesRepository.save(new Likes(comment, user));
-                    comment.plusLikesCount();
-                    response.put("message", "좋아요 성공");
-                    hasLike = true;
-                } else {
-                    // 이미 좋아요한 경우, 좋아요 취소
-                    likesRepository.deleteByUserAndComment(user, comment);
-                    comment.minusLikesCount();
-                    response.put("message", "좋아요 취소 성공");
-                    hasLike = false;
-                }
 
-                int likesCount = comment.getCmtLikesCnt();
-                response.put("hasLike", hasLike);
-                response.put("likesCount", likesCount);
-                return response;
-            }
+        Optional<Likes> likes = likesRepository.findByUserAndComment(user, comment);
+        boolean like = likes.isEmpty();
+
+        if (like) {
+            // 좋아요 추가
+            likesRepository.save(new Likes(comment, user));
+        } else {
+            // 이미 좋아요한 경우, 좋아요 취소
+            likesRepository.deleteByUserAndComment(user, comment);
+        }
+
+        return new LikeResponseDto(like, likesRepository.countByComment(comment));
     }
+}

@@ -196,7 +196,7 @@ public class BoardService {
                 .map(comment -> {
         // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
                     boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
-                    return new CommentDetailResponseDto(comment, user, commentHasLike);
+                    return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike);
                 })
                 .collect(Collectors.toList());
         return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike);
