@@ -5,6 +5,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class BoardRequestDto {
 
     private int year;

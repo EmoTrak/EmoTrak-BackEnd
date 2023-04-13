@@ -22,4 +22,7 @@ public class Emotion {
     @Column(nullable = false)
     private int kind;
 
+    public Emotion(Long id) {
+        this.id = id;
+    }
 }
