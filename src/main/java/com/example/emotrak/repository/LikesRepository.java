@@ -42,18 +42,18 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     @Modifying
     @Query(value = " DELETE FROM likes "
                  + "  WHERE comment_id IN ("
-                 + "                         select c.id as comment_id "
-                 + "                           from comment c "
-                 + "                          where c.user_id = :userId)"
+                 + "                         select id as comment_id "
+                 + "                           from comment "
+                 + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteCommentLikeByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE board_id IN ("
-                 + "                         select c.id as board_id "
-                 + "                           from board c "
-                 + "                          where c.user_id = :userId)"
+                 + "  WHERE daily_id IN ("
+                 + "                         select id as daily_id "
+                 + "                           from daily "
+                 + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteBoardLikeByUser(@Param("userId") Long userId);
 

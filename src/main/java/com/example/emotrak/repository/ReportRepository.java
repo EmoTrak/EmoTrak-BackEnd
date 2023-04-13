@@ -23,26 +23,26 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     @Modifying
     @Query(value = " DELETE FROM report "
                  + "  WHERE comment_id IN ("
-                 + "                         select c.id as comment_id "
-                 + "                           from comment c "
+                 + "                         select id as comment_id "
+                 + "                           from comment "
                  + "                          where daily_id = :dailyId)"
                  , nativeQuery = true)
     void deleteByDaily(@Param("dailyId") Long dailyId);
 
     @Modifying
-    @Query(value = " DELETE FROM likes "
+    @Query(value = " DELETE FROM report "
                  + "  WHERE comment_id IN ("
-                 + "                         select c.id as comment_id "
-                 + "                           from comment c "
-                 + "                          where c.user_id = :userId)"
+                 + "                         select id as comment_id "
+                 + "                           from comment "
+                 + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteCommentLikeByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM report "
-                 + "  WHERE board_id IN ("
-                 + "                         select c.id as board_id "
-                 + "                           from board c "
+                 + "  WHERE daily_id IN ("
+                 + "                         select id as daily_id "
+                 + "                           from daily "
                  + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteByUser(@Param("userId") Long userId);
