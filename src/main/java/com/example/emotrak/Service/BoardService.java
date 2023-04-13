@@ -6,6 +6,7 @@ import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,17 +33,20 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final LikesRepository likesRepository;
-    private static final long MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB,이부분은 수정이 필요함 1048576 bytes=1MB
-    private static final List<String> ALLOWED_IMAGE_CONTENT_TYPES = List.of("image/jpeg", "image/jpg", "image/png", "image/gif");
+    @Value("${app.image.maxFileSize}")
+    private long maxFileSize;
+
+    @Value("#{'${app.image.allowedContentTypes}'.split(',')}")
+    private List<String> allowedImageContentTypes;
 
 
     //감정글 추가
     public BoardIdResponseDto createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
         /*
-        중복되는 이미지 처리 코드를 별도의 메서드로 분리
-        업로드하려는 새 이미지 파일, 현재 이미지의 URL(createDaily 에서는 이미지가 없으므로 null 값을 전달)
-        삭제할지 여부를 나타내는 boolean 값(요청에 이미지 삭제가 포함되어 있으면 true 값을 전달)
-        */
+         * 중복되는 이미지 처리 코드를 별도의 메서드로 분리
+         * 업로드하려는 새 이미지 파일, 현재 이미지의 URL(createDaily 에서는 이미지가 없으므로 null 값을 전달)
+         * 삭제할지 여부를 나타내는 boolean 값(요청에 이미지 삭제가 포함되어 있으면 true 값을 전달)
+         */
         String imageUrl = handleImage(image, null, false);
         // Emotion 객체 찾기
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
@@ -53,7 +57,7 @@ public class BoardService {
     }
 
     // 글 수정
-    public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) throws IOException {
+    public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) {
         Daily daily = findDailyById(dailyId);
         if (daily.isHasRestrict() && daily.isShare()){
             throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
@@ -94,8 +98,9 @@ public class BoardService {
 
     //예외처리
     public void validateImage(MultipartFile image) {
-        if (image.getSize() > MAX_FILE_SIZE || !ALLOWED_IMAGE_CONTENT_TYPES.contains(image.getContentType())) {
-            throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);}
+        if (image.getSize() > maxFileSize || !allowedImageContentTypes.contains(image.getContentType())) {
+            throw new CustomException(CustomErrorCode.INVALID_FILE_TYPE);
+        }
     }
 
     private Daily findDailyById(Long dailyId) {

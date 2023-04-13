@@ -25,6 +25,7 @@ public enum CustomErrorCode {
     NOT_NICKNAME_PATTERN (BAD_REQUEST, "x-1012", "닉네임 조건을 확인해주세요."),
     AWS_SERVICE_ERROR(BAD_REQUEST,"x-1013","AWS 서비스 관련 오류가 발생했습니다."),
     AWS_CLIENT_ERROR(BAD_REQUEST,"x-1013","AWS 클라이언트 관련 오류가 발생했습니다."),
+    INVALID_FILE_TYPE(BAD_REQUEST,"x-1014","파일 크기 또는 파일 형식이 유효하지않습니다"),
 
     /* 401 UNAUTHORIZED : 권한 없음 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "Expired JWT token"),

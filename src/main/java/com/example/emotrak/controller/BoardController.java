@@ -26,11 +26,14 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    //감정글 추가 : 이미지가 null일 때에는 이미지를 저장하지 않고 Daily 객체를 생성하고 저장(이미지 유효성 검사를 이미지가 존재할 경우에만 수행)
+    /*
+     * 감정글 추가: 이미지가 null일 때에는 이미지를 저장하지 않고 Daily 객체를 생성하고 저장
+     * (이미지 유효성 검사를 이미지가 존재할 경우에만 수행)
+     */
     @PostMapping(value = "/daily", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> createDaily(@RequestParam("image") MultipartFile image,
                                          @RequestPart("contents") @Valid BoardRequestDto boardRequestDto,
-                                         @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
+                                         @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 이미지 파일 업로드 및 글 작성 처리
         return ResponseMessage.successResponse(HttpStatus.CREATED, "글작성 성공", boardService.createDaily(boardRequestDto, userDetails.getUser(), image));
     }
