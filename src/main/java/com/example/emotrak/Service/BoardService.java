@@ -157,6 +157,7 @@ public class BoardService {
 
 
     // 공유게시판 전체조회(이미지)
+    @Transactional(readOnly = true)
     public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
@@ -185,6 +186,7 @@ public class BoardService {
     }
 
     // 공유게시판 상세페이지
+    @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
