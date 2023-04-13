@@ -18,18 +18,20 @@ public class CommentDetailResponseDto {
     private String createdAt;
     private boolean hasAuth;
     private String nickname;
-    private int cmtLikesCnt;
+    private int likesCnt;
+    private boolean hasLike;
 
     private String formatCreatedAt(LocalDateTime createdAt) {
        return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public CommentDetailResponseDto(Comment comment, User user) {
+    public CommentDetailResponseDto(Comment comment, User user, boolean hasLike) {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
         if (user != null) this.hasAuth = comment.getUser().getId().equals(user.getId()) || user.hasAdmin();
         this.nickname = comment.getUser().getNickname();
-        this.cmtLikesCnt = comment.getCmtLikesCnt();
+        this.likesCnt = comment.getCmtLikesCnt();
+        this.hasLike = hasLike;
     }
 }
