@@ -97,13 +97,8 @@ public class BoardController {
 
     //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
     @PostMapping("/boards/likes/{boardId}")
-    public ResponseEntity<?> boardlikes(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        Map<String, Object> response = boardService.boardlikes(userDetails.getUser(), boardId);
-        boolean hasLike = (boolean) response.get("hasLike");
-        int likesCount = (int) response.get("likesCount");
-        String message = (String) response.get("message");
-        LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
-        return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
+    public ResponseEntity<?> boardLikes(@PathVariable Long boardId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "좋아요 성공", boardService.boardLikes(userDetails.getUser(), boardId));
     }
 
 }

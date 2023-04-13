@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -200,7 +199,7 @@ public class BoardService {
                     return new CommentDetailResponseDto(comment, user, commentHasLike);
                 })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, hasLike);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike);
     }
 
 
@@ -225,27 +224,23 @@ public class BoardService {
     }
 
     //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
-    public Map<String, Object> boardlikes(User user, Long boardId) {
-        Daily daily = findDailyById(boardId);
-        Map<String, Object> response = new HashMap<>();
-        boolean hasLike;
-        if (likesRepository.findByUserAndDaily(user, daily).isEmpty()) {
+    public LikeResponseDto boardLikes(User user, Long boardId) {
+        Daily daily = boardRepository.findById(boardId).orElseThrow(
+                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
+        );
+
+        Optional<Likes> likes = likesRepository.findByUserAndDaily(user, daily);
+        boolean like = likes.isEmpty();
+
+        if (like) {
             // 좋아요 추가
             likesRepository.save(new Likes(daily, user));
-            daily.plusLikesCount();
-            response.put("message", "좋아요 성공");
-            hasLike = true;
         } else {
             // 이미 좋아요한 경우, 좋아요 취소
-            likesRepository.deleteByUserAndDaily(user, daily);
-            daily.minusLikesCount();
-            response.put("message", "좋아요 취소 성공");
-            hasLike = false;
+            likesRepository.deleteById(likes.get().getId());
         }
 
-        int likesCount = daily.getBoardLikesCnt();
-        response.put("hasLike", hasLike);
-        response.put("likesCount", likesCount);
-        return response;
+        return new LikeResponseDto(like, likesRepository.countByDaily(daily));
     }
+
 }
