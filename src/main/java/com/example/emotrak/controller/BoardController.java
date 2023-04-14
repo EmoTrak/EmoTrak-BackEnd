@@ -97,15 +97,6 @@ public class BoardController {
         return ResponseMessage.successResponse(HttpStatus.CREATED, "게시글 신고 성공", null);
     }
 
-    @Tag(name = "Report")
-    @Operation(summary = "게시글 신고삭제", description = "게시글 신고 삭제 성공")
-    @DeleteMapping("/boards/report/{boardId}")
-    public ResponseEntity<?> deleteReport(@PathVariable Long boardId,
-                                          @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        boardService.deleteReport(userDetails.getUser(), boardId);
-        return ResponseMessage.successResponse(HttpStatus.OK, "게시물 신고 삭제 성공", null);
-    }
-
     @Tag(name = "Likes")
     @Operation(summary = "게시글 좋아요", description = "좋아요와 취소 번갈아가며 진행")
     @PostMapping("/boards/likes/{boardId}")
