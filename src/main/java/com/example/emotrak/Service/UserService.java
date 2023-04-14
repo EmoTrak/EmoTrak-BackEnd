@@ -1,8 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.domain.Message;
 import com.example.emotrak.dto.*;
-import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -17,8 +15,6 @@ import com.example.emotrak.util.RefreshToken;
 import com.example.emotrak.util.Validation;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,8 +27,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -41,14 +35,10 @@ public class UserService {
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
-    //private final JwtUtil jwtUtil;
-    //private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final Validation validation;
-    // ADMIN_TOKEN
-    private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
     // 회원가입
     @Transactional
@@ -117,11 +107,8 @@ public class UserService {
         if(!encoder.matches(loginRequestDto.getPassword(), encodePassword)){
             throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
         }
-        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
-        validation.tokenToHeaders(tokenDto,response);
-
-//        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
-//        response.addHeader("nickname", user.getNickname());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(user, user.getRole());
+        validation.tokenToHeaders(tokenDto, response);
     }
 
     // 이메일 중복 체크. 이메일이 있으면 true - 중복된 이메일 반환 / 이메일이 없으면 false 사용가능한 이메일
@@ -269,16 +256,19 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshTokenValue = request.getHeader("Refresh-Token");
         tokenProvider.validateToken(refreshTokenValue);
         RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue).orElse(null);
-        Optional<User> user = userRepository.findById(refreshToken.getUser().getId());
-        User requestingUser = user.get();
+
 
         if (refreshToken == null) {
             throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
         }
+
+        Optional<User> user = userRepository.findById(refreshToken.getUser().getId());
+        User requestingUser = user.get();
+
         if (!Objects.equals(refreshToken.getValue(), refreshTokenValue)) {
             tokenProvider.deleteRefreshToken(requestingUser);
             throw new CustomException(CustomErrorCode.INVALID_TOKEN);
@@ -291,14 +281,12 @@ public class UserService {
                 tokenProvider.deleteRefreshToken(requestingUser);
                 throw new CustomException(CustomErrorCode.INVALID_TOKEN);
             } else {
-                TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
+                TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
                 validation.accessTokenToHeaders(tokenDto, response);
-                return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
             }
         } else {
-            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
+            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
             validation.accessTokenToHeaders(tokenDto, response);
-            return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
         }
     }
 }

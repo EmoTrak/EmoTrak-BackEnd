@@ -77,8 +77,9 @@ public class UserController {
     }
 
     //3. 리프레시 토큰 발급
-    @PostMapping("/refreshtoken")
+    @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshTokenCheck(HttpServletRequest request, HttpServletResponse response){
-        return userService.refreshToken(request, response);
+        userService.refreshToken(request, response);
+        return ResponseMessage.successResponse(HttpStatus.OK, "토큰 재발급 완료", null);
     }
 }

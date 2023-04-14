@@ -27,9 +27,9 @@ public class TokenProvider {
 
     private static final String AUTHORITIES_KEY = "auth";
     private static final String BEARER_PREFIX = "Bearer ";
-    public static final long ACCESS_TOKEN_EXPIRE_TIME = 30000;
-    //public static final long ACCESS_TOKEN_EXPIRE_TIME = 1800000;// 원래 세팅: 30분(1800000) ,테스트 : 10000, 기준: (1000 -> 1s)
-    //private static final long REFRESH_TOKEN_EXPIRE_TIME = 60000; // 1주일
+//    public static final long ACCESS_TOKEN_EXPIRE_TIME = 30000;
+        public static final long ACCESS_TOKEN_EXPIRE_TIME = 1800000;// 원래 세팅: 30분(1800000) ,테스트 : 10000, 기준: (1000 -> 1s)
+//    private static final long REFRESH_TOKEN_EXPIRE_TIME = 60000; // 1주일
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 604800000; // 1주일
 
     private final Key key;
@@ -42,12 +42,12 @@ public class TokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public TokenDto generateTokenDto(User user) {
+    public TokenDto generateTokenDto(User user, UserRoleEnum role) {
         long now = (new Date().getTime());
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
         String accessToken = Jwts.builder()
                 .setSubject(user.getEmail())
-                .claim(AUTHORITIES_KEY, UserRoleEnum.USER.toString())
+                .claim(AUTHORITIES_KEY, role)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -73,15 +73,6 @@ public class TokenProvider {
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-    public User getUserFromAuthentication() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || AnonymousAuthenticationToken.class.
-                isAssignableFrom(authentication.getClass())) {
-            return null;
-        }
-        return ((UserDetailsImpl) authentication.getPrincipal()).getUser();
     }
 
 
@@ -113,12 +104,12 @@ public class TokenProvider {
         refreshTokenRepository.delete(refreshToken);
     }
 
-    public TokenDto generateAccessTokenDto(User user) {
+    public TokenDto generateAccessTokenDto(User user, UserRoleEnum role) {
         long now = (new Date().getTime());
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
         String accessToken = Jwts.builder()
                 .setSubject(user.getEmail())
-                .claim(AUTHORITIES_KEY, UserRoleEnum.USER.toString())
+                .claim(AUTHORITIES_KEY, role)
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
