@@ -51,8 +51,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     void deleteByUser(@Param("userId") Long userId);
 
     @Modifying
-    @Query(value = " DELETE FROM report "
-            + "  INNER JOIN comment c ON l.comment_id = c.id "
+    @Query(value = " DELETE FROM report r"
+            + "  INNER JOIN comment c ON r.comment_id = c.id "
             + "  INNER JOIN daily d ON c.daily_id = d.id "
             + "  WHERE d.user_id = :userId "
             , nativeQuery = true)

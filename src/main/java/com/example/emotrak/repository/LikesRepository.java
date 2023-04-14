@@ -60,7 +60,7 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     void deleteBoardLikeByUser(@Param("userId") Long userId);
 
     @Modifying
-    @Query(value = " DELETE FROM likes "
+    @Query(value = " DELETE FROM likes l"
                  + "  INNER JOIN comment c ON l.comment_id = c.id "
                  + "  INNER JOIN daily d ON c.daily_id = d.id "
                  + "  WHERE d.user_id = :userId "
