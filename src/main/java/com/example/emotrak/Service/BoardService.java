@@ -7,6 +7,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +52,11 @@ public class BoardService {
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
-        boardRepository.save(daily);
+        try {
+            boardRepository.save(daily);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
         return new BoardIdResponseDto(daily);
     }
 
@@ -67,7 +72,11 @@ public class BoardService {
         // Emotion 객체 찾기
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
-        daily.update(newImageUrl, boardRequestDto, emotion);
+        try {
+            daily.update(newImageUrl, boardRequestDto, emotion);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
     }
 
     // 글 삭제
@@ -92,7 +101,11 @@ public class BoardService {
         likesRepository.deleteBoardLike(daily.getId());
 
         // 데이터베이스에서 Daily 객체 삭제
-        boardRepository.delete(daily);
+        try {
+            boardRepository.delete(daily);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
     }
 
     //예외처리
@@ -143,6 +156,7 @@ public class BoardService {
 
 
     // 공유게시판 전체조회(이미지)
+    @Transactional(readOnly = true)
     public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
@@ -171,6 +185,7 @@ public class BoardService {
     }
 
     // 공유게시판 상세페이지
+    @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
