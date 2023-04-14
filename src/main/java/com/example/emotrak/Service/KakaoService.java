@@ -133,10 +133,10 @@ public class KakaoService {
                 String nickname = kakaoUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
-                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getKakaoName(nickname);
+                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
-                kakaoUser = new User(encodedPassword, email,nickname,kakaoId,null, UserRoleEnum.USER);
+                kakaoUser = new User(encodedPassword, email,nickname,kakaoId,null, null, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
         }
