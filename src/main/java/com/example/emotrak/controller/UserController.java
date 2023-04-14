@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -73,5 +74,12 @@ public class UserController {
     public ResponseEntity<?> userDelete(@AuthenticationPrincipal UserDetailsImpl userDetails){
         userService.userDelete(userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
+    }
+
+    //3. 리프레시 토큰 발급
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshTokenCheck(HttpServletRequest request, HttpServletResponse response){
+        userService.refreshToken(request, response);
+        return ResponseMessage.successResponse(HttpStatus.OK, "토큰 재발급 완료", null);
     }
 }

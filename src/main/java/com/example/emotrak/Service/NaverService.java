@@ -1,10 +1,12 @@
 package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.NaverUserInfoDto;
+import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
-import com.example.emotrak.jwt.JwtUtil;
+import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.util.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,9 +30,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class NaverService {
-    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenProvider tokenProvider;
+    private final Validation validation;
 
     @Value("${client_id}")
     private String clientId;
@@ -41,14 +44,16 @@ public class NaverService {
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, state);
+
         // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
         NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
+
         // 3. 필요시에 회원가입
         User naverUser = registerNaverUserIfNeeded(naverUserInfo);
+
         // 4. JWT 토큰 반환
-        String createToken = jwtUtil.createToken(naverUser.getEmail(), naverUser.getRole());
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, createToken);
-        response.addHeader("nickname", naverUser.getNickname());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
+        validation.tokenToHeaders(tokenDto,response);
     }
     // 1. "인가 코드"로 "액세스 토큰" 요청
     private String getToken(String code, String state) throws JsonProcessingException{

@@ -1,10 +1,12 @@
 package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.KakaoUserInfoDto;
+import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
-import com.example.emotrak.jwt.JwtUtil;
+import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.util.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +31,8 @@ import java.util.UUID;
 public class KakaoService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
+    private final TokenProvider tokenProvider;
+    private final Validation validation;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -42,10 +45,10 @@ public class KakaoService {
         User kakaoUser = registerKakaoUserIfNeeded(kakaoUserInfo);
 
         // 4. JWT 토큰 반환
-        String createToken =  jwtUtil.createToken(kakaoUser.getEmail(), kakaoUser.getRole());
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, createToken);
-        response.addHeader("nickname", kakaoUser.getNickname());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(kakaoUser, kakaoUser.getRole());
+        validation.tokenToHeaders(tokenDto,response);
     }
+
     // 1. "인가 코드"로 "액세스 토큰" 요청
     private String getToken(String code) throws JsonProcessingException {
         // HTTP Header 생성
@@ -78,6 +81,7 @@ public class KakaoService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         return jsonNode.get("access_token").asText();
     }
+
     // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
     private KakaoUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         // HTTP Header 생성
@@ -107,6 +111,7 @@ public class KakaoService {
         log.info("카카오 사용자 정보: " + id + ", " + email);
         return new KakaoUserInfoDto(id, email,nickname);
     }
+
     // 3. 필요시에 회원가입
     private User registerKakaoUserIfNeeded(KakaoUserInfoDto kakaoUserInfo) {
         // DB 에 중복된 Kakao Id 가 있는지 확인
@@ -136,7 +141,7 @@ public class KakaoService {
                     nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
-                kakaoUser = new User(encodedPassword, email,nickname,kakaoId,null, null, UserRoleEnum.USER);
+                kakaoUser = new User(encodedPassword, email, nickname, kakaoId, null, null, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
         }
