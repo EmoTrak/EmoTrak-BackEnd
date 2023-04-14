@@ -8,7 +8,8 @@ import java.util.List;
 
 public interface AdminRepository extends JpaRepository<Report, Long> {
 
-    @Query(value = "select a.daily_id,"
+    @Query(value = "select r.id,"
+            + "        a.daily_id,"
             + "        b.nickname,"
             + "        b.email,"
             + "        reason,"
@@ -25,7 +26,8 @@ public interface AdminRepository extends JpaRepository<Report, Long> {
             + " order by count desc", nativeQuery = true)
     List<Object[]> getReportBoard();
 
-    @Query(value = "select a.comment_id,"
+    @Query(value = "select  r.id,"
+            + "        a.comment_id,"
             + "        b.nickname,"
             + "        b.email,"
             + "        reason,"

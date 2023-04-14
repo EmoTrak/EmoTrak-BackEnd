@@ -1,6 +1,7 @@
 package com.example.emotrak.repository;
 
 import com.example.emotrak.entity.Comment;
+import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.Report;
 import com.example.emotrak.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,8 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     Optional<Report> findByUserAndDailyId(User user, Long dailyId);
 
     Optional<Report> findByUserAndCommentId(User user, Long commentId);
+
+    void deleteAllByDaily(Daily daily);
 
     void deleteAllByComment(Comment comment);
 

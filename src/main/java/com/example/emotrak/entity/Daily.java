@@ -37,7 +37,7 @@ public class Daily extends Timestamped {
     @JoinColumn(name = "userId")
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 3000)
     private String detail;
 
     @Column(nullable = false)
@@ -50,10 +50,10 @@ public class Daily extends Timestamped {
     private boolean share;
 
     @Column(nullable = false)
-    private int boardLikesCnt;
+    private boolean hasRestrict;
 
     @Column(nullable = false)
-    private boolean hasRestrict = false;
+    private boolean draw;
 
     @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
     private List<Comment> comments;
@@ -73,7 +73,7 @@ public class Daily extends Timestamped {
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
         this.share = boardRequestDto.isShare();
-        this.boardLikesCnt = 0;
+        this.draw = boardRequestDto.isDraw();
     }
 
     //board 업데이트 메서드
@@ -91,14 +91,6 @@ public class Daily extends Timestamped {
     public void restricted(){
         this.share = false;
         this.hasRestrict = true;
-    }
-
-    public void plusLikesCount() {
-        this.boardLikesCnt++;
-    }
-
-    public void minusLikesCount() {
-        this.boardLikesCnt--;
     }
 
 }

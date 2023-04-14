@@ -27,6 +27,7 @@ public enum CustomErrorCode {
     AWS_CLIENT_ERROR(BAD_REQUEST,"x-1013","AWS 클라이언트 관련 오류가 발생했습니다."),
     INVALID_FILE_TYPE(BAD_REQUEST,"x-1014","파일 크기 또는 파일 형식이 유효하지않습니다"),
 
+
     /* 401 UNAUTHORIZED : 권한 없음 */
     INVALID_TOKEN(UNAUTHORIZED, "x-1001", "Expired JWT token"),
     NON_TOKEN(UNAUTHORIZED, "x-1002", "로그인이 필요합니다."),
@@ -36,6 +37,7 @@ public enum CustomErrorCode {
 
 
     /* 403 FORBIDDEN : 권한 */
+    ADMIN_FORBIDDEN(FORBIDDEN,"x-1001", "관리자 권한이 없습니다."),
 
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
@@ -50,7 +52,11 @@ public enum CustomErrorCode {
     DUPLICATE_NICKNAME(CONFLICT, "x-1002", "중복된 닉네임이 존재합니다"),
     DUPLICATE_REPORT(CONFLICT,"x-1003" ,"이미 신고한 게시물입니다" ),
     SAME_PASSWORD(CONFLICT, "x-1004", "패스워드가 동일합니다"),
-    SAME_NICKNAME(CONFLICT, "x-1005", "닉네임이 동일합니다");
+    SAME_NICKNAME(CONFLICT, "x-1005", "닉네임이 동일합니다"),
+    DATA_INTEGRITY_VIOLATION (CONFLICT, "x-1006", "데이터 무결성 위반"),
+
+    /* 415 UNSUPPORTED_MEDIA_TYPE : 미디어타입 오류 */
+    UNSUPPORTED_MEDIA_TYPE (HttpStatus.UNSUPPORTED_MEDIA_TYPE, "x-1001", "지원되지 않는 미디어 타입입니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;

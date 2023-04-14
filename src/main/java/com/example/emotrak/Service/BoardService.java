@@ -7,6 +7,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,7 +52,11 @@ public class BoardService {
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
-        boardRepository.save(daily);
+        try {
+            boardRepository.save(daily);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
         return new BoardIdResponseDto(daily);
     }
 
@@ -68,7 +72,11 @@ public class BoardService {
         // Emotion 객체 찾기
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
-        daily.update(newImageUrl, boardRequestDto, emotion);
+        try {
+            daily.update(newImageUrl, boardRequestDto, emotion);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
     }
 
     // 글 삭제
@@ -93,7 +101,11 @@ public class BoardService {
         likesRepository.deleteBoardLike(daily.getId());
 
         // 데이터베이스에서 Daily 객체 삭제
-        boardRepository.delete(daily);
+        try {
+            boardRepository.delete(daily);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
+        }
     }
 
     //예외처리
@@ -144,18 +156,16 @@ public class BoardService {
 
 
     // 공유게시판 전체조회(이미지)
+    @Transactional(readOnly = true)
     public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
-        Sort sortPage;
-        if (sort.equals("recent"))
-            sortPage = Sort.by(Sort.Direction.DESC, "created_at");
-        else  sortPage = Sort.by(Sort.Direction.DESC, "board_likes_cnt").and(Sort.by(Sort.Direction.DESC, "created_at"));
+        Pageable pageable = PageRequest.of(page-1, size+1);
 
-        Pageable pageable = PageRequest.of(page-1, size+1, sortPage);
-
-        List<Object[]> objectList = boardRepository.getBoardImages(emoList, pageable);
+        List<Object[]> objectList;
+        if (sort.equals("recent")) objectList = boardRepository.getBoardImagesRecent(emoList, pageable);
+        else objectList = boardRepository.getBoardImagesPopular(emoList, pageable);
 
         boolean lastPage = true;
         List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
@@ -172,6 +182,7 @@ public class BoardService {
     }
 
     // 공유게시판 상세페이지
+    @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
@@ -190,17 +201,17 @@ public class BoardService {
         boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
 
         // 페이지네이션을 적용하여 댓글 목록 가져오기
-        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
+        boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-//                .map(comment -> new CommentDetailResponseDto(comment, user, hasLike))
                 .map(comment -> {
         // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
                     boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
-                    return new CommentDetailResponseDto(comment, user, commentHasLike);
+                    return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike);
                 })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, hasLike);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage);
     }
 
 
@@ -217,35 +228,24 @@ public class BoardService {
         reportRepository.save(report);
     }
 
-    // 게시물 신고 삭제하기
-    public void deleteReport(User user, Long id) {
-        Report report = reportRepository.findByUserAndDailyId(user, id)
-                .orElseThrow(() -> new CustomException(CustomErrorCode.REPORT_NOT_FOUND));
-        reportRepository.delete(report);
-    }
-
     //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
-    public Map<String, Object> boardlikes(User user, Long boardId) {
-        Daily daily = findDailyById(boardId);
-        Map<String, Object> response = new HashMap<>();
-        boolean hasLike;
-        if (likesRepository.findByUserAndDaily(user, daily).isEmpty()) {
+    public LikeResponseDto boardLikes(User user, Long boardId) {
+        Daily daily = boardRepository.findById(boardId).orElseThrow(
+                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
+        );
+
+        Optional<Likes> likes = likesRepository.findByUserAndDaily(user, daily);
+        boolean like = likes.isEmpty();
+
+        if (like) {
             // 좋아요 추가
             likesRepository.save(new Likes(daily, user));
-            daily.plusLikesCount();
-            response.put("message", "좋아요 성공");
-            hasLike = true;
         } else {
             // 이미 좋아요한 경우, 좋아요 취소
-            likesRepository.deleteByUserAndDaily(user, daily);
-            daily.minusLikesCount();
-            response.put("message", "좋아요 취소 성공");
-            hasLike = false;
+            likesRepository.deleteById(likes.get().getId());
         }
 
-        int likesCount = daily.getBoardLikesCnt();
-        response.put("hasLike", hasLike);
-        response.put("likesCount", likesCount);
-        return response;
+        return new LikeResponseDto(like, likesRepository.countByDaily(daily));
     }
+
 }

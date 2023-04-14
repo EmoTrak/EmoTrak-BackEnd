@@ -20,7 +20,7 @@ public interface DailyRepository extends JpaRepository<Daily, Long> {
                                             , @Param("month") int month
                                             , @Param("userId") Long userId);
 
-    @Query(value = "select new com.example.emotrak.dto.DailyDetailResponseDto( d.id, d.dailyDay, d.emotion.id, d.star, d.detail, d.imgUrl, d.share, d.hasRestrict ) "
+    @Query(value = "select new com.example.emotrak.dto.DailyDetailResponseDto( d.id, d.dailyDay, d.emotion.id, d.star, d.detail, d.imgUrl, d.share, d.hasRestrict, d.draw ) "
                  + "  from Daily d, Daily c "
                  + " where d.DailyYear = c.DailyYear "
                  + "   and d.dailyMonth = c.dailyMonth "
