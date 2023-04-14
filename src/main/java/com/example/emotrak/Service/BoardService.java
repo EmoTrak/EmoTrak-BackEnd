@@ -204,9 +204,9 @@ public class BoardService {
         boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
 
         // 페이지네이션을 적용하여 댓글 목록 가져오기
-        Pageable pageable = PageRequest.of(page, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
-        boolean hasLastPage = commentsPage.isLast();
+        boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
                 .map(comment -> {
         // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
@@ -214,7 +214,7 @@ public class BoardService {
                     return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike);
                 })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, hasLastPage);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage);
     }
 
 

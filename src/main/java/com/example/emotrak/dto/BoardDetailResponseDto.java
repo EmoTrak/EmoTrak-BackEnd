@@ -26,7 +26,7 @@ public class BoardDetailResponseDto {
     private int likesCnt;
     private boolean restrict;
     private boolean hasLike;
-    private boolean hasLastPage; // 마지막 페이지 여부
+    private boolean lastPage; // 마지막 페이지 여부
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
@@ -41,7 +41,7 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean hasLastPage) {
+    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean lastPage) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
@@ -54,6 +54,6 @@ public class BoardDetailResponseDto {
         this.likesCnt = likesCnt;
         this.restrict = daily.isHasRestrict();
         this.hasLike = hasLike;
-        this.hasLastPage = hasLastPage;
+        this.lastPage = lastPage;
     }
 }
