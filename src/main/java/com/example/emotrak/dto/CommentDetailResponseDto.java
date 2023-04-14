@@ -25,13 +25,13 @@ public class CommentDetailResponseDto {
        return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public CommentDetailResponseDto(Comment comment, User user, boolean hasLike) {
+    public CommentDetailResponseDto(Comment comment, User user, int likesCnt, boolean hasLike) {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
         if (user != null) this.hasAuth = comment.getUser().getId().equals(user.getId()) || user.hasAdmin();
         this.nickname = comment.getUser().getNickname();
-        this.likesCnt = comment.getCmtLikesCnt();
+        this.likesCnt = likesCnt;
         this.hasLike = hasLike;
     }
 }

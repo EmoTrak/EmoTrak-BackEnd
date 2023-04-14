@@ -111,12 +111,7 @@ public class BoardController {
     @PostMapping("/boards/likes/{boardId}")
     public ResponseEntity<?> boardlikes(@PathVariable Long boardId,
                                         @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        Map<String, Object> response = boardService.boardlikes(userDetails.getUser(), boardId);
-        boolean hasLike = (boolean) response.get("hasLike");
-        int likesCount = (int) response.get("likesCount");
-        String message = (String) response.get("message");
-        LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
-        return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
+        return ResponseMessage.successResponse(HttpStatus.OK, "좋아요 성공", boardService.boardLikes(userDetails.getUser(), boardId));
     }
 
 }

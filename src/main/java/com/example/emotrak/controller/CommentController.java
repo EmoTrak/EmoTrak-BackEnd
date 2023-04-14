@@ -82,12 +82,7 @@ public class CommentController {
     @PostMapping("/comments/likes/{commentId}")
     public ResponseEntity<?> commentlikes(@PathVariable Long commentId,
                                           @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        Map<String, Object> response = commentService.commentlikes(userDetails.getUser(), commentId);
-        boolean hasLike = (boolean) response.get("hasLike");
-        int likesCount = (int) response.get("likesCount");
-        String message = (String) response.get("message");
-        LikeResponseDto likeResponseDto = new LikeResponseDto(hasLike, likesCount);
-        return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
+        return ResponseMessage.successResponse(HttpStatus.OK, "좋아요 성공", commentService.commentLikes(userDetails.getUser(), commentId));
     }
 
 }

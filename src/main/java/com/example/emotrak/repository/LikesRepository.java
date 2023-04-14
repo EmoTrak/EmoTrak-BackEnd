@@ -14,7 +14,9 @@ import java.util.Optional;
 public interface LikesRepository extends JpaRepository<Likes, Long> {
     Optional<Likes> findByUserAndDaily(User user, Daily daily);
 
-    void deleteByUserAndDaily(User user, Daily daily);
+    int countByDaily(Daily daily);
+
+    int countByComment(Comment comment);
 
     Optional<Likes> findByUserAndComment(User user, Comment comment);
 
@@ -27,9 +29,9 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     @Modifying
     @Query(value = " DELETE FROM likes "
                  + "  WHERE comment_id IN ("
-                 + "                         select c.id as comment_id "
-                 + "                           from comment c "
-                 + "                          where c.daily_id = :dailyId)"
+                 + "                         select id as comment_id "
+                 + "                           from comment "
+                 + "                          where daily_id = :dailyId)"
                  , nativeQuery = true)
     void deleteCommentLike(@Param("dailyId") Long dailyId);
 
@@ -42,18 +44,18 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     @Modifying
     @Query(value = " DELETE FROM likes "
                  + "  WHERE comment_id IN ("
-                 + "                         select c.id as comment_id "
-                 + "                           from comment c "
-                 + "                          where c.user_id = :userId)"
+                 + "                         select id as comment_id "
+                 + "                           from comment "
+                 + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteCommentLikeByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE board_id IN ("
-                 + "                         select c.id as board_id "
-                 + "                           from board c "
-                 + "                          where c.user_id = :userId)"
+                 + "  WHERE daily_id IN ("
+                 + "                         select id as daily_id "
+                 + "                           from daily "
+                 + "                          where user_id = :userId)"
                  , nativeQuery = true)
     void deleteBoardLikeByUser(@Param("userId") Long userId);
 
