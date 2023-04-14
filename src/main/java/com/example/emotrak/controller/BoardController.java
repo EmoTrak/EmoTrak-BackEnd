@@ -109,7 +109,7 @@ public class BoardController {
     @Tag(name = "Likes")
     @Operation(summary = "게시글 좋아요", description = "좋아요와 취소 번갈아가며 진행")
     @PostMapping("/boards/likes/{boardId}")
-    public ResponseEntity<?> boardlikes(@PathVariable Long boardId,
+    public ResponseEntity<?> boardLikes(@PathVariable Long boardId,
                                         @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
         LikeResponseDto likeResponseDto = boardService.boardLikes(userDetails.getUser(), boardId);
         String message = likeResponseDto.isHasLike() ? "좋아요 성공" : "좋아요 취소 성공";

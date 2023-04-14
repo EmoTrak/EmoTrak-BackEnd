@@ -27,6 +27,7 @@ public class BoardDetailResponseDto {
     private boolean restrict;
     private boolean hasLike;
     private boolean lastPage; // 마지막 페이지 여부
+    private boolean draw;
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
@@ -55,5 +56,6 @@ public class BoardDetailResponseDto {
         this.restrict = daily.isHasRestrict();
         this.hasLike = hasLike;
         this.lastPage = lastPage;
+        this.draw = daily.isDraw();
     }
 }

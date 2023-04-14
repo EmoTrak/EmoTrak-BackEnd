@@ -161,14 +161,11 @@ public class BoardService {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
-        Sort sortPage;
-        if (sort.equals("recent"))
-            sortPage = Sort.by(Sort.Direction.DESC, "created_at");
-        else  sortPage = Sort.by(Sort.Direction.DESC, "board_likes_cnt").and(Sort.by(Sort.Direction.DESC, "created_at"));
+        Pageable pageable = PageRequest.of(page-1, size+1);
 
-        Pageable pageable = PageRequest.of(page-1, size+1, sortPage);
-
-        List<Object[]> objectList = boardRepository.getBoardImages(emoList, pageable);
+        List<Object[]> objectList;
+        if (sort.equals("recent")) objectList = boardRepository.getBoardImagesRecent(emoList, pageable);
+        else objectList = boardRepository.getBoardImagesPopular(emoList, pageable);
 
         boolean lastPage = true;
         List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();

@@ -80,7 +80,7 @@ public class CommentController {
     @Tag(name = "Likes")
     @Operation(summary = "댓글 좋아요", description = "좋아요와 취소 번갈아가며 진행")
     @PostMapping("/comments/likes/{commentId}")
-    public ResponseEntity<?> commentlikes(@PathVariable Long commentId,
+    public ResponseEntity<?> commentLikes(@PathVariable Long commentId,
                                           @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
         LikeResponseDto likeResponseDto = commentService.commentLikes(userDetails.getUser(), commentId);
         String message = likeResponseDto.isHasLike() ? "좋아요 성공" : "좋아요 취소 성공";
