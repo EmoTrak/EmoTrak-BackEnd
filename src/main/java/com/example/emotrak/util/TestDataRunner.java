@@ -89,7 +89,7 @@ public class TestDataRunner implements ApplicationRunner {
             {
                 ranNum = (int)(Math.random() * emotionList.size());
                 emotion = emotionList.get(ranNum);
-                boardRequestDto = new BoardRequestDto(2023, 4, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
+                boardRequestDto = new BoardRequestDto(false, 2023, 4, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
                 dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
             }
         }
