@@ -245,7 +245,7 @@ public class UserService {
         // 내가 쓴 게시글의 모든 좋아요 날리기
         likesRepository.deleteBoardLikeByUser(user.getId());
         // 내가 쓴 게시글의 모든 댓글의 좋아요 날리기
-        likesRepository.deleteCommentLikeByBoard(user.getId());
+        likesRepository.deleteLikeByBoard(user.getId());
         // 내가 쓴 게시글의 모든 신고 날리기
         reportRepository.deleteByUser(user.getId());
         // 내가 쓴 게시글의 모든 댓글의 신고 날리기
