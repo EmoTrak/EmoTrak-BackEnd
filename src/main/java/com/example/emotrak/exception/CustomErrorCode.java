@@ -34,6 +34,9 @@ public enum CustomErrorCode {
     REFRESH_TOKEN_IS_EXPIRED(UNAUTHORIZED, "x-1003", "리프레쉬 토큰이 만료되었습니다."),
     NOT_AUTHOR(UNAUTHORIZED, "x-1004", "작성자만 수정/삭제가 가능합니다."),
     UNAUTHORIZED_ACCESS(UNAUTHORIZED,"x-1005", "권한이 없습니다."),
+    NO_NAVER_LINK(BAD_REQUEST, "x-1015", "네이버 계정과 연동되어 있지 않습니다."),
+    NAVER_UNLINK_FAILED(INTERNAL_SERVER_ERROR, "x-1016", "네이버 계정 연동 해제에 실패하였습니다."),
+
 
 
     /* 403 FORBIDDEN : 권한 */

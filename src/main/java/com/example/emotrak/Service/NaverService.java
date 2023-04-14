@@ -4,6 +4,8 @@ import com.example.emotrak.dto.NaverUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.exception.CustomErrorCode;
+import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.util.Validation;
@@ -13,15 +15,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
@@ -34,6 +36,7 @@ public class NaverService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final UserService userService;
 
     @Value("${client_id}")
     private String clientId;
@@ -44,19 +47,16 @@ public class NaverService {
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, state);
-
         // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
         NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
-
         // 3. 필요시에 회원가입
         User naverUser = registerNaverUserIfNeeded(naverUserInfo);
-
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
         validation.tokenToHeaders(tokenDto,response);
     }
     // 1. "인가 코드"로 "액세스 토큰" 요청
-    private String getToken(String code, String state) throws JsonProcessingException{
+    private String getToken(String code, String state) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -114,7 +114,7 @@ public class NaverService {
         String nickname = responseNode.get("nickname").asText();
         return new NaverUserInfoDto(id, email, nickname);
     }
-    private User registerNaverUserIfNeeded (NaverUserInfoDto naverUserInfo){
+    private User registerNaverUserIfNeeded (NaverUserInfoDto naverUserInfo) {
         String naverId = naverUserInfo.getId();
         User naverUser = userRepository.findByNaverId(naverId).
                 orElse(null);
@@ -142,4 +142,40 @@ public class NaverService {
         }
         return naverUser;
     }
+
+    public void unlinkNaverAccount(User user, String accessToken) {
+        // 사용자가 없거나 네이버 ID가 없는 경우에 대한 예외 처리
+        if (user == null || user.getNaverId() == null) {
+            throw new CustomException(CustomErrorCode.NO_NAVER_LINK);
+        }
+        // 연동해제를 위한 네이버 API 호출
+        boolean isUnlinked = unlinkNaverAccountApi(accessToken);
+        if (!isUnlinked) {
+            throw new CustomException(CustomErrorCode.NAVER_UNLINK_FAILED);
+        }
+        userService.userDelete(user);
+    }
+
+    private boolean unlinkNaverAccountApi(String accessToken) {
+        String clientId = this.clientId;
+        String clientSecret = this.clientSecret;
+
+        String url = "https://nid.naver.com/oauth2.0/token?grant_type=delete&client_id=" + clientId +
+                "&client_secret=" + clientSecret +
+                "&access_token=" + accessToken +
+                "&service_provider=NAVER";
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(url)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .build();
+
+        Mono<ClientResponse> response = webClient.get()
+                .uri(uriBuilder -> uriBuilder.build())
+                .exchange();
+
+        return response.block().statusCode() == HttpStatus.OK;
+    }
+
 }

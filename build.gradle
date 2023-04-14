@@ -38,6 +38,8 @@ dependencies {
 
     // null 포인터 예외 방지
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
