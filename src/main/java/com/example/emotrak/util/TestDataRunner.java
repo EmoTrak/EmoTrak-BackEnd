@@ -1,11 +1,9 @@
 package com.example.emotrak.util;
 
 import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.CommentRequestDto;
 import com.example.emotrak.entity.*;
-import com.example.emotrak.repository.DailyRepository;
-import com.example.emotrak.repository.EmotionRepository;
-import com.example.emotrak.repository.MonthRepository;
-import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -14,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +23,8 @@ public class TestDataRunner implements ApplicationRunner {
     private final MonthRepository monthRepository;
     private final EmotionRepository emotionRepository;
     private final DailyRepository dailyRepository;
+    private final CommentRepository commentRepository;
+    private final LikesRepository likesRepository;
 
 
     @Override
@@ -48,6 +49,7 @@ public class TestDataRunner implements ApplicationRunner {
         createEmotionData();
         createDailyData(testUser1);
         createCommentData(userList);
+        createLikeData(userList);
 
     }
 
@@ -79,11 +81,10 @@ public class TestDataRunner implements ApplicationRunner {
         BoardRequestDto boardRequestDto;
         int ranNum;
 
-        for (int i = 1; i < 15; i++){
+        for (int i = 1; i <= 30; i++){
             for (int j = 0; j < 2; j++)
             {
-                ranNum = (int)(Math.random() * 6);
-                System.out.println("ranNum = " + ranNum);
+                ranNum = (int)(Math.random() * emotionList.size());
                 emotion = emotionList.get(ranNum);
                 boardRequestDto = new BoardRequestDto(2023, 4, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
                 dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
@@ -92,7 +93,43 @@ public class TestDataRunner implements ApplicationRunner {
     }
 
     private void createCommentData (List<User> userList) {
+        int ranNum;
+        long ranNum2;
+        for (int i = 1; i <= 30; i++)
+        {
+            ranNum = (int)(Math.random() * userList.size());
+            ranNum2 = (long)(Math.random() * dailyRepository.count());
+            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
+            if (optionalDaily.isEmpty()) continue;
 
+            CommentRequestDto commentRequestDto = new CommentRequestDto(i + "");
+            Comment comment = new Comment(commentRequestDto, optionalDaily.get(), userList.get(ranNum));
+            commentRepository.save(comment);
+        }
+    }
+
+    private void createLikeData (List<User> userList) {
+        int ranNum;
+        long ranNum2;
+
+        for (int i = 1; i <= 30; i++)
+        {
+            ranNum = (int)(Math.random() * userList.size());
+            ranNum2 = (long)(Math.random() * dailyRepository.count());
+            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
+            if (optionalDaily.isEmpty()) continue;
+
+            Likes likes = new Likes(optionalDaily.get(), userList.get(ranNum));
+            likesRepository.save(likes);
+
+            ranNum = (int)(Math.random() * userList.size());
+            ranNum2 = (int)(Math.random() * commentRepository.count());
+            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
+            if (optionalDaily.isEmpty()) continue;
+
+            Likes likes2 = new Likes(optionalComment.get(), userList.get(ranNum));
+            likesRepository.save(likes2);
+        }
     }
 
 }

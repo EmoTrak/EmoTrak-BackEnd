@@ -58,6 +58,10 @@ public class Daily extends Timestamped {
     @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
     private List<Comment> comments;
 
+    public Daily(Long id) {
+        this.id = id;
+    }
+
     //생성자
     public Daily(String imageUrl, BoardRequestDto boardRequestDto, User user, Emotion emotion) {
         this.imgUrl = imageUrl;

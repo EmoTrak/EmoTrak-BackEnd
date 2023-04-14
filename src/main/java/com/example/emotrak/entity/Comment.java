@@ -29,6 +29,10 @@ public class Comment extends Timestamped {
     @Column(nullable = false)
     private int cmtLikesCnt;
 
+    public Comment(Long id) {
+        this.id = id;
+    }
+
     public Comment(CommentRequestDto commentRequestDto, Daily daily, User user) {
         this.comment = commentRequestDto.getComment();
         this.daily = daily;
