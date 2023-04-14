@@ -10,6 +10,9 @@ import lombok.*;
 @ApiModel(description = "감정글 요청 정보")
 public class BoardRequestDto {
 
+    @ApiModelProperty(value = "그림일기 여부", required = true, example = "true")
+    private boolean draw;
+
     @ApiModelProperty(value = "년도", required = true, example = "2022")
     private int year;
 
