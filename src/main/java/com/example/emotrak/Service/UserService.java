@@ -268,4 +268,37 @@ public class UserService {
         //유저 날리기
         userRepository.delete(user);
     }
+
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshTokenValue = request.getHeader("Refresh-Token");
+        tokenProvider.validateToken(refreshTokenValue);
+        RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue).orElse(null);
+        Optional<User> user = userRepository.findById(refreshToken.getUser().getId());
+        User requestingUser = user.get();
+
+        if (refreshToken == null) {
+            throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
+        }
+        if (!Objects.equals(refreshToken.getValue(), refreshTokenValue)) {
+            tokenProvider.deleteRefreshToken(requestingUser);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+        }
+
+        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
+        long now = new Date().getTime();
+        if (now >= accessTokenExpire) {
+            if (now >= refreshToken.getExpirationDate().getTime()) {
+                tokenProvider.deleteRefreshToken(requestingUser);
+                throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+            } else {
+                TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
+                validation.accessTokenToHeaders(tokenDto, response);
+                return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
+            }
+        } else {
+            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser);
+            validation.accessTokenToHeaders(tokenDto, response);
+            return new ResponseEntity<>(Message.success("ACCESS_TOKEN_REISSUE"), HttpStatus.OK);
+        }
+    }
 }

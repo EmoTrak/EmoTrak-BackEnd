@@ -3,6 +3,7 @@ package com.example.emotrak.Service;
 import com.example.emotrak.dto.KakaoUserInfoDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.jwt.JwtUtil;
 import com.example.emotrak.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
+import java.util.Date;
 
 
 @Getter
@@ -29,9 +30,7 @@ public class RefreshToken extends Timestamped {
 
     @Column(name = "token_value", nullable = false)
     private String value;
-
-    public void updateValue(String token){
-        this.value = token;
-    }
+    @Column
+    private Date expirationDate;
 
 }
