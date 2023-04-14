@@ -2,6 +2,7 @@ package com.example.emotrak.dto;
 
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,13 @@ public class BoardDetailResponseDto {
     private String detail;
     private String imgUrl;
     private boolean hasAuth;
+    private String nickname;
+    private int likesCnt;
+    private boolean restrict;
+    private boolean hasLike;
+    private boolean lastPage; // 마지막 페이지 여부
+    private boolean draw;
+    @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
     private String formatCreatedAt(LocalDateTime createdAt) {
@@ -34,15 +42,20 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList) {
+    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean lastPage) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
         this.star = daily.getStar();
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
-        this.hasAuth = daily.getUser().equals(user) || user.hasAdmin();
+        if (user != null) this.hasAuth = daily.getUser().getId().equals(user.getId());
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
-
+        this.nickname = daily.getUser().getNickname();
+        this.likesCnt = likesCnt;
+        this.restrict = daily.isHasRestrict();
+        this.hasLike = hasLike;
+        this.lastPage = lastPage;
+        this.draw = daily.isDraw();
     }
 }

@@ -16,5 +16,8 @@ public class DailyDetailResponseDto {
     private int star;
     private String detail;
     private String imgUrl;
+    private boolean share;
+    private boolean restrict;
+    private boolean draw;
 
 }

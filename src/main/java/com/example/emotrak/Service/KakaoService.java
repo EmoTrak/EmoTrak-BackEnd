@@ -28,23 +28,23 @@ import java.util.UUID;
 public class KakaoService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-//    private final JwtUtil jwtUtil;
-//
-//    public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
-//        // 1. "인가 코드"로 "액세스 토큰" 요청
-//        String accessToken = getToken(code);
-//
-//        // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
-//        KakaoUserInfoDto kakaoUserInfo = getKakaoUserInfo(accessToken);
-//
-//        // 3. 필요시에 회원가입
-//        User kakaoUser = registerKakaoUserIfNeeded(kakaoUserInfo);
-//
-//        // 4. JWT 토큰 반환
-//        String createToken =  jwtUtil.createToken(kakaoUser.getEmail(), kakaoUser.getRole());
-//        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, createToken);
-//
-//    }
+    private final JwtUtil jwtUtil;
+
+    public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+        // 1. "인가 코드"로 "액세스 토큰" 요청
+        String accessToken = getToken(code);
+
+        // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
+        KakaoUserInfoDto kakaoUserInfo = getKakaoUserInfo(accessToken);
+
+        // 3. 필요시에 회원가입
+        User kakaoUser = registerKakaoUserIfNeeded(kakaoUserInfo);
+
+        // 4. JWT 토큰 반환
+        String createToken =  jwtUtil.createToken(kakaoUser.getEmail(), kakaoUser.getRole());
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, createToken);
+        response.addHeader("nickname", kakaoUser.getNickname());
+    }
     // 1. "인가 코드"로 "액세스 토큰" 요청
     private String getToken(String code) throws JsonProcessingException {
         // HTTP Header 생성
@@ -56,7 +56,8 @@ public class KakaoService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
         //body.add("redirect_uri", "http://clone-thunder-market.s3-website.ap-northeast-2.amazonaws.com/oauth");
-        body.add("redirect_uri", "http://localhost:3000/oauth");
+        //body.add("redirect_uri", "http://localhost:3000/oauth");
+        body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 
         // HTTP 요청 보내기
@@ -127,9 +128,14 @@ public class KakaoService {
 
                 // email: kakao email
                 String email = kakaoUserInfo.getEmail();
-                String nickname = kakaoUserInfo.getNickname()+"_"+ kakaoUserInfo.getId();
 
-                kakaoUser = new User(encodedPassword, email,nickname,kakaoId, UserRoleEnum.USER);
+                String nickname = kakaoUserInfo.getNickname();
+                boolean hasNickname = userRepository.existsByNickname(nickname);
+                if (hasNickname) {
+                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
+                }
+
+                kakaoUser = new User(encodedPassword, email,nickname,kakaoId,null, null, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
         }

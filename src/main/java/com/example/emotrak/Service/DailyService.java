@@ -9,7 +9,6 @@ import com.example.emotrak.repository.DailyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -26,8 +25,12 @@ public class DailyService {
     }
 
     @Transactional
-    public DailyResponseDto getDailyDetail(Long dailyId) {
+    public DailyResponseDto getDailyDetail(Long dailyId, User user) {
         Daily daily = getDaily(dailyId);
+        if (!daily.getUser().getId().equals(user.getId())) {
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
         List<DailyDetailResponseDto> dailyDetailResponseDtoList = dailyRepository.getDailyDetail(dailyId);
         return new DailyResponseDto(daily.getYear(), daily.getMonth(), dailyDetailResponseDtoList);
     }

@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.security.ConditionalOnDefaultWebSe
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -67,7 +68,9 @@ public class WebSecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.authorizeRequests().antMatchers("/users/**").permitAll()
-                .antMatchers("/kakao/callback").permitAll()
+                .antMatchers("/kakao/callback","/naver/callback","/google/callback").permitAll()
+                .antMatchers(HttpMethod.GET,"/boards", "/boards/{boardId}").permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
                 .anyRequest().authenticated()
                 // JWT 인증/인가를 사용하기 위한 설정
                 // 리프레쉬토큰 설정
@@ -89,11 +92,12 @@ public class WebSecurityConfig {
 
         // 사전에 약속된 출처를 명시
         config.addAllowedOrigin("http://localhost:3000");
-//        config.addAllowedOrigin("");
+        config.addAllowedOrigin("http://iamnobody.xyz");
 
         // 특정 헤더를 클라이언트 측에서 사용할 수 있게 지정
         // 만약 지정하지 않는다면, Authorization 헤더 내의 토큰 값을 사용할 수 없음
         config.addExposedHeader("Authorization");
+        config.addExposedHeader("nickname");
 
         // 본 요청에 허용할 HTTP method(예비 요청에 대한 응답 헤더에 추가됨)
         config.addAllowedMethod("*");

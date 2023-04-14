@@ -5,12 +5,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class KakaoUserInfoDto {
-    private Long id;
+public class GoogleUserInfoDto {
+    private String id;
     private String email;
     private String nickname;
 
-    public KakaoUserInfoDto(Long id, String email,String nickname) {
+    public GoogleUserInfoDto(String id, String email, String nickname) {
         this.id = id;
         this.email = email;
         this.nickname = nickname;

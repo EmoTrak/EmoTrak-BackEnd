@@ -24,7 +24,12 @@ public class User {
 
     private Long kakaoId;
 
-    private Long naverId;
+    private String naverId;
+
+    private String googleId;
+
+    @Column(nullable = false)
+    private boolean hasSocial;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -36,15 +41,43 @@ public class User {
         this.nickname = nickname;
         this.role = role;
     }
-    public User(String password, String email,String nickname,Long kakaoId, UserRoleEnum role) {
+    public User(String password, String email, String nickname, Long kakaoId, String naverId, String googleId, UserRoleEnum role) {
         this.password = password;
         this.email = email;
         this.nickname = nickname;
         this.kakaoId = kakaoId;
+        this.naverId = naverId;
+        this.googleId = googleId;
         this.role = role;
+        this.hasSocial = true;
     }
+
     public User kakaoIdUpdate(Long kakaoId) {
         this.kakaoId = kakaoId;
+        return this;
+    }
+
+    public User naverIdUpdate(String naverId) {
+        this.naverId = naverId;
+        return this;
+    }
+
+    public User googleIdUpdate(String googleId) {
+        this.googleId = googleId;
+        return this;
+    }
+
+    public User nicknameUpdate(String nickname) {
+        this.nickname = nickname;
+        return this;
+    }
+
+    public User passwordUpdate(String password) {
+        this.password = password;
+        return this;
+    }
+    public User updateHasSocial(boolean hasSocial) {
+        this.hasSocial = hasSocial;
         return this;
     }
 
