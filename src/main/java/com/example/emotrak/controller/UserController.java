@@ -40,7 +40,7 @@ public class UserController {
 
     }
 
-    //    2. 로그인
+    // 2. 로그인
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto, HttpServletResponse response){
             userService.login(loginRequestDto, response);
@@ -69,14 +69,14 @@ public class UserController {
         return ResponseMessage.successResponse(HttpStatus.OK, "패스워드 수정 완료", null);
     }
 
-    // 5. 회원 탈퇴
+    // 4. 회원 탈퇴
     @DeleteMapping ()
     public ResponseEntity<?> userDelete(@AuthenticationPrincipal UserDetailsImpl userDetails){
         userService.userDelete(userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
     }
 
-    //3. 리프레시 토큰 발급
+    // 5. 리프레시 토큰 발급
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshTokenCheck(HttpServletRequest request, HttpServletResponse response){
         userService.refreshToken(request, response);

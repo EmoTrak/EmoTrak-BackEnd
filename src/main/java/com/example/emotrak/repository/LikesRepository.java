@@ -59,4 +59,12 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
                  , nativeQuery = true)
     void deleteBoardLikeByUser(@Param("userId") Long userId);
 
+    @Modifying
+    @Query(value = " DELETE FROM likes "
+                 + "  INNER JOIN comment c ON l.comment_id = c.id "
+                 + "  INNER JOIN daily d ON c.daily_id = d.id "
+                 + "  WHERE d.user_id = :userId "
+            , nativeQuery = true)
+    void deleteLikeByBoard(@Param("userId") Long userId);
+
 }
