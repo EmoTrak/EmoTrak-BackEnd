@@ -2,6 +2,7 @@ package com.example.emotrak.util;
 
 import com.example.emotrak.dto.BoardRequestDto;
 import com.example.emotrak.dto.CommentRequestDto;
+import com.example.emotrak.dto.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class TestDataRunner implements ApplicationRunner {
     private final DailyRepository dailyRepository;
     private final CommentRepository commentRepository;
     private final LikesRepository likesRepository;
+    private final ReportRepository reportRepository;
 
 
     @Override
@@ -43,13 +45,14 @@ public class TestDataRunner implements ApplicationRunner {
         userList.add(testUser1);
         userList.add(testUser2);
         userList.add(testUser3);
-        userList.add(testAdminUser1);
+//        userList.add(testAdminUser1);
 
         createMonthData();
         createEmotionData();
         createDailyData(testUser1);
         createCommentData(userList);
         createLikeData(userList);
+        createReportData(userList);
 
     }
 
@@ -98,7 +101,7 @@ public class TestDataRunner implements ApplicationRunner {
         for (int i = 1; i <= 30; i++)
         {
             ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (long)(Math.random() * dailyRepository.count());
+            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
             Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
@@ -111,25 +114,51 @@ public class TestDataRunner implements ApplicationRunner {
     private void createLikeData (List<User> userList) {
         int ranNum;
         long ranNum2;
+        Likes likes;
+        for (int i = 1; i <= 50; i++)
+        {
+            ranNum = (int)(Math.random() * userList.size());
+            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
+            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
+            if (optionalDaily.isEmpty()) continue;
+
+            likes = new Likes(optionalDaily.get(), userList.get(ranNum));
+            likesRepository.save(likes);
+
+            ranNum = (int)(Math.random() * userList.size());
+            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
+            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
+            if (optionalDaily.isEmpty()) continue;
+
+            likes = new Likes(optionalComment.get(), userList.get(ranNum));
+            likesRepository.save(likes);
+        }
+    }
+
+    private void createReportData (List<User> userList) {
+        int ranNum;
+        long ranNum2;
+
+        Report report;
+        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
 
         for (int i = 1; i <= 30; i++)
         {
             ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (long)(Math.random() * dailyRepository.count());
+            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
             Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            Likes likes = new Likes(optionalDaily.get(), userList.get(ranNum));
-            likesRepository.save(likes);
+            report = new Report(reportRequestDto, userList.get(ranNum), optionalDaily.get());
+            reportRepository.save(report);
 
             ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (int)(Math.random() * commentRepository.count());
+            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
             Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            Likes likes2 = new Likes(optionalComment.get(), userList.get(ranNum));
-            likesRepository.save(likes2);
+            report = new Report(reportRequestDto, userList.get(ranNum), optionalComment.get());
+            reportRepository.save(report);
         }
     }
-
 }
