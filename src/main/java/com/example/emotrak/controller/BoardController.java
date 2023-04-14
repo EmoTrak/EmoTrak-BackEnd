@@ -74,7 +74,7 @@ public class BoardController {
     }
 
     @Tag(name = "Board")
-    @Operation(summary = "공유게시판 상세페이지 조회", description = "댓글 15개 기준 페이징처리")
+    @Operation(summary = "공유게시판 상세페이지 조회", description = "댓글 20개 기준 페이징처리")
     @GetMapping(value = "/boards/{boardId}")
     public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
                                              @RequestParam(value = "page", defaultValue = "0") int page,
@@ -111,7 +111,9 @@ public class BoardController {
     @PostMapping("/boards/likes/{boardId}")
     public ResponseEntity<?> boardlikes(@PathVariable Long boardId,
                                         @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseMessage.successResponse(HttpStatus.OK, "좋아요 성공", boardService.boardLikes(userDetails.getUser(), boardId));
+        LikeResponseDto likeResponseDto = boardService.boardLikes(userDetails.getUser(), boardId);
+        String message = likeResponseDto.isHasLike() ? "좋아요 성공" : "좋아요 취소 성공";
+        return ResponseMessage.successResponse(HttpStatus.OK, message, likeResponseDto);
     }
 
 }
