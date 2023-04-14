@@ -26,6 +26,8 @@ public class User {
 
     private String naverId;
 
+    private String googleId;
+
     @Column(nullable = false)
     private boolean hasSocial;
 
@@ -39,12 +41,13 @@ public class User {
         this.nickname = nickname;
         this.role = role;
     }
-    public User(String password, String email, String nickname, Long kakaoId, String naverId, UserRoleEnum role) {
+    public User(String password, String email, String nickname, Long kakaoId, String naverId, String googleId, UserRoleEnum role) {
         this.password = password;
         this.email = email;
         this.nickname = nickname;
         this.kakaoId = kakaoId;
         this.naverId = naverId;
+        this.googleId = googleId;
         this.role = role;
         this.hasSocial = true;
     }
@@ -56,6 +59,11 @@ public class User {
 
     public User naverIdUpdate(String naverId) {
         this.naverId = naverId;
+        return this;
+    }
+
+    public User googleIdUpdate(String googleId) {
+        this.googleId = googleId;
         return this;
     }
 
