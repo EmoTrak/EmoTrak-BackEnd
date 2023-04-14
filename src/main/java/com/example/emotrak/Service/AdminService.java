@@ -27,11 +27,7 @@ public class AdminService {
     private final CommentRepository commentRepository;
 
     //신고 게시글 조회
-    public List<ReportResponseDto> reportBoard(User user) {
-        if (user.getRole() != UserRoleEnum.ADMIN) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-        }
-
+    public List<ReportResponseDto> reportBoard() {
         List<Object[]> objectList = adminRepository.getReportBoard();
 
         List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
@@ -42,10 +38,7 @@ public class AdminService {
         return reportBoardResponseDtoList;
     }
 
-    public List<ReportResponseDto> reportComment(User user) {
-        if (user.getRole() != UserRoleEnum.ADMIN) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-        }
+    public List<ReportResponseDto> reportComment() {
         List<Object[]> objectList = adminRepository.getReportComment();
 
         List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
@@ -57,11 +50,7 @@ public class AdminService {
         return reportBoardResponseDtoList;
     }
 
-    public void restrictBoard(Long boardId, User user) {
-        if (user.getRole() != UserRoleEnum.ADMIN) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-        }
-
+    public void restrictBoard(Long boardId) {
         Daily daily = boardRepository.findById(boardId).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
         );

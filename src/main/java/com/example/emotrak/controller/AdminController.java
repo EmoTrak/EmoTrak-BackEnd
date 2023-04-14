@@ -27,13 +27,13 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/admin/boards")
-    public ResponseEntity<?> reportBoard(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard(userDetails.getUser()));
+    public ResponseEntity<?> reportBoard(){
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard());
     }
 
     @GetMapping("/admin/comments")
-    public ResponseEntity<?> reportComment(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment(userDetails.getUser()));
+    public ResponseEntity<?> reportComment(){
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment());
     }
 
     @Tag(name = "Admin")
@@ -53,9 +53,9 @@ public class AdminController {
             @ApiResponse(code = 200, message = "공유 중지 완료", response = ResponseMessage.class ),
             @ApiResponse(code = 401, message = "권한이 없습니다", response = ResponseMessage.class )
     })
-    @PatchMapping("boards/restrict/{boardId}")
-    public ResponseEntity<?> restrictBoard(@PathVariable Long boardId, @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails){
-        adminService.restrictBoard(boardId, userDetails.getUser());
+    @PatchMapping("admin/restrict/{boardId}")
+    public ResponseEntity<?> restrictBoard(@PathVariable Long boardId){
+        adminService.restrictBoard(boardId);
         return ResponseMessage.successResponse(HttpStatus.OK, "공유 중지 완료", null);
     }
 
