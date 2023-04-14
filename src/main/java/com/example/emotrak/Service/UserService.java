@@ -1,16 +1,18 @@
 package com.example.emotrak.Service;
 
-
 import com.example.emotrak.dto.*;
-import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-import com.example.emotrak.jwt.JwtUtil;
 
+import com.example.emotrak.jwt.TokenProvider;
+import com.example.emotrak.repository.RefreshTokenRepository;
+import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.repository.*;
 
+import com.example.emotrak.util.RefreshToken;
+import com.example.emotrak.util.Validation;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -33,15 +35,10 @@ public class UserService {
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
-    private final JwtUtil jwtUtil;
     private final PasswordEncoder encoder;
-//    private final TokenProvider tokenProvider;
-//    private final RefreshTokenRepository refreshTokenRepository;
-//    private final HttpServletResponse response;
-//    private final Validation validation;
-//    private final HashTagRepository hashTagRepository;
-    // ADMIN_TOKEN
-    private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
+    private final TokenProvider tokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final Validation validation;
 
     // 회원가입
     @Transactional
@@ -92,7 +89,7 @@ public class UserService {
     }
 
     // 로그인
-    @Transactional(readOnly = true)
+    @Transactional
     public void login(LoginRequestDto loginRequestDto, HttpServletResponse response){
         String email = loginRequestDto.getEmail();
 
@@ -110,11 +107,8 @@ public class UserService {
         if(!encoder.matches(loginRequestDto.getPassword(), encodePassword)){
             throw new CustomException(CustomErrorCode.NOT_PROPER_PASSWORD);
         }
-//        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
-//        validation.tokenToHeaders(tokenDto,response);
-
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getEmail(), user.getRole()));
-        response.addHeader("nickname", user.getNickname());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(user, user.getRole());
+        validation.tokenToHeaders(tokenDto, response);
     }
 
     // 이메일 중복 체크. 이메일이 있으면 true - 중복된 이메일 반환 / 이메일이 없으면 false 사용가능한 이메일
@@ -248,9 +242,9 @@ public class UserService {
         // 내가 쓴 모든 댓글 날리기
         commentRepository.deleteAllByUser(user);
 
-        // 내가 쓴 게시글의 모든 좋아요 날리기
-        likesRepository.deleteBoardLikeByUser(user.getId());
-        // 내가 쓴 게시글의 모든 신고 날리기
+        // 내가 쓴 게시글의 모든 좋아요, 모든 댓글의 좋아요 날리기
+        likesRepository.deleteByUser(user.getId());
+        // 내가 쓴 게시글의 모든 신고, 모든 댓글의 신고 날리기
         reportRepository.deleteByUser(user.getId());
         // 내가 쓴 게시글의 모든 댓글 날리기
         commentRepository.deleteByUser(user.getId());
@@ -258,7 +252,44 @@ public class UserService {
         // 내가 쓴 모든 게시글 날리기
         boardRepository.deleteAllByUser(user);
 
-        //유저 날리기
+        // 리프레시 토큰 삭제
+        refreshTokenRepository.deleteByUser(user);
+
+        // 유저 날리기
         userRepository.delete(user);
+    }
+
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshTokenValue = request.getHeader("Refresh-Token");
+        tokenProvider.validateToken(refreshTokenValue);
+        RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue).orElse(null);
+
+
+        if (refreshToken == null) {
+            throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
+        }
+
+        Optional<User> user = userRepository.findById(refreshToken.getUser().getId());
+        User requestingUser = user.get();
+
+        if (!Objects.equals(refreshToken.getValue(), refreshTokenValue)) {
+            tokenProvider.deleteRefreshToken(requestingUser);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+        }
+
+        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
+        long now = new Date().getTime();
+        if (now >= accessTokenExpire) {
+            if (now >= refreshToken.getExpirationDate().getTime()) {
+                tokenProvider.deleteRefreshToken(requestingUser);
+                throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+            } else {
+                TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
+                validation.accessTokenToHeaders(tokenDto, response);
+            }
+        } else {
+            TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
+            validation.accessTokenToHeaders(tokenDto, response);
+        }
     }
 }

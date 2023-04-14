@@ -228,13 +228,6 @@ public class BoardService {
         reportRepository.save(report);
     }
 
-    // 게시물 신고 삭제하기
-    public void deleteReport(User user, Long id) {
-        Report report = reportRepository.findByUserAndDailyId(user, id)
-                .orElseThrow(() -> new CustomException(CustomErrorCode.REPORT_NOT_FOUND));
-        reportRepository.delete(report);
-    }
-
     //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
     public LikeResponseDto boardLikes(User user, Long boardId) {
         Daily daily = boardRepository.findById(boardId).orElseThrow(

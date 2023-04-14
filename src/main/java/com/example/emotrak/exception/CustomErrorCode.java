@@ -37,6 +37,7 @@ public enum CustomErrorCode {
 
 
     /* 403 FORBIDDEN : 권한 */
+    ADMIN_FORBIDDEN(FORBIDDEN,"x-1001", "관리자 권한이 없습니다."),
 
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */

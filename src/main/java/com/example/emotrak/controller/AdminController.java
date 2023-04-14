@@ -12,12 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,13 +22,13 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/admin/boards")
-    public ResponseEntity<?> reportBoard(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard(userDetails.getUser()));
+    public ResponseEntity<?> reportBoard(){
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard());
     }
 
     @GetMapping("/admin/comments")
-    public ResponseEntity<?> reportComment(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment(userDetails.getUser()));
+    public ResponseEntity<?> reportComment(){
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment());
     }
 
     @Tag(name = "Admin")
@@ -51,12 +46,35 @@ public class AdminController {
             })
     @ApiResponses({
             @ApiResponse(code = 200, message = "공유 중지 완료", response = ResponseMessage.class ),
-            @ApiResponse(code = 401, message = "권한이 없습니다", response = ResponseMessage.class )
+            @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
     })
-    @PatchMapping("boards/restrict/{boardId}")
-    public ResponseEntity<?> restrictBoard(@PathVariable Long boardId, @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails){
-        adminService.restrictBoard(boardId, userDetails.getUser());
+    @PatchMapping("admin/restrict/{boardId}")
+    public ResponseEntity<?> restrictBoard(@PathVariable Long boardId){
+        adminService.restrictBoard(boardId);
         return ResponseMessage.successResponse(HttpStatus.OK, "공유 중지 완료", null);
+    }
+
+    @Tag(name = "Admin")
+    @Operation(summary = "신고 삭제", description = "게시물, 댓글의 허위 신고를 삭제합니다.")
+    @ApiImplicitParams(
+            {
+                    @ApiImplicitParam(
+                            name = "reportId"
+                            , value = "신고 번호"
+                            , required = true
+                            , dataType = "Long"
+                            , paramType = "path"
+                            , defaultValue = "1"
+                    )
+            })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "신고 삭제 완료", response = ResponseMessage.class ),
+            @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
+    })
+    @DeleteMapping("/admin/report/{reportId}")
+    public ResponseEntity<?> deleteReport(@PathVariable Long reportId){
+        adminService.deleteReport(reportId);
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 삭제 완료", null);
     }
 
 }
