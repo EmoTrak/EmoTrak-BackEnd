@@ -16,6 +16,15 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
     @Query(value = " SELECT d.id, d.img_url "
                  + "   FROM daily d"
                  + "  WHERE d.emotion_id in (:emo)"
-                 + "    AND d.share = true ", nativeQuery = true)
-    List<Object[]> getBoardImages(@Param("emo") List<Long> emoList, Pageable pageable);
+                 + "    AND d.share = true "
+                 + "  ORDER BY d.created_at desc ", nativeQuery = true)
+    List<Object[]> getBoardImagesRecent(@Param("emo") List<Long> emoList, Pageable pageable);
+
+    @Query(value = " SELECT d.id, d.img_url"
+                 + "   FROM daily d left join likes l on d.id = l.daily_id"
+                 + "  WHERE d.emotion_id in (:emo)"
+                 + "    AND d.share = true "
+                 + "  GROUP BY d.id, d.img_url"
+                 + "  ORDER BY count(l.daily_id)  desc, d.created_at desc", nativeQuery = true)
+    List<Object[]> getBoardImagesPopular(@Param("emo") List<Long> emoList, Pageable pageable);
 }
