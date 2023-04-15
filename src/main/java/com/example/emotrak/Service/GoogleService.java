@@ -24,7 +24,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -112,9 +114,20 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : UUID.randomUUID().toString();
+        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateRandomString(6);
         return new GoogleUserInfoDto(id, email, nickname);
     }
+
+    private String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+
+        return random.ints(length, 0, characters.length())
+                .mapToObj(characters::charAt)
+                .map(Object::toString)
+                .collect(Collectors.joining());
+    }
+
     private User registerGoogleUserIfNeeded(GoogleUserInfoDto googleUserInfo) {
         String googleId = googleUserInfo.getId();
         User googleUser = userRepository.findByGoogleId(googleId).orElse(null);
