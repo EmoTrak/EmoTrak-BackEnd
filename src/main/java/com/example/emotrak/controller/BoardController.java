@@ -77,7 +77,7 @@ public class BoardController {
     @Operation(summary = "공유게시판 상세페이지 조회", description = "댓글 20개 기준 페이징처리")
     @GetMapping(value = "/boards/{boardId}")
     public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
-                                             @RequestParam(value = "page", defaultValue = "0") int page,
+                                             @RequestParam(value = "page", defaultValue = "1") int page,
                                              @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = null;
         if (userDetails != null) user = userDetails.getUser();

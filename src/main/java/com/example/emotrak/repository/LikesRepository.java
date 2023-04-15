@@ -28,43 +28,44 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE comment_id IN ("
-                 + "                         select id as comment_id "
-                 + "                           from comment "
-                 + "                          where daily_id = :dailyId)"
-                 , nativeQuery = true)
+            + "  WHERE comment_id IN ("
+            + "                         select id as comment_id "
+            + "                           from comment "
+            + "                          where daily_id = :dailyId)"
+            , nativeQuery = true)
     void deleteCommentLike(@Param("dailyId") Long dailyId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE daily_id = :dailyId"
-                 , nativeQuery = true)
+            + "  WHERE daily_id = :dailyId"
+            , nativeQuery = true)
     void deleteBoardLike(@Param("dailyId") Long dailyId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE comment_id IN ("
-                 + "                         select id as comment_id "
-                 + "                           from comment "
-                 + "                          where user_id = :userId)"
-                 , nativeQuery = true)
+            + "  WHERE comment_id IN ("
+            + "                         select id as comment_id "
+            + "                           from comment "
+            + "                          where user_id = :userId)"
+            , nativeQuery = true)
     void deleteCommentLikeByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
-                 + "  WHERE daily_id IN ("
-                 + "                         select id as daily_id "
-                 + "                           from daily "
-                 + "                          where user_id = :userId)"
-                 , nativeQuery = true)
-    void deleteBoardLikeByUser(@Param("userId") Long userId);
-
-    @Modifying
-    @Query(value = " DELETE FROM likes l"
-                 + "  INNER JOIN comment c ON l.comment_id = c.id "
-                 + "  INNER JOIN daily d ON c.daily_id = d.id "
-                 + "  WHERE d.user_id = :userId "
+            + "  WHERE daily_id IN ("
+            + "                         select id as daily_id "
+            + "                           from daily "
+            + "                          where user_id = :userId);"
+            + " DELETE FROM likes"
+            + "  WHERE id IN ("
+            + "                   SELECT likes.id FROM ("
+            + "                           SELECT l.id"
+            + "                             FROM likes l"
+            + "                            INNER JOIN comment c ON l.comment_id = c.id"
+            + "                            INNER JOIN daily d ON c.daily_id = d.id"
+            + "                            WHERE d.user_id = :userId"
+            + "                       ) likes )"
             , nativeQuery = true)
-    void deleteLikeByBoard(@Param("userId") Long userId);
+    void deleteByUser(@Param("userId") Long userId);
 
 }
