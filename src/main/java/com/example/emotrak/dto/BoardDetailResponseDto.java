@@ -3,6 +3,7 @@ package com.example.emotrak.dto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class BoardDetailResponseDto {
     private Long id;
     private String date;

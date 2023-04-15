@@ -34,25 +34,25 @@ public class TestDataRunner implements ApplicationRunner {
         User testUser1 = new User(passwordEncoder.encode("jingulee123"), "jingulee@naver.com", "jingulee", UserRoleEnum.USER);
         User testUser2 = new User(passwordEncoder.encode("jingulee123"), "jingulee2@naver.com", "jingulee2", UserRoleEnum.USER);
         User testUser3 = new User(passwordEncoder.encode("jingulee123"), "tester@naver.com", "tester", UserRoleEnum.USER);
-        User testAdminUser1 = new User(passwordEncoder.encode("admin123"), "admin@naver.com", "admin", UserRoleEnum.ADMIN);
+        User testAdmin = new User(passwordEncoder.encode("admin123"), "admin@naver.com", "admin", UserRoleEnum.ADMIN);
 
-        testUser1 = userRepository.save(testUser1);
-        testUser2 = userRepository.save(testUser2);
-        testUser3 = userRepository.save(testUser3);
-        testAdminUser1 = userRepository.save(testAdminUser1);
+//        testUser1 = userRepository.save(testUser1);
+//        testUser2 = userRepository.save(testUser2);
+//        testUser3 = userRepository.save(testUser3);
+//        testAdminUser1 = userRepository.save(testAdminUser1);
 
         List<User> userList = new ArrayList<>();
         userList.add(testUser1);
         userList.add(testUser2);
         userList.add(testUser3);
-//        userList.add(testAdminUser1);
+        userList.add(testAdmin);
 
-        createMonthData();
-        createEmotionData();
-        createDailyData(testUser1);
-        createCommentData(userList);
-        createLikeData(userList);
-        createReportData(userList);
+//        createMonthData();
+//        createEmotionData();
+//        createDailyData(testUser1);
+//        createCommentData(userList);
+//        createLikeData(userList);
+//        createReportData(userList);
 
     }
 
@@ -79,7 +79,7 @@ public class TestDataRunner implements ApplicationRunner {
         emotionList.add(new Emotion(5L));
         emotionList.add(new Emotion(6L));
 
-        String imageUrl = "https://emotraks3bucket.s3.ap-northeast-2.amazonaws.com/50dd2535-8021-4e8f-80d2-2da4e87caa7b_penguin.png";
+        String imageUrl = "https://emotraks3bucket.s3.ap-northeast-2.amazonaws.com/864148d4-d71d-4bdd-a224-2199c1373d1a_blob";
         Emotion emotion;
         BoardRequestDto boardRequestDto;
         int ranNum;
