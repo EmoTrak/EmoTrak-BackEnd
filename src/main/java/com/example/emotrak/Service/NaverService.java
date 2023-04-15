@@ -160,22 +160,21 @@ public class NaverService {
         String clientId = this.clientId;
         String clientSecret = this.clientSecret;
 
-        String url = "https://nid.naver.com/oauth2.0/token?grant_type=delete&client_id=" + clientId +
+        String url = "https://nid.naver.com/oauth2.0/token?grant_type=delete" +
+                "&client_id=" + clientId +
                 "&client_secret=" + clientSecret +
                 "&access_token=" + accessToken +
                 "&service_provider=NAVER";
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(url)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                .build();
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response = rt.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                String.class
+        );
 
-        Mono<ClientResponse> response = webClient.get()
-                .uri(uriBuilder -> uriBuilder.build())
-                .exchange();
-
-        return response.block().statusCode() == HttpStatus.OK;
+        return response.getStatusCode() == HttpStatus.OK;
     }
 
 }

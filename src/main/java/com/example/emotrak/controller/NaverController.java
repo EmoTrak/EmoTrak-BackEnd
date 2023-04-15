@@ -37,9 +37,8 @@ public class NaverController {
     @Operation(summary = "네이버 연동 해제", description = "소셜 연동 해제")
     @PostMapping("/naver/unlink")
     public ResponseEntity<?> naverUnlink(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                         @RequestParam("access_token") String accessToken) {
-        User user = userDetails.getUser();
-        naverService.unlinkNaverAccount(user, accessToken);
+                                         @RequestHeader("access_token") String accessToken) {
+        naverService.unlinkNaverAccount(userDetails.getUser(), accessToken);
         return ResponseMessage.successResponse(HttpStatus.OK, "네이버 연동 해제 완료", null);
     }
 
