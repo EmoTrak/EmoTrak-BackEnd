@@ -2,6 +2,7 @@ package com.example.emotrak.dto;
 
 import com.example.emotrak.entity.Comment;
 import com.example.emotrak.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class CommentDetailResponseDto {
     private Long id;
     private String comment;

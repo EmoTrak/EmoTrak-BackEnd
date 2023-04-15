@@ -1,6 +1,8 @@
 package com.example.emotrak.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.NotBlank;
 
@@ -8,6 +10,8 @@ import javax.validation.constraints.Pattern;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignupRequestDto {
     //@NotBlank(message = "이메일을 입력해주세요.")
     //@Pattern(regexp = "^[A-Za-z0-9_\\.\\-]+@[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-]+$",message = "올바른 이메일 형식이 아닙니다.")

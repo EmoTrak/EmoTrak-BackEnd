@@ -148,10 +148,10 @@ public class NaverService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.NAVER_UNLINK_FAILED);
         }
-        userService.userDelete(user);
         System.out.println("user.getId() = " + user.getId());
         System.out.println("user.getNaverId() = " + user.getNaverId());
         System.out.println("user = " + user);
+        userService.deleteUser(user);
     }
 
     private boolean unlinkNaverAccountApi(String accessToken) {
