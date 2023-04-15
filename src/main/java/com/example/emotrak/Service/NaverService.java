@@ -21,10 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
 import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
@@ -53,6 +49,7 @@ public class NaverService {
         User naverUser = registerNaverUserIfNeeded(naverUserInfo);
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
+        System.out.println("JWT Access Token: " + tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto,response);
     }
     // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -84,9 +81,7 @@ public class NaverService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        System.out.println("jsonNode = " + jsonNode);
-        System.out.println("jsonNode.toString() = " + jsonNode.toString());
-        log.info("JSON Data: {}", jsonNode.toString());
+        log.info("JSON Data: {}", jsonNode);
         return jsonNode.get("access_token").asText();
 
     }
@@ -153,6 +148,9 @@ public class NaverService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.NAVER_UNLINK_FAILED);
         }
+        System.out.println("user.getId() = " + user.getId());
+        System.out.println("user.getNaverId() = " + user.getNaverId());
+        System.out.println("user = " + user);
         userService.deleteUser(user);
     }
 
