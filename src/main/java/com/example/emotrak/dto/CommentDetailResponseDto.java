@@ -20,12 +20,13 @@ public class CommentDetailResponseDto {
     private String nickname;
     private int likesCnt;
     private boolean hasLike;
+    private boolean hasReport; // 댓글을 신고했는지 여부
 
     private String formatCreatedAt(LocalDateTime createdAt) {
        return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public CommentDetailResponseDto(Comment comment, User user, int likesCnt, boolean hasLike) {
+    public CommentDetailResponseDto(Comment comment, User user, int likesCnt, boolean hasLike,  boolean hasReport) {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
@@ -33,5 +34,6 @@ public class CommentDetailResponseDto {
         this.nickname = comment.getUser().getNickname();
         this.likesCnt = likesCnt;
         this.hasLike = hasLike;
+        this.hasReport = hasReport;
     }
 }

@@ -23,7 +23,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     annotationProcessor 'org.projectlombok:lombok'
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'com.h2database:h2'
+//    runtimeOnly 'com.mysql:mysql-connector-j'
 
     implementation group: 'org.json', name: 'json', version: '20220924'
 
@@ -38,6 +39,8 @@ dependencies {
 
     // null 포인터 예외 방지
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {

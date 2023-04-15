@@ -32,7 +32,7 @@ public class DailyService {
         }
 
         List<DailyDetailResponseDto> dailyDetailResponseDtoList = dailyRepository.getDailyDetail(dailyId);
-        return new DailyResponseDto(daily.getYear(), daily.getMonth(), dailyDetailResponseDtoList);
+        return new DailyResponseDto(daily.getDailyYear(), daily.getDailyMonth(), dailyDetailResponseDtoList);
     }
 
     public Daily getDaily(Long dailyId) {

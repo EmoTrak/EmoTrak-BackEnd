@@ -2,12 +2,14 @@ package com.example.emotrak.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
 @Entity
+@ToString
 public class Likes {
 
     @Id

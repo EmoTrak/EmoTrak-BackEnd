@@ -28,6 +28,7 @@ public class BoardDetailResponseDto {
     private boolean hasLike;
     private boolean lastPage; // 마지막 페이지 여부
     private boolean draw;
+    private boolean hasReport; // 게시물을 신고했는지 여부
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
@@ -42,7 +43,7 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean lastPage) {
+    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
@@ -57,5 +58,6 @@ public class BoardDetailResponseDto {
         this.hasLike = hasLike;
         this.lastPage = lastPage;
         this.draw = daily.isDraw();
+        this.hasReport = hasReport;
     }
 }
