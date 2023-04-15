@@ -8,12 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface GraphRepository extends JpaRepository<Daily, Long> {
-    @Query(value = " SELECT a.daily_month"
+    @Query(value = " SELECT a.month"
                  + "      , a.emotion_id"
                  + "      , CASE WHEN (COALESCE(avg(d.star), 0) = 0) THEN 0 ELSE count(*) END count "
                  + "      , COALESCE( ROUND( AVG(d.star) * 100 / a.sum, 2), 0) percentage"
                  + " FROM ("
-                 + "          SELECT m.daily_month"
+                 + "          SELECT m.month"
                  + "               , e.id as emotion_id"
                  + "               , COALESCE(d.starsum, 0) as sum"
                  + "          FROM months m"
@@ -29,14 +29,14 @@ public interface GraphRepository extends JpaRepository<Daily, Long> {
                  + "                     group by daily_year, daily_month, emotion_id"
                  + "                   ) a"
                  + "               group by daily_month"
-                 + "          ) d ON m.daily_month = d.daily_month"
-                 + "          ORDER BY m.daily_month"
+                 + "          ) d ON m.month = d.daily_month"
+                 + "          ORDER BY m.month"
                  + "      ) a LEFT JOIN daily d"
-                 + "                    ON a.daily_month = d.daily_month"
+                 + "                    ON a.month = d.daily_month"
                  + "                        AND a.emotion_id = d.emotion_id"
                  + "                        AND d.user_id = :userId"
-                 + " GROUP BY a.daily_month, a.emotion_id "
-                 + " ORDER BY a.daily_month, a.emotion_id;", nativeQuery = true)
+                 + " GROUP BY a.month, a.emotion_id "
+                 + " ORDER BY a.month, a.emotion_id;", nativeQuery = true)
     List<Object[]> getGraph(@Param("year") int year,
                             @Param("userId") Long userId);
 }
