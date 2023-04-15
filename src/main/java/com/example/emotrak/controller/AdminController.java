@@ -2,7 +2,6 @@ package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.AdminService;
 import com.example.emotrak.exception.ResponseMessage;
-import com.example.emotrak.security.UserDetailsImpl;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiResponse;
@@ -21,11 +20,23 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @Tag(name = "Admin")
+    @Operation(summary = "신고 게시물 조회", description = "신고한 게시물들을 조회합니다")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "신고 게시물 조회 완료", response = ResponseMessage.class ),
+            @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
+    })
     @GetMapping("/admin/boards")
     public ResponseEntity<?> reportBoard(){
         return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard());
     }
 
+    @Tag(name = "Admin")
+    @Operation(summary = "신고 댓글 조회", description = "신고한 댓글들을 조회합니다")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "신고 댓글 조회 완료", response = ResponseMessage.class ),
+            @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
+    })
     @GetMapping("/admin/comments")
     public ResponseEntity<?> reportComment(){
         return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment());
