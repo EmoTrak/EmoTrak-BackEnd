@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.KakaoUserInfoDto;
+import com.example.emotrak.dto.OauthUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
@@ -39,10 +39,10 @@ public class KakaoService {
         String accessToken = getToken(code);
 
         // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
-        KakaoUserInfoDto kakaoUserInfo = getKakaoUserInfo(accessToken);
+        OauthUserInfoDto oauthUserInfo = getKakaoUserInfo(accessToken);
 
         // 3. 필요시에 회원가입
-        User kakaoUser = registerKakaoUserIfNeeded(kakaoUserInfo);
+        User kakaoUser = registerKakaoUserIfNeeded(oauthUserInfo);
 
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(kakaoUser, kakaoUser.getRole());
@@ -83,7 +83,7 @@ public class KakaoService {
     }
 
     // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
-    private KakaoUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
@@ -109,18 +109,18 @@ public class KakaoService {
                 .get("email").asText();
 
         log.info("카카오 사용자 정보: " + id + ", " + email);
-        return new KakaoUserInfoDto(id, email,nickname);
+        return new OauthUserInfoDto(String.valueOf(id), email, nickname);
     }
 
     // 3. 필요시에 회원가입
-    private User registerKakaoUserIfNeeded(KakaoUserInfoDto kakaoUserInfo) {
+    private User registerKakaoUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
         // DB 에 중복된 Kakao Id 가 있는지 확인
-        Long kakaoId = kakaoUserInfo.getId();
+        Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String을 Long으로 변환
         User kakaoUser = userRepository.findByKakaoId(kakaoId)
                 .orElse(null);
         if (kakaoUser == null) {
             // 카카오 사용자 email 동일한 email 가진 회원이 있는지 확인
-            String kakaoEmail = kakaoUserInfo.getEmail();
+            String kakaoEmail = oauthUserInfo.getEmail();
             User sameEmailUser = userRepository.findByEmail(kakaoEmail).orElse(null);
             if (sameEmailUser != null) {
                 kakaoUser = sameEmailUser;
@@ -133,12 +133,12 @@ public class KakaoService {
                 String encodedPassword = passwordEncoder.encode(password);
 
                 // email: kakao email
-                String email = kakaoUserInfo.getEmail();
+                String email = oauthUserInfo.getEmail();
 
-                String nickname = kakaoUserInfo.getNickname();
+                String nickname = oauthUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
-                    nickname = kakaoUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
+                    nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
                 kakaoUser = new User(encodedPassword, email, nickname, kakaoId, null, null, UserRoleEnum.USER);

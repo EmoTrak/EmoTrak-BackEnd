@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.NaverUserInfoDto;
+import com.example.emotrak.dto.OauthUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
@@ -44,9 +44,9 @@ public class NaverService {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, state);
         // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
-        NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
+        OauthUserInfoDto oauthUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
-        User naverUser = registerNaverUserIfNeeded(naverUserInfo);
+        User naverUser = registerNaverUserIfNeeded(oauthUserInfo);
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
         System.out.println("JWT Access Token: " + tokenDto.getAccessToken());
@@ -86,7 +86,7 @@ public class NaverService {
 
     }
     // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
-    private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -107,14 +107,14 @@ public class NaverService {
         String id = responseNode.get("id").asText(); // 변경된 부분
         String email = responseNode.get("email").asText();
         String nickname = responseNode.get("nickname").asText();
-        return new NaverUserInfoDto(id, email, nickname);
+        return new OauthUserInfoDto(id, email, nickname);
     }
-    private User registerNaverUserIfNeeded (NaverUserInfoDto naverUserInfo) {
-        String naverId = naverUserInfo.getId();
+    private User registerNaverUserIfNeeded (OauthUserInfoDto oauthUserInfo) {
+        String naverId = oauthUserInfo.getId();
         User naverUser = userRepository.findByNaverId(naverId).
                 orElse(null);
         if (naverUser == null) {
-            String naverEmail = naverUserInfo.getEmail();
+            String naverEmail = oauthUserInfo.getEmail();
             User sameEmailUser = userRepository.findByEmail(naverEmail).orElse(null);
             if (sameEmailUser != null) {
                 naverUser = sameEmailUser;
@@ -123,12 +123,12 @@ public class NaverService {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
 
-                String email = naverUserInfo.getEmail();
+                String email = oauthUserInfo.getEmail();
 
-                String nickname = naverUserInfo.getNickname();
+                String nickname = oauthUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
-                    nickname = naverUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
+                    nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
                 naverUser = new User(encodedPassword, email, nickname, null, naverId, null, UserRoleEnum.USER);

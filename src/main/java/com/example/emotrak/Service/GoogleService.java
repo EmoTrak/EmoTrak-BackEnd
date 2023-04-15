@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.GoogleUserInfoDto;
+import com.example.emotrak.dto.OauthUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
@@ -49,10 +49,10 @@ public class GoogleService {
         String accessToken = getToken(code, scope);
 
         // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
-        GoogleUserInfoDto googleUserInfo = getGoogleUserInfo(accessToken);
+        OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
 
         // 3. 필요시에 회원가입
-        User googleUser = registerGoogleUserIfNeeded(googleUserInfo);
+        User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
 
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
@@ -94,7 +94,7 @@ public class GoogleService {
 
     }
     // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
-    private GoogleUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -115,7 +115,7 @@ public class GoogleService {
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
         String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateRandomString(6);
-        return new GoogleUserInfoDto(id, email, nickname);
+        return new OauthUserInfoDto(id, email, nickname);
     }
 
     private String generateRandomString(int length) {
@@ -128,11 +128,11 @@ public class GoogleService {
                 .collect(Collectors.joining());
     }
 
-    private User registerGoogleUserIfNeeded(GoogleUserInfoDto googleUserInfo) {
-        String googleId = googleUserInfo.getId();
+    private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
+        String googleId = oauthUserInfo.getId();
         User googleUser = userRepository.findByGoogleId(googleId).orElse(null);
         if (googleUser == null) {
-            String googleEmail = googleUserInfo.getEmail();
+            String googleEmail = oauthUserInfo.getEmail();
             User sameEmailUser = userRepository.findByEmail(googleEmail).orElse(null);
             if (sameEmailUser != null) {
                 googleUser = sameEmailUser;
@@ -141,12 +141,12 @@ public class GoogleService {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
 
-                String email = googleUserInfo.getEmail();
+                String email = oauthUserInfo.getEmail();
 
-                String nickname = googleUserInfo.getNickname();
+                String nickname = oauthUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
-                    nickname = googleUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
+                    nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
                 googleUser = new User(encodedPassword, email, nickname, null, null, googleId, UserRoleEnum.USER);
