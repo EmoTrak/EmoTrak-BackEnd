@@ -81,9 +81,7 @@ public class NaverService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        System.out.println("jsonNode = " + jsonNode);
-        System.out.println("jsonNode.toString() = " + jsonNode.toString());
-        log.info("JSON Data: {}", jsonNode.toString());
+        log.info("JSON Data: {}", jsonNode);
         return jsonNode.get("access_token").asText();
 
     }
@@ -152,6 +150,7 @@ public class NaverService {
         }
         userService.userDelete(user);
         System.out.println("user.getId() = " + user.getId());
+        System.out.println("user.getNaverId() = " + user.getNaverId());
         System.out.println("user = " + user);
     }
 
