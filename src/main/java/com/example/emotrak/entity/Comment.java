@@ -26,6 +26,10 @@ public class Comment extends Timestamped {
     @JoinColumn(name = "dailyId")
     private Daily daily;
 
+    public Comment(Long id) {
+        this.id = id;
+    }
+
     public Comment(CommentRequestDto commentRequestDto, Daily daily, User user) {
         this.comment = commentRequestDto.getComment();
         this.daily = daily;

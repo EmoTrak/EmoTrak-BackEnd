@@ -1,5 +1,6 @@
 package com.example.emotrak.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -7,6 +8,7 @@ import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Emotion {
 
@@ -20,4 +22,7 @@ public class Emotion {
     @Column(nullable = false)
     private int kind;
 
+    public Emotion(Long id) {
+        this.id = id;
+    }
 }

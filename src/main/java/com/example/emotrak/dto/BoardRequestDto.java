@@ -7,6 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @ApiModel(description = "감정글 요청 정보")
 public class BoardRequestDto {
 
