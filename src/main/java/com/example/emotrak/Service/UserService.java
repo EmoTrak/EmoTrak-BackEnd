@@ -221,7 +221,7 @@ public class UserService {
     }
 
     @Transactional
-    public void userDelete(User user) {
+    public void deleteUser(User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러

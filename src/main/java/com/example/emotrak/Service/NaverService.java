@@ -153,7 +153,7 @@ public class NaverService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.NAVER_UNLINK_FAILED);
         }
-        userService.userDelete(user);
+        userService.deleteUser(user);
     }
 
     private boolean unlinkNaverAccountApi(String accessToken) {
