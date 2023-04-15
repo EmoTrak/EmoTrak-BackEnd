@@ -4,6 +4,8 @@ import com.example.emotrak.dto.OauthUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.exception.CustomErrorCode;
+import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.util.Validation;
@@ -12,10 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -33,6 +32,7 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final UserService userService;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -46,6 +46,7 @@ public class KakaoService {
 
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(kakaoUser, kakaoUser.getRole());
+        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto,response);
     }
 
@@ -79,6 +80,7 @@ public class KakaoService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
+        log.info("JSON Data: {}", jsonNode.toString());
         return jsonNode.get("access_token").asText();
     }
 
@@ -147,4 +149,43 @@ public class KakaoService {
         }
         return kakaoUser;
     }
+
+    public void unlinkKakaoAccount(User user, String accessToken) {
+        // 사용자가 없거나 카카오 ID가 없는 경우에 대한 예외 처리
+        if (accessToken == null || user.getKakaoId() == null) {
+            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
+        }
+        // 연동해제를 위한 카카오 API 호출
+        boolean isUnlinked = unlinkKakaoAccountApi(user, accessToken);
+        if (!isUnlinked) {
+            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
+        }
+        log.info("user.getId() = {}", user.getId());
+        log.info("user.getKakaoId() = {}", user.getKakaoId());
+        log.info("user = {}", user);
+//        userService.deleteUser(user);
+        log.info("카카오 연동해제 완료");
+    }
+
+    private boolean unlinkKakaoAccountApi(User user, String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.setBearerAuth(accessToken);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("target_id_type", "user_id");
+        body.add("target_id", String.valueOf(user.getKakaoId()));
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response = rt.exchange(
+                "https://kapi.kakao.com/v1/user/unlink",
+                HttpMethod.POST,
+                requestEntity,
+                String.class
+        );
+
+        return response.getStatusCode() == HttpStatus.OK;
+    }
+
 }
