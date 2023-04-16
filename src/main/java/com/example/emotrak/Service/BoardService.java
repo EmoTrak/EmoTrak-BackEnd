@@ -203,6 +203,9 @@ public class BoardService {
         // 사용자가 게시물을 신고했는지 확인
         boolean hasReport = user != null ? reportRepository.findByUserAndDailyId(user, id).isPresent() : false;
 
+        // 게시글의 전체 댓글 수 계산
+        int totalComments = commentRepository.countByDaily(daily);
+
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
@@ -216,7 +219,7 @@ public class BoardService {
                     return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport);
                 })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport, totalComments);
     }
 
 
