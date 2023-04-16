@@ -60,8 +60,6 @@ public class KakaoService {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
-        //body.add("redirect_uri", "http://clone-thunder-market.s3-website.ap-northeast-2.amazonaws.com/oauth");
-        //body.add("redirect_uri", "http://localhost:3000/oauth");
         body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 
@@ -174,7 +172,7 @@ public class KakaoService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("target_id_type", "user_id");
-        body.add("target_id", String.valueOf(user.getKakaoId()));
+        body.add("target_id", Long.toString(user.getKakaoId()));
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
         RestTemplate rt = new RestTemplate();
