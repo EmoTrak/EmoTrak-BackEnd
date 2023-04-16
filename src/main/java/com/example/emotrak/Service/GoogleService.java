@@ -110,6 +110,12 @@ public class GoogleService {
 
     // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
     private OauthUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+        // 액세스 토큰이 유효한지 확인
+        if (!isTokenValid(accessToken)) {
+            log.error("Invalid or expired access token");
+            throw new RuntimeException("Invalid or expired access token");
+        }
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -131,6 +137,27 @@ public class GoogleService {
         String email = jsonNode.get("email").asText();
         String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateRandomString(6);
         return new OauthUserInfoDto(id, email, nickname);
+    }
+
+    private boolean isTokenValid(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        HttpEntity<MultiValueMap<String, String>> tokenInfoRequest = new HttpEntity<>(headers);
+        RestTemplate rt = new RestTemplate();
+        try {
+            ResponseEntity<String> response = rt.exchange(
+                    "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken,
+                    HttpMethod.GET,
+                    tokenInfoRequest,
+                    String.class
+            );
+            return HttpStatus.OK.equals(response.getStatusCode());
+        } catch (HttpClientErrorException e) {
+            log.error("Invalid or expired access token: {}", e.getMessage());
+            return false;
+        }
     }
 
     private String generateRandomString(int length) {
@@ -190,7 +217,6 @@ public class GoogleService {
 
     private boolean unlinkGoogleAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         // 액세스 토큰을 통해 API 호출
         UriComponentsBuilder builder = UriComponentsBuilder
