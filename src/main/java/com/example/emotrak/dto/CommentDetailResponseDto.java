@@ -32,7 +32,7 @@ public class CommentDetailResponseDto {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
-        if (user != null) this.hasAuth = comment.getUser().getId().equals(user.getId()) || user.hasAdmin();
+        this.hasAuth = (user != null) && (comment.getUser().getId().equals(user.getId()) || user.hasAdmin());
         this.nickname = comment.getUser().getNickname();
         this.likesCnt = likesCnt;
         this.hasLike = hasLike;

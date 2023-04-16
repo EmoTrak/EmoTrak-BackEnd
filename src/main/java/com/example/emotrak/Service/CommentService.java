@@ -39,9 +39,7 @@ public class CommentService {
 
     //댓글수정
     public void updateComment(Long commentId, CommentRequestDto commentRequestDto, User user) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
-        );
+        Comment comment = findCommentById(commentId);
         validateComment(user, comment);
         comment.updateComment(commentRequestDto);
         commentRepository.save(comment);
@@ -49,9 +47,7 @@ public class CommentService {
 
     //댓글삭제
     public void deleteComment(Long commentId, User user) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
-        );
+        Comment comment = findCommentById(commentId);
         validateComment(user, comment);
 
         // 댓글 좋아요 날리기
@@ -64,21 +60,25 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    //중복메서드 정리
+    //중복메서드 정리 1
     private void validateComment(User user, Comment comment) {
         if (comment.getUser().getId() != user.getId() && user.getRole() != ADMIN) {
             throw new CustomException(CustomErrorCode.NOT_AUTHOR);
         }
     }
 
+    //중복메서드 정리 2
+    private Comment findCommentById(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND));
+    }
+
     //댓글 신고하기
     public void createReport(ReportRequestDto reportRequestDto, User user, Long commentId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
-        );
+        Comment comment = findCommentById(commentId);
         Optional<Report> existingReport = reportRepository.findByUserAndCommentId(user, commentId);
         if (existingReport.isPresent()) {
-            throw new CustomException(CustomErrorCode.DUPLICATE_REPORT); // 이미 신고한 게시물입니다.
+            throw new CustomException(CustomErrorCode.DUPLICATE_REPORT);
         }
         Report report = new Report(reportRequestDto, user, comment);
         reportRepository.save(report);
@@ -93,10 +93,7 @@ public class CommentService {
 
     //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
     public LikeResponseDto commentLikes(User user, Long commentId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(
-                () -> new CustomException(CustomErrorCode.COMMENT_NOT_FOUND)
-        );
-
+        Comment comment = findCommentById(commentId);
         Optional<Likes> likes = likesRepository.findByUserAndComment(user, comment);
         boolean like = likes.isEmpty();
 
@@ -110,4 +107,5 @@ public class CommentService {
 
         return new LikeResponseDto(like, likesRepository.countByComment(comment));
     }
+
 }

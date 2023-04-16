@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -36,7 +37,7 @@ public class NaverController {
     @Tag(name = "Oauth2")
     @Operation(summary = "네이버 연동 해제", description = "소셜 연동 해제")
     @PostMapping("/naver/unlink")
-    public ResponseEntity<?> naverUnlink(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    public ResponseEntity<?> naverUnlink(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails,
                                          @RequestHeader("access_token") String accessToken) {
         naverService.unlinkNaverAccount(userDetails.getUser(), accessToken);
         return ResponseMessage.successResponse(HttpStatus.OK, "네이버 연동 해제 완료", null);

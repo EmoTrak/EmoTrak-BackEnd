@@ -1,5 +1,6 @@
 package com.example.emotrak.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class ReportRequestDto {
 
-//    @NotBlank(message = "신고 사유를 입력해주세요.")
+    @ApiModelProperty(value = "신고 사유", required = true, example = "저는 신고 사유 입니다")
     private String reason;
 
 }

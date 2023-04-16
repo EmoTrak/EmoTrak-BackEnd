@@ -79,11 +79,8 @@ public class BoardController {
     public ResponseEntity<?> getBoardDetails(@PathVariable Long boardId,
                                              @RequestParam(value = "page", defaultValue = "1") int page,
                                              @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        User user = null;
-        if (userDetails != null) user = userDetails.getUser();
-        // 게시글 정보 조회 처리
-        BoardDetailResponseDto boardDetailResponseDto = boardService.getBoardDetail(boardId, user, page);
-        return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardDetailResponseDto);
+        User user = (userDetails != null) ? userDetails.getUser() : null;
+        return ResponseMessage.successResponse(HttpStatus.OK, "상세 조회 성공", boardService.getBoardDetail(boardId, user, page));
     }
 
     @Tag(name = "Report")
@@ -92,7 +89,6 @@ public class BoardController {
     public ResponseEntity<?> reportBoard(@PathVariable Long boardId,
                                          @RequestBody @Valid ReportRequestDto reportRequestDto,
                                          @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // 게시글 신고 처리
         boardService.createReport(reportRequestDto, userDetails.getUser(), boardId);
         return ResponseMessage.successResponse(HttpStatus.CREATED, "게시글 신고 성공", null);
     }
