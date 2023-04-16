@@ -34,8 +34,9 @@ public class Likes {
         this.user = user;
     }
 
-       public Likes(Comment comment, User user) {
-            this.comment = comment;
-            this.user = user;
-        }
+   public Likes(Comment comment, User user) {
+        this.comment = comment;
+        this.user = user;
+   }
+
 }
