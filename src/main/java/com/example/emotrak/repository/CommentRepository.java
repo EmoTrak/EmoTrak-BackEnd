@@ -11,7 +11,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
+    // 게시글에 대한 모든 댓글 검색 (페이지네이션 적용)
     Page<Comment> findAllByDaily(Daily daily, Pageable pageable);
+
+    // 게시글에 대한 댓글 수 계산
+    int countByDaily(Daily daily);
 
     void deleteAllByUser(User user);
 

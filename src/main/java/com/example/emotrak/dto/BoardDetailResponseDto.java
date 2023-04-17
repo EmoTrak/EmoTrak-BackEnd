@@ -31,6 +31,7 @@ public class BoardDetailResponseDto {
     private boolean lastPage; // 마지막 페이지 여부
     private boolean draw;
     private boolean hasReport; // 게시물을 신고했는지 여부
+    private int totalComments; // 게시글의 전체 댓글 수
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
@@ -45,14 +46,15 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList, int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport) {
+    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList,
+                                  int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport, int totalComments) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
         this.star = daily.getStar();
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
-        if (user != null) this.hasAuth = daily.getUser().getId().equals(user.getId());
+        this.hasAuth = (user != null) && daily.getUser().getId().equals(user.getId());
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
         this.nickname = daily.getUser().getNickname();
         this.likesCnt = likesCnt;
@@ -61,5 +63,6 @@ public class BoardDetailResponseDto {
         this.lastPage = lastPage;
         this.draw = daily.isDraw();
         this.hasReport = hasReport;
+        this.totalComments = totalComments;
     }
 }

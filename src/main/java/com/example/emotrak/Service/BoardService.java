@@ -33,6 +33,7 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final LikesRepository likesRepository;
+
     @Value("${app.image.maxFileSize}")
     private long maxFileSize;
 
@@ -66,7 +67,6 @@ public class BoardService {
         if (daily.isHasRestrict() && daily.isShare()){
             throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
         }
-
         validateUserOrAdmin(user, daily);
         String newImageUrl = handleImage(image, daily.getImgUrl(), boardRequestDto.isDeleteImg());
         // Emotion 객체 찾기
@@ -127,26 +127,28 @@ public class BoardService {
 
     private String handleImage(MultipartFile image, String currentImageUrl, boolean deleteImg) {
         String newImageUrl = currentImageUrl;
-        //deleteImg가 true(이미지삭제요청)인 경우, 기존 이미지 삭제 및 업로드
+        //deleteImg가 true(이미지삭제요청)인 경우 기존 이미지 삭제
         if (deleteImg) {
             if (currentImageUrl != null) {
                 fileUploadService.deleteFile(currentImageUrl);
             }
             newImageUrl = null;
         }
-        // 이미지가 null이 아니고 비어있지 않은 경우, 새로운 이미지 업로드
+        // 이미지가 null 이 아니고 비어있지 않은 경우, 새로운 이미지 업로드
         if (image != null && !image.isEmpty()) {
             validateImage(image);
             newImageUrl = fileUploadService.uploadFile(image);
         }
         return newImageUrl;
     }
+
     // 수정 권한을 해당 유저와 관리자만 가능하게 메소드
     private void validateUserOrAdmin(User user, Daily daily) {
         if (daily.getUser().getId() != user.getId() && user.getRole() != ADMIN) {
             throw new CustomException(CustomErrorCode.NOT_AUTHOR);
         }
     }
+
     // 삭제 권한을 해당 유저만 가능하게 변경
     private void validateUserOnly(User user, Daily daily) {
         if (daily.getUser().getId() != user.getId()) {
@@ -189,12 +191,8 @@ public class BoardService {
         );
 
         // share가 false이고, 사용자와 작성자가 다를 경우 예외 처리
-        if (!daily.isShare()){
-            if (user == null)
-                throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-
-            if (daily.getUser().getId() != user.getId())
-                throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        if (!daily.isShare() && (user == null || daily.getUser().getId() != user.getId())) {
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         // 사용자와 게시물 간의 좋아요 관계 확인
@@ -202,6 +200,9 @@ public class BoardService {
 
         // 사용자가 게시물을 신고했는지 확인
         boolean hasReport = user != null ? reportRepository.findByUserAndDailyId(user, id).isPresent() : false;
+
+        // 게시글의 전체 댓글 수 계산
+        int totalComments = commentRepository.countByDaily(daily);
 
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -216,18 +217,16 @@ public class BoardService {
                     return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport);
                 })
                 .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport);
+        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport, totalComments);
     }
 
 
     //게시물 신고하기
     public void createReport(ReportRequestDto reportRequestDto, User user, Long id) {
-        Daily daily = boardRepository.findById(id).orElseThrow(
-                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
-        );
+        Daily daily = findDailyById(id);
         Optional<Report> existingReport = reportRepository.findByUserAndDailyId(user, id);
         if (existingReport.isPresent()) {
-            throw new CustomException(CustomErrorCode.DUPLICATE_REPORT); // 이미 신고한 게시물입니다.
+            throw new CustomException(CustomErrorCode.DUPLICATE_REPORT);
         }
         Report report = new Report(reportRequestDto, user, daily);
         reportRepository.save(report);
@@ -235,10 +234,7 @@ public class BoardService {
 
     //게시글 좋아요 (좋아요와 취소 번갈아가며 진행)
     public LikeResponseDto boardLikes(User user, Long boardId) {
-        Daily daily = boardRepository.findById(boardId).orElseThrow(
-                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
-        );
-
+        Daily daily = findDailyById(boardId);
         Optional<Likes> likes = likesRepository.findByUserAndDaily(user, daily);
         boolean like = likes.isEmpty();
 

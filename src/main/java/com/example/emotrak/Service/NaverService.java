@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.NaverUserInfoDto;
+import com.example.emotrak.dto.OauthUserInfoDto;
 import com.example.emotrak.dto.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
@@ -44,12 +44,12 @@ public class NaverService {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, state);
         // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
-        NaverUserInfoDto naverUserInfo = getNaverUserInfo(accessToken);
+        OauthUserInfoDto oauthUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
-        User naverUser = registerNaverUserIfNeeded(naverUserInfo);
+        User naverUser = registerNaverUserIfNeeded(oauthUserInfo);
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
-        System.out.println("JWT Access Token: " + tokenDto.getAccessToken());
+        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto,response);
     }
     // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -86,7 +86,7 @@ public class NaverService {
 
     }
     // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
-    private NaverUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -107,14 +107,14 @@ public class NaverService {
         String id = responseNode.get("id").asText(); // 변경된 부분
         String email = responseNode.get("email").asText();
         String nickname = responseNode.get("nickname").asText();
-        return new NaverUserInfoDto(id, email, nickname);
+        return new OauthUserInfoDto(id, email, nickname);
     }
-    private User registerNaverUserIfNeeded (NaverUserInfoDto naverUserInfo) {
-        String naverId = naverUserInfo.getId();
+    private User registerNaverUserIfNeeded (OauthUserInfoDto oauthUserInfo) {
+        String naverId = oauthUserInfo.getId();
         User naverUser = userRepository.findByNaverId(naverId).
                 orElse(null);
         if (naverUser == null) {
-            String naverEmail = naverUserInfo.getEmail();
+            String naverEmail = oauthUserInfo.getEmail();
             User sameEmailUser = userRepository.findByEmail(naverEmail).orElse(null);
             if (sameEmailUser != null) {
                 naverUser = sameEmailUser;
@@ -123,12 +123,12 @@ public class NaverService {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
 
-                String email = naverUserInfo.getEmail();
+                String email = oauthUserInfo.getEmail();
 
-                String nickname = naverUserInfo.getNickname();
+                String nickname = oauthUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
-                    nickname = naverUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
+                    nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
                 naverUser = new User(encodedPassword, email, nickname, null, naverId, null, UserRoleEnum.USER);
@@ -140,35 +140,41 @@ public class NaverService {
 
     public void unlinkNaverAccount(User user, String accessToken) {
         // 사용자가 없거나 네이버 ID가 없는 경우에 대한 예외 처리
-        if (user == null || user.getNaverId() == null) {
-            throw new CustomException(CustomErrorCode.NO_NAVER_LINK);
+        if (accessToken == null || user.getNaverId() == null) {
+            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
         }
         // 연동해제를 위한 네이버 API 호출
         boolean isUnlinked = unlinkNaverAccountApi(accessToken);
         if (!isUnlinked) {
-            throw new CustomException(CustomErrorCode.NAVER_UNLINK_FAILED);
+            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        System.out.println("user.getId() = " + user.getId());
-        System.out.println("user.getNaverId() = " + user.getNaverId());
-        System.out.println("user = " + user);
-        userService.deleteUser(user);
+        log.info("user.getId() = {}", user.getId());
+        log.info("user.getNaverId() = {}", user.getNaverId());
+        log.info("user = {}", user);
+//        userService.deleteUser(user);
+        log.info("네이버 연동해제 완료");
     }
 
     private boolean unlinkNaverAccountApi(String accessToken) {
         String clientId = this.clientId;
         String clientSecret = this.clientSecret;
 
-        String url = "https://nid.naver.com/oauth2.0/token?grant_type=delete" +
-                "&client_id=" + clientId +
-                "&client_secret=" + clientSecret +
-                "&access_token=" + accessToken +
-                "&service_provider=NAVER";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "delete");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("access_token", accessToken);
+        body.add("service_provider", "NAVER");
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
         RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
-                url,
-                HttpMethod.GET,
-                null,
+                "https://nid.naver.com/oauth2.0/token",
+                HttpMethod.POST,
+                requestEntity,
                 String.class
         );
 
