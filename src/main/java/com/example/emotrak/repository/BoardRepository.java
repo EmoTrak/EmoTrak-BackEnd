@@ -7,9 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Daily, Long> {
+
+    // 사용자가 오늘 작성한 게시물 수 검색
+    @Query("SELECT COUNT(d) FROM Daily d WHERE d.user = :user AND DATE(d.createdAt) = CURRENT_DATE")
+    long countDailyPostsByUserToday(@Param("user") User user);
 
     void deleteAllByUser(User user);
 
