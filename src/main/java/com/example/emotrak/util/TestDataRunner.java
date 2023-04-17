@@ -39,7 +39,7 @@ public class TestDataRunner implements ApplicationRunner {
 //        testUser1 = userRepository.save(testUser1);
 //        testUser2 = userRepository.save(testUser2);
 //        testUser3 = userRepository.save(testUser3);
-//        testAdminUser1 = userRepository.save(testAdminUser1);
+//        testAdmin = userRepository.save(testAdmin);
 
         List<User> userList = new ArrayList<>();
         userList.add(testUser1);
