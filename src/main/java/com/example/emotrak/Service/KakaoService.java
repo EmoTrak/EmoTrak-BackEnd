@@ -151,9 +151,8 @@ public class KakaoService {
     }
 
     public void unlinkKakao(User user, String accessToken) {
-        // 사용자가 없거나 카카오 ID가 없는 경우에 대한 예외 처리
-        if (accessToken == null || user.getKakaoId() == null) {
-            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
+        if (accessToken == null) {
+            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         // 연동해제를 위한 카카오 API 호출
         boolean isUnlinked = unlinkKakaoAccountApi(user, accessToken);

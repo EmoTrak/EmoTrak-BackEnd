@@ -35,8 +35,8 @@ public enum CustomErrorCode {
     REFRESH_TOKEN_IS_EXPIRED(UNAUTHORIZED, "x-1003", "리프레쉬 토큰이 만료되었습니다."),
     NOT_AUTHOR(UNAUTHORIZED, "x-1004", "작성자만 수정/삭제가 가능합니다."),
     UNAUTHORIZED_ACCESS(UNAUTHORIZED,"x-1005", "권한이 없습니다."),
-    NO_OAUTH_LINK(BAD_REQUEST, "x-1015", "소셜 계정과 연동되어 있지 않습니다."),
-    OAUTH_UNLINK_FAILED(INTERNAL_SERVER_ERROR, "x-1016", "소셜 계정 연동 해제에 실패하였습니다."),
+    INVALID_OAUTH_TOKEN(UNAUTHORIZED, "x-1016", "소셜 계정의 토큰이 유효하지 않습니다"),
+    OAUTH_UNLINK_FAILED(INTERNAL_SERVER_ERROR, "x-1017", "소셜 계정 연동 해제에 실패하였습니다."),
 
 
 
