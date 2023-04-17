@@ -6,15 +6,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Daily, Long> {
 
-    // 사용자가 오늘 작성한 게시물 수 검색
-    @Query("SELECT COUNT(d) FROM Daily d WHERE d.user = :user AND DATE(d.createdAt) = CURRENT_DATE")
-    long countDailyPostsByUserToday(@Param("user") User user);
+    // 사용자와 특정 날짜에 해당하는 게시물 수를 검색
+    @Query("SELECT COUNT(d) FROM Daily d WHERE d.user = :user AND d.DailyYear = :year AND d.dailyMonth = :month AND d.dailyDay = :day")
+    long countDailyPostsByUserAndDate(@Param("user") User user, @Param("year") int year, @Param("month") int month, @Param("day") int day);
 
     void deleteAllByUser(User user);
 
