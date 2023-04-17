@@ -16,10 +16,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,11 +42,11 @@ public class BoardService {
 
     //감정글 추가
     public BoardIdResponseDto createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
-        // 사용자가 오늘 작성한 게시물 수 검색
-        long dailyPostsToday = boardRepository.countDailyPostsByUserToday(user);
+        // 해당 날짜에 작성한 게시물 수 검색
+        long dailyPosts = boardRepository.countDailyPostsByUserAndDate(user, boardRequestDto.getYear(), boardRequestDto.getMonth(), boardRequestDto.getDay());
 
-        // 오늘 작성한 게시물이 2개 이상인지 확인
-        if (dailyPostsToday >= 2) {
+        // 해당 날짜에 작성한 게시물이 2개 이상인지 확인
+        if (dailyPosts >= 2) {
             throw new CustomException(CustomErrorCode.TOO_MANY_POSTS);
         }
         /*
