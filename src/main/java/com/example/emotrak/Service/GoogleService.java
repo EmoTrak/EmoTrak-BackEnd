@@ -123,7 +123,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateUniqueRandomString(6);
+        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateUniqueRandomString(6,"Oauth");
         return new OauthUserInfoDto(id, email, nickname);
     }
 
@@ -148,17 +148,32 @@ public class GoogleService {
         }
     }
 
-    private String generateUniqueRandomString(int length) {
+    private String generateUniqueRandomString(int length, String username) {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
         String generatedString;
+        int maxAttempts = 1000;
+        int attempts = 0;
 
         do {
             generatedString = random.ints(length, 0, characters.length())
                     .mapToObj(characters::charAt)
                     .map(Object::toString)
                     .collect(Collectors.joining());
-        } while (userRepository.existsByNickname(generatedString));
+            attempts++;
+        } while (userRepository.existsByNickname(generatedString) && attempts < maxAttempts);
+
+        if (attempts >= maxAttempts) {
+            // 기본값을 생성하려면 사용자 이름에 접미사를 추가합니다.
+            log.warn("Failed to generate a unique random string within the maximum attempts, using default value");
+            String defaultNickname = username + "_default";
+            int suffixNumber = 1;
+            while (userRepository.existsByNickname(defaultNickname)) {
+                defaultNickname = username + "_default" + suffixNumber;
+                suffixNumber++;
+            }
+            return defaultNickname;
+        }
 
         return generatedString;
     }
