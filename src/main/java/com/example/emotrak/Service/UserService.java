@@ -278,7 +278,9 @@ public class UserService {
             throw new CustomException(CustomErrorCode.INVALID_TOKEN);
         }
 
-        long accessTokenExpire = Long.parseLong(request.getHeader("Access-Token-Expire-Time"));
+        String expireTime = request.getHeader("Access-Token-Expire-Time");
+        if (expireTime.isEmpty()) throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
+        long accessTokenExpire = Long.parseLong(expireTime);
         long now = new Date().getTime();
         if (now >= accessTokenExpire) {
             if (now >= refreshToken.getExpirationDate().getTime()) {
