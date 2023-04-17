@@ -84,7 +84,7 @@ public class GoogleService {
         body.add("client_secret", clientSecret);
 //        body.add("redirect_uri", "http://localhost:3000/oauth/google");
         body.add("redirect_uri", "http://localhost:8080/google/callback");
-//        body.add("redirect_uri", "http://3.38.102.13:8080/google/callback");
+//        body.add("redirect_uri", "http://pingu-lj.shop/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         // HTTP 요청 보내기
