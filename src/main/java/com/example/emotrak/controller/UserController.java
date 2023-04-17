@@ -70,7 +70,7 @@ public class UserController {
     }
 
     // 4. 회원 탈퇴
-    @DeleteMapping ()
+    @DeleteMapping ("/delete")
     public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletRequest request) {
         String accessToken = request.getHeader("Authorization");
         userService.deleteUser(userDetails.getUser(),accessToken);

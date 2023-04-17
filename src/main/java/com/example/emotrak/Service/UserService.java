@@ -233,10 +233,16 @@ public class UserService {
             throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
         }
 
-        // 연동된 계정 해제
-        kakaoService.unlinkKakao(user, accessToken);
-        naverService.unlinkNaver(user, accessToken);
-        googleService.unlinkGoogle(user, accessToken);
+        // 연동된 계정이 있을 경우 연동 해제
+        if (user.getKakaoId() != null) {
+            kakaoService.unlinkKakao(user, accessToken);
+        }
+        if (user.getNaverId() != null) {
+            naverService.unlinkNaver(user, accessToken);
+        }
+        if (user.getGoogleId() != null) {
+            googleService.unlinkGoogle(user, accessToken);
+        }
 
         // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
         likesRepository.deleteAllByUser(user);

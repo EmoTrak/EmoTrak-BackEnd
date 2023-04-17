@@ -207,9 +207,8 @@ public class GoogleService {
     }
 
     public void unlinkGoogle(User user, String accessToken) {
-        // 구글 ID가 없는 경우에 대한 예외 처리
-        if (accessToken == null || user.getGoogleId() == null) {
-            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
+        if (accessToken == null) {
+            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
         if (!isUnlinked) {
