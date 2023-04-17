@@ -35,14 +35,14 @@ public class NaverController {
         return ResponseMessage.successResponse(HttpStatus.OK, "네이버 로그인 완료", null);
     }
 
-    @Tag(name = "Oauth2")
-    @Operation(summary = "네이버 연동 해제", description = "소셜 연동 해제")
-    @PostMapping("/naver/unlink")
-    public ResponseEntity<?> naverUnlink(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails,
-                                         HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
-        naverService.unlinkNaverAccount(userDetails.getUser(), accessToken);
-        return ResponseMessage.successResponse(HttpStatus.OK, "네이버 연동 해제 완료", null);
-    }
+//    @Tag(name = "Oauth2")
+//    @Operation(summary = "네이버 연동 해제", description = "소셜 연동 해제")
+//    @PostMapping("/naver/unlink")
+//    public ResponseEntity<?> naverUnlink(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails,
+//                                         HttpServletRequest request) {
+//        String accessToken = request.getHeader("Authorization");
+//        naverService.unlinkNaverAccount(userDetails.getUser(), accessToken);
+//        return ResponseMessage.successResponse(HttpStatus.OK, "네이버 연동 해제 완료", null);
+//    }
 
 }

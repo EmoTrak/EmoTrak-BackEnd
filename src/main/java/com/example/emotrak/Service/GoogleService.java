@@ -206,7 +206,7 @@ public class GoogleService {
         return googleUser;
     }
 
-    public void unlinkGoogleAccount(User user, String accessToken) {
+    public void unlinkGoogle(User user, String accessToken) {
         // 구글 ID가 없는 경우에 대한 예외 처리
         if (accessToken == null || user.getGoogleId() == null) {
             throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
@@ -218,7 +218,6 @@ public class GoogleService {
         log.info("user.getId() = {}", user.getId());
         log.info("user.getGoogleId() = {}", user.getGoogleId());
         log.info("user = {}", user);
-//        userService.deleteUser(user);
         log.info("구글 연동해제 완료");
     }
 
