@@ -16,7 +16,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +42,13 @@ public class BoardService {
 
     //감정글 추가
     public BoardIdResponseDto createDaily(BoardRequestDto boardRequestDto, User user, @Nullable MultipartFile image) {
+        // 해당 날짜에 작성한 게시물 수 검색
+        long dailyPosts = boardRepository.countDailyPostsByUserAndDate(user, boardRequestDto.getYear(), boardRequestDto.getMonth(), boardRequestDto.getDay());
+
+        // 해당 날짜에 작성한 게시물이 2개 이상인지 확인
+        if (dailyPosts >= 2) {
+            throw new CustomException(CustomErrorCode.TOO_MANY_POSTS);
+        }
         /*
          * 중복되는 이미지 처리 코드를 별도의 메서드로 분리
          * 업로드하려는 새 이미지 파일, 현재 이미지의 URL(createDaily 에서는 이미지가 없으므로 null 값을 전달)
