@@ -37,4 +37,4 @@ out/
 .vscode/
 
 application-mysql.properties
-/test/
+/src/test/
