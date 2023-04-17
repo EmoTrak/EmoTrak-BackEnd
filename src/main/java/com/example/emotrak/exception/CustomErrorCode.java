@@ -26,6 +26,7 @@ public enum CustomErrorCode {
     AWS_SERVICE_ERROR(BAD_REQUEST,"x-1013","AWS 서비스 관련 오류가 발생했습니다."),
     AWS_CLIENT_ERROR(BAD_REQUEST,"x-1013","AWS 클라이언트 관련 오류가 발생했습니다."),
     INVALID_FILE_TYPE(BAD_REQUEST,"x-1014","파일 크기 또는 파일 형식이 유효하지않습니다"),
+    TOO_MANY_POSTS(BAD_REQUEST,"x-1015", "하루에 두 개 이상의 게시물을 작성할 수 없습니다."),
 
 
     /* 401 UNAUTHORIZED : 권한 없음 */
