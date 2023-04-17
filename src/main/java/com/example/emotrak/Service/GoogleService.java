@@ -12,29 +12,18 @@ import com.example.emotrak.util.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
-
 import javax.servlet.http.HttpServletResponse;
-import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -134,7 +123,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateRandomString(6);
+        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateUniqueRandomString(6);
         return new OauthUserInfoDto(id, email, nickname);
     }
 
@@ -159,14 +148,19 @@ public class GoogleService {
         }
     }
 
-    private String generateRandomString(int length) {
+    private String generateUniqueRandomString(int length) {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
+        String generatedString;
 
-        return random.ints(length, 0, characters.length())
-                .mapToObj(characters::charAt)
-                .map(Object::toString)
-                .collect(Collectors.joining());
+        do {
+            generatedString = random.ints(length, 0, characters.length())
+                    .mapToObj(characters::charAt)
+                    .map(Object::toString)
+                    .collect(Collectors.joining());
+        } while (userRepository.existsByNickname(generatedString));
+
+        return generatedString;
     }
 
     private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
