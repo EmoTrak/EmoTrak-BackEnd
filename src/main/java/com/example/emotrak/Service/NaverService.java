@@ -63,6 +63,7 @@ public class NaverService {
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("redirect_uri", "http://iamnobody.xyz/oauth/naver");
+        body.add("redirect_uri", "http://localhost:3000/oauth/naver");
         body.add("code", code);
         body.add("state", state);
         // HTTP 요청 보내기
