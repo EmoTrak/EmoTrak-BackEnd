@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @RestController
@@ -35,7 +36,8 @@ public class GoogleController {
     @Operation(summary = "구글 연동 해제", description = "구글 연동 해제")
     @GetMapping("/google/unlink")
     public ResponseEntity<?> googleUnlink(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails,
-                                          @RequestHeader("access_token") String accessToken) {
+                                          HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization");
         googleService.unlinkGoogleAccount(userDetails.getUser(), accessToken);
         return ResponseMessage.successResponse(HttpStatus.OK, "구글 연동 해제 완료", null);
     }

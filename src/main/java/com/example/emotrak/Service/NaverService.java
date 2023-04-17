@@ -64,7 +64,7 @@ public class NaverService {
         body.add("client_secret", clientSecret);
         body.add("redirect_uri", "http://localhost:3000/oauth/naver");
         body.add("redirect_uri", "http://localhost:8080/naver/callback");
-        body.add("redirect_uri", "http://3.38.102.13:8080/naver/callback");
+        body.add("redirect_uri", "http://pingu-lj.shop/naver/callback");
         body.add("code", code);
         body.add("state", state);
         // HTTP 요청 보내기
@@ -151,7 +151,7 @@ public class NaverService {
         log.info("user.getId() = {}", user.getId());
         log.info("user.getNaverId() = {}", user.getNaverId());
         log.info("user = {}", user);
-//        userService.deleteUser(user);
+        userService.deleteUser(user);
         log.info("네이버 연동해제 완료");
     }
 
