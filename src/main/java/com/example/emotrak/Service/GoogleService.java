@@ -165,7 +165,7 @@ public class GoogleService {
 
         if (attempts >= maxAttempts) {
             // 기본값을 생성하려면 사용자 이름에 접미사를 추가합니다.
-            log.warn("Failed to generate a unique random string within the maximum attempts, using default value");
+            log.warn("최대 시도 횟수 내에서 고유한 랜덤 문자열을 생성하지 못했으므로 기본값을 사용합니다.");
             String defaultNickname = username + "_default";
             int suffixNumber = 1;
             while (userRepository.existsByNickname(defaultNickname)) {
