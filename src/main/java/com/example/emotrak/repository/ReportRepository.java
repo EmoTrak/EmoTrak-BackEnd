@@ -46,8 +46,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             + "  WHERE daily_id IN ("
             + "                         select id as daily_id "
             + "                           from daily "
-            + "                          where user_id = :userId);"
-            + " DELETE FROM report"
+            + "                          where user_id = :userId)"
+            , nativeQuery = true)
+    void deleteByUser(@Param("userId") Long userId);
+
+    @Modifying
+    @Query(value = " DELETE FROM report"
             + "  WHERE id IN ("
             + "                   SELECT report.id FROM ("
             + "                           SELECT r.id"
@@ -57,6 +61,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             + "                            WHERE d.user_id = :userId"
             + "                       ) report )"
             , nativeQuery = true)
-    void deleteByUser(@Param("userId") Long userId);
+    void deleteByUserComment(@Param("userId") Long userId);
 
 }
