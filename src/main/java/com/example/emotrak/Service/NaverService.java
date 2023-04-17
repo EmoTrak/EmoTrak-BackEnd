@@ -137,7 +137,7 @@ public class NaverService {
         return naverUser;
     }
 
-    public void unlinkNaverAccount(User user, String accessToken) {
+    public void unlinkNaver(User user, String accessToken) {
         // 사용자가 없거나 네이버 ID가 없는 경우에 대한 예외 처리
         if (accessToken == null || user.getNaverId() == null) {
             throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
@@ -150,7 +150,6 @@ public class NaverService {
         log.info("user.getId() = {}", user.getId());
         log.info("user.getNaverId() = {}", user.getNaverId());
         log.info("user = {}", user);
-        userService.deleteUser(user);
         log.info("네이버 연동해제 완료");
     }
 
