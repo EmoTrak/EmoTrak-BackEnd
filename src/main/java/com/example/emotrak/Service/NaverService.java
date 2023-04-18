@@ -196,7 +196,7 @@ public class NaverService {
     // 토큰의 유효성 검사
     private boolean isTokenValid(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Authorization", accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(headers);
