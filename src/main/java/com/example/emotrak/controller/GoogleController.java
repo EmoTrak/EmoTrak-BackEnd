@@ -23,6 +23,7 @@ public class GoogleController {
 
     private final GoogleService googleService;
 
+    @Tag(name = "Oauth2")
     @Operation(summary = "구글 로그인", description = "소셜로그인")
     @GetMapping("/google/callback")
     public ResponseEntity<?> googleLogin(@RequestParam String code,
