@@ -32,7 +32,6 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
-    private final UserService userService;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
