@@ -1,5 +1,6 @@
 package com.example.emotrak.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,6 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 public class CheckEmailRequestDto {
 
-    //@NotBlank(message = "이메일을 입력해주세요.")
-    //@Pattern(regexp = "^[a-zA-Z0-9+-\\_.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$", message = "이메일 형식에 맞지 않습니다.")
+    @ApiModelProperty(value = "체크할 이메일 주소", required = true, example = "이메일 예시")
     private String email;
 }
