@@ -39,9 +39,9 @@ public class UserService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final Validation validation;
-    private GoogleService googleService;
-    private KakaoService kakaoService;
-    private NaverService naverService;
+    private final GoogleService googleService;
+    private final KakaoService kakaoService;
+    private final NaverService naverService;
 
 
     // 회원가입
@@ -238,7 +238,8 @@ public class UserService {
             kakaoService.unlinkKakao(user, accessToken);
         }
         if (user.getNaverId() != null) {
-            naverService.unlinkNaver(user, accessToken);
+            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
+            refreshTokenOptional.ifPresent(refreshToken -> naverService.unlinkNaver(user, accessToken, refreshToken.getValue()));
         }
         if (user.getGoogleId() != null) {
             googleService.unlinkGoogle(user, accessToken);

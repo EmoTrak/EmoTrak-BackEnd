@@ -37,7 +37,6 @@ public class GoogleService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
-    private final UserService userService;
 
     @Value("${google_client_id}")
     private String clientId;
