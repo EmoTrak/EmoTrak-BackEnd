@@ -1,5 +1,6 @@
 package com.example.emotrak.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,5 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CheckNicknameRequestDto {
 
+    @ApiModelProperty(value = "체크할 닉네임", required = true, example = "닉네임 예시")
     private String nickname;
 }

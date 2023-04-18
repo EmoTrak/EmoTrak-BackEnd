@@ -1,5 +1,6 @@
 package com.example.emotrak.dto;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,17 +14,14 @@ import javax.validation.constraints.Pattern;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignupRequestDto {
-    //@NotBlank(message = "이메일을 입력해주세요.")
-    //@Pattern(regexp = "^[A-Za-z0-9_\\.\\-]+@[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-]+$",message = "올바른 이메일 형식이 아닙니다.")
+    @ApiModelProperty(value = "가입할 이메일", required = true, example = "이메일 예시")
     private String email;
-
-    //@NotBlank(message = "패스워드를 입력해주세요.")
-    //@Pattern(regexp = "^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[a-zA-Z\\d!@#$%^&*()_+]{8,15}$", message = "숫자와 영어 소문자와 특수문자를 사용해 8-15자리 비밀번호를 입력해주세요.")
+    @ApiModelProperty(value = "가입할 패스워드", required = true, example = "패스워드 예시")
     private String password;
-
+    @ApiModelProperty(value = "가입할 닉네임", required = true, example = "닉네임 예시")
     private String nickname;
 
-    private boolean admin = false;
+    //private boolean admin = false;
 
-    private String adminToken ="";
+    //private String adminToken ="";
 }
