@@ -70,6 +70,7 @@ public class NaverService {
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/naver");
         body.add("redirect_uri", "http://localhost:3000/oauth/naver");
         body.add("redirect_uri", "http://localhost:8080/naver/callback");
+//        body.add("redirect_uri", "http://pingu-lj.shop/naver/callback");
         body.add("code", code);
         body.add("state", state);
 
