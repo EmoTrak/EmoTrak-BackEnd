@@ -11,8 +11,16 @@ import java.util.List;
 public interface BoardRepository extends JpaRepository<Daily, Long> {
 
     // 사용자와 특정 날짜에 해당하는 게시물 수를 검색
-    @Query("SELECT COUNT(d) FROM Daily d WHERE d.user = :user AND d.dailyYear = :year AND d.dailyMonth = :month AND d.dailyDay = :day")
-    long countDailyPostsByUserAndDate(@Param("user") User user, @Param("year") int year, @Param("month") int month, @Param("day") int day);
+    @Query("SELECT COUNT(d) "
+            +   " FROM Daily d "
+            +   " WHERE d.user = :user "
+            +   " AND d.dailyYear = :year "
+            +   " AND d.dailyMonth = :month "
+            +   " AND d.dailyDay = :day")
+    long countDailyPostsByUserAndDate(@Param("user") User user,
+                                      @Param("year") int year,
+                                      @Param("month") int month,
+                                      @Param("day") int day);
 
     void deleteAllByUser(User user);
 

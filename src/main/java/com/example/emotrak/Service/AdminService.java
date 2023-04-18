@@ -1,5 +1,6 @@
 package com.example.emotrak.Service;
 
+import com.example.emotrak.dto.ReportHistory;
 import com.example.emotrak.dto.ReportResponseDto;
 
 import com.example.emotrak.entity.Daily;
@@ -8,9 +9,12 @@ import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,28 +30,49 @@ public class AdminService {
     private final CommentRepository commentRepository;
 
     //신고 게시글 조회
-    public List<ReportResponseDto> reportBoard() {
-        List<Object[]> objectList = adminRepository.getReportBoard();
+    @Transactional(readOnly = true)
+    public ReportResponseDto reportBoard(int page) {
+        int size = 15;
+        Pageable pageable = PageRequest.of(page, size);  //첫번째 파라미터값 = 첫번째 페이지, 두번째 파라미터값 = 한페이지당 들어가는 데이터 갯수
+                                                         //페이지 정보와 사이즈 정보를 담은 객체생성
+        List<Object[]> objectList = adminRepository.getReportBoard(pageable);   //해당 페이지의 목록을 조회
 
-        List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
-        for (Object[] object : objectList) {
-            ReportResponseDto reportResponseDto = new ReportResponseDto(object);
-            reportBoardResponseDtoList.add(reportResponseDto);
+        List<ReportHistory> reportHistoryList = new ArrayList<>();
+        long totalCount = 0;
+
+        for(int i = 0; i < objectList.size(); i++) {
+            if(i==0) {
+                totalCount = ((BigInteger) objectList.get(0)[0]).longValue();
+            }
+            ReportHistory reportHistory = new ReportHistory(objectList.get(i));
+            reportHistoryList.add(reportHistory);
         }
-        return reportBoardResponseDtoList;
+        ReportResponseDto reportResponseDto = new ReportResponseDto(totalCount, reportHistoryList);
+
+        return reportResponseDto;
     }
 
     //신고 댓글 조회
-    public List<ReportResponseDto> reportComment() {
-        List<Object[]> objectList = adminRepository.getReportComment();
+    @Transactional(readOnly = true)
+    public ReportResponseDto reportComment(int page) {
+        int size = 15;
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<ReportResponseDto> reportBoardResponseDtoList = new ArrayList<>();
+        List<Object[]> objectList = adminRepository.getReportComment(pageable);
 
-        for (Object[] object : objectList) {
-            ReportResponseDto reportResponseDto = new ReportResponseDto(object);
-            reportBoardResponseDtoList.add(reportResponseDto);
+        List<ReportHistory> reportHistoryList = new ArrayList<>();
+        long totalCount = 0;
+
+        for(int i = 0; i < objectList.size(); i++) {
+            if(i == 0) {
+                totalCount = ((BigInteger)objectList.get(0)[0]).longValue();
+            }
+            ReportHistory reportHistory = new ReportHistory(objectList.get(i));
+            reportHistoryList.add(reportHistory);
         }
-        return reportBoardResponseDtoList;
+        ReportResponseDto reportResponseDto = new ReportResponseDto(totalCount,reportHistoryList);
+
+        return reportResponseDto;
     }
 
     // 게시글 공유 중지
