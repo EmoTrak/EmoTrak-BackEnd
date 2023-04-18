@@ -1,6 +1,7 @@
 package com.example.emotrak.repository;
 
 import com.example.emotrak.entity.Report;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -8,39 +9,45 @@ import java.util.List;
 
 public interface AdminRepository extends JpaRepository<Report, Long> {
 
-    @Query(value = "select r.id,"
-            + "        a.daily_id,"
-            + "        b.nickname,"
-            + "        b.email,"
-            + "        reason,"
-            + "        a.count"
-            + " from report r,"
-            + "      ("
-            + "          select user_id, daily_id, count(*) as count from report r2"
-            + "          group by daily_id"
-            + "      ) a,"
-            + "     ("
-            + "         select * from users"
-            + "      ) b"
-            + " where a.daily_id = r.daily_id and r.user_id = b.id"
-            + " order by count desc", nativeQuery = true)
-    List<Object[]> getReportBoard();
+    @Query(value = " SELECT c.totalCount,"
+                +  "        r.id AS reportId,"
+                +  "        a.daily_id AS id,"
+                +  "        u.nickname,"
+                +  "        u.email,"
+                +  "        r.reason,"
+                +  "        a.count"
+                +  " FROM report r,"
+                +  "      ("
+                +  "          SELECT daily_id, count(*) AS count FROM report"
+                +  "          GROUP BY  daily_id"
+                +  "      ) a,"
+                +  "      users u, "
+                +  "      ("
+                +  "          SELECT COUNT(*) AS totalCount FROM report"
+                +  "          WHERE comment_id IS NULL"
+                +  "      ) c"
+                +  " WHERE a.daily_id = r.daily_id AND r.user_id = u.id"
+                +  " ORDER BY count DESC ", nativeQuery = true)
+    List<Object[]> getReportBoard(Pageable pageable);
 
-    @Query(value = "select  r.id,"
-            + "        a.comment_id,"
-            + "        b.nickname,"
-            + "        b.email,"
-            + "        reason,"
-            + "        a.count"
-            + " from report r,"
+    @Query(value = "SELECT c.totalCount,"
+            + "       r.id AS reportId,"
+            + "       a.daily_id AS id,"
+            + "       u.nickname,"
+            + "       u.email,"
+            + "       r.reason,"
+            + "       a.count"
+            + " FROM report r,"
             + "      ("
-            + "          select user_id, comment_id, count(*) as count from report r2"
-            + "          group by comment_id"
+            + "          SELECT daily_id, count(*) AS count From report"
+            + "          GROUP BY daily_id"
             + "      ) a,"
+            + "       users u,"
             + "      ("
-            + "          select * from users"
-            + "      ) b"
-            + " where a.comment_id = r.comment_id and r.user_id = b.id"
-            + " order by count desc",nativeQuery = true)
-    List<Object[]> getReportComment();
+            + "          SELECT COUNT(*) AS totalCount FROM report"
+            + "          WHERE daily_id IS NULL"
+            + "      ) c"
+            + " WHERE a.daily_id = r.daily_id AND r.user_id = u.id"
+            + " ORDER BY count DESC ", nativeQuery = true)
+    List<Object[]> getReportComment(Pageable pageable);
 }
