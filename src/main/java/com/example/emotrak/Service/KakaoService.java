@@ -32,7 +32,6 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
-    private final UserService userService;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -62,6 +61,7 @@ public class KakaoService {
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
 
         body.add("redirect_uri", "http://iamnobody.xyz/oauth/kakao");
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
         body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 

@@ -92,7 +92,7 @@ public class UserController {
     @Operation(summary = "마이페이지 회원 탈퇴", description = "마이페이지에서 회원탈퇴 합니다.")
     @DeleteMapping ("/delete")
     public ResponseEntity<?> deleteUser(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
+        String accessToken = request.getHeader("Access_Token");
         userService.deleteUser(userDetails.getUser(),accessToken);
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
     }
