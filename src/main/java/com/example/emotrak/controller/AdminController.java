@@ -27,8 +27,8 @@ public class AdminController {
             @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
     })
     @GetMapping("/admin/boards")
-    public ResponseEntity<?> reportBoard(){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard());
+    public ResponseEntity<?> reportBoard(@RequestParam(value = "page", defaultValue = "1") int page) {
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 게시물 조회 완료", adminService.reportBoard(page));
     }
 
     @Tag(name = "Admin")
@@ -38,8 +38,8 @@ public class AdminController {
             @ApiResponse(code = 403, message = "권한이 없습니다", response = ResponseMessage.class )
     })
     @GetMapping("/admin/comments")
-    public ResponseEntity<?> reportComment(){
-        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment());
+    public ResponseEntity<?> reportComment(@RequestParam(value = "page", defaultValue = "1")int page){
+        return ResponseMessage.successResponse(HttpStatus.OK, "신고 댓글 조회 완료", adminService.reportComment(page));
     }
 
     @Tag(name = "Admin")
