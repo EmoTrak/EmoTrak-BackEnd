@@ -32,7 +32,6 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
-    private final UserService userService;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -62,6 +61,7 @@ public class KakaoService {
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
 
         body.add("redirect_uri", "http://iamnobody.xyz/oauth/kakao");
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
         body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 
@@ -150,10 +150,9 @@ public class KakaoService {
         return kakaoUser;
     }
 
-    public void unlinkKakaoAccount(User user, String accessToken) {
-        // 사용자가 없거나 카카오 ID가 없는 경우에 대한 예외 처리
-        if (accessToken == null || user.getKakaoId() == null) {
-            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
+    public void unlinkKakao(User user, String accessToken) {
+        if (accessToken == null) {
+            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         // 연동해제를 위한 카카오 API 호출
         boolean isUnlinked = unlinkKakaoAccountApi(user, accessToken);
@@ -163,7 +162,6 @@ public class KakaoService {
         log.info("user.getId() = {}", user.getId());
         log.info("user.getKakaoId() = {}", user.getKakaoId());
         log.info("user = {}", user);
-//        userService.deleteUser(user);
         log.info("카카오 연동해제 완료");
     }
 

@@ -39,6 +39,10 @@ public class UserService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final Validation validation;
+    private final GoogleService googleService;
+    private final KakaoService kakaoService;
+    private final NaverService naverService;
+
 
     // 회원가입
     @Transactional
@@ -221,12 +225,24 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(User user) {
+    public void deleteUser(User user, String accessToken) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러
         if(!getUser.isPresent()){
             throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
+
+        // 연동된 계정이 있을 경우 연동 해제
+        if (user.getKakaoId() != null) {
+            kakaoService.unlinkKakao(user, accessToken);
+        }
+        if (user.getNaverId() != null) {
+            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
+            refreshTokenOptional.ifPresent(refreshToken -> naverService.unlinkNaver(user, accessToken, refreshToken.getValue()));
+        }
+        if (user.getGoogleId() != null) {
+            googleService.unlinkGoogle(user, accessToken);
         }
 
         // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)

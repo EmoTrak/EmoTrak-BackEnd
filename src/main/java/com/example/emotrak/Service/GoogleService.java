@@ -12,29 +12,18 @@ import com.example.emotrak.util.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
-
 import javax.servlet.http.HttpServletResponse;
-import java.time.Duration;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,7 +37,6 @@ public class GoogleService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
-    private final UserService userService;
 
     @Value("${google_client_id}")
     private String clientId;
@@ -82,6 +70,7 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
         body.add("redirect_uri", "http://iamnobody.xyz/oauth/google");
         body.add("redirect_uri", "http://localhost:3000/oauth/google");
         body.add("code", code);
@@ -134,7 +123,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateRandomString(6);
+        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : generateUniqueRandomString(6,"Oauth");
         return new OauthUserInfoDto(id, email, nickname);
     }
 
@@ -159,14 +148,34 @@ public class GoogleService {
         }
     }
 
-    private String generateRandomString(int length) {
+    private String generateUniqueRandomString(int length, String username) {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
+        String generatedString;
+        int maxAttempts = 1000;
+        int attempts = 0;
 
-        return random.ints(length, 0, characters.length())
-                .mapToObj(characters::charAt)
-                .map(Object::toString)
-                .collect(Collectors.joining());
+        do {
+            generatedString = random.ints(length, 0, characters.length())
+                    .mapToObj(characters::charAt)
+                    .map(Object::toString)
+                    .collect(Collectors.joining());
+            attempts++;
+        } while (userRepository.existsByNickname(generatedString) && attempts < maxAttempts);
+
+        if (attempts >= maxAttempts) {
+            // 기본값을 생성하려면 사용자 이름에 접미사를 추가합니다.
+            log.warn("최대 시도 횟수 내에서 고유한 랜덤 문자열을 생성하지 못했으므로 기본값을 사용합니다.");
+            String defaultNickname = username + "_default";
+            int suffixNumber = 1;
+            while (userRepository.existsByNickname(defaultNickname)) {
+                defaultNickname = username + "_default" + suffixNumber;
+                suffixNumber++;
+            }
+            return defaultNickname;
+        }
+
+        return generatedString;
     }
 
     private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
@@ -197,10 +206,9 @@ public class GoogleService {
         return googleUser;
     }
 
-    public void unlinkGoogleAccount(User user, String accessToken) {
-        // 구글 ID가 없는 경우에 대한 예외 처리
-        if (accessToken == null || user.getGoogleId() == null) {
-            throw new CustomException(CustomErrorCode.NO_OAUTH_LINK);
+    public void unlinkGoogle(User user, String accessToken) {
+        if (accessToken == null) {
+            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
         if (!isUnlinked) {
@@ -209,7 +217,6 @@ public class GoogleService {
         log.info("user.getId() = {}", user.getId());
         log.info("user.getGoogleId() = {}", user.getGoogleId());
         log.info("user = {}", user);
-//        userService.deleteUser(user);
         log.info("구글 연동해제 완료");
     }
 
