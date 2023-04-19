@@ -55,9 +55,6 @@ public class Daily extends Timestamped {
     @Column(nullable = false)
     private boolean draw;
 
-    @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
-    private List<Comment> comments;
-
     public Daily(Long id) {
         this.id = id;
     }
