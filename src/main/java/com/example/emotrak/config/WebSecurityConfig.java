@@ -64,7 +64,7 @@ public class WebSecurityConfig {
                 .antMatchers(HttpMethod.GET,"/boards", "/boards/{boardId}").permitAll()
                 .antMatchers("/admin/**").hasAnyAuthority("ADMIN")
                 .antMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
-                .antMatchers("/").permitAll()
+                .antMatchers("/health-check").permitAll()
                 .anyRequest().authenticated()
                 // JWT 인증/인가를 사용하기 위한 설정 (리프레쉬토큰 설정)
                 .and().apply(new JwtSecurityConfiguration(SECRET_KEY, tokenProvider, userDetailsService));
