@@ -36,10 +36,10 @@ public class TestDataRunner implements ApplicationRunner {
         User testUser3 = new User(passwordEncoder.encode("jingulee123"), "tester@naver.com", "tester", UserRoleEnum.USER);
         User testAdmin = new User(passwordEncoder.encode("admin123"), "admin@naver.com", "admin", UserRoleEnum.ADMIN);
 
-//        testUser1 = userRepository.save(testUser1);
-//        testUser2 = userRepository.save(testUser2);
-//        testUser3 = userRepository.save(testUser3);
-//        testAdmin = userRepository.save(testAdmin);
+        testUser1 = userRepository.save(testUser1);
+        testUser2 = userRepository.save(testUser2);
+        testUser3 = userRepository.save(testUser3);
+        testAdmin = userRepository.save(testAdmin);
 
         List<User> userList = new ArrayList<>();
         userList.add(testUser1);
@@ -47,12 +47,12 @@ public class TestDataRunner implements ApplicationRunner {
         userList.add(testUser3);
         userList.add(testAdmin);
 
-//        createMonthData();
-//        createEmotionData();
-//        createDailyData(testUser1);
-//        createCommentData(userList);
-//        createLikeData(userList);
-//        createReportData(userList);
+        createMonthData();
+        createEmotionData();
+        createDailyData(testUser1);
+        createCommentData(userList);
+        createLikeData(userList);
+        createReportData(userList);
 
     }
 
