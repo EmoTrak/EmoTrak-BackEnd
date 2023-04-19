@@ -77,11 +77,6 @@ public class WebSecurityConfig {
         // 403 Error 처리, 인증과는 별개로 추가적인 권한이 충족되지 않는 경우
         http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler);
 
-        // X-Forwarded-Proto 헤더가 있는 경우 HTTPS 로 리다이렉션
-        http.requiresChannel()
-                .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") != null)
-                .requiresSecure();
-
         return http.build();
     }
 
