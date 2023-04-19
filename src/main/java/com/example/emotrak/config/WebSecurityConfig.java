@@ -89,6 +89,7 @@ public class WebSecurityConfig {
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("http://iamnobody.xyz");
         config.addAllowedOrigin("https://emotrak.vercel.app");
+        config.addAllowedOrigin("https://emotrak-1nxeo.vercel.app");
 
         // 특정 헤더를 클라이언트 측에서 사용할 수 있게 지정
         // 만약 지정하지 않는다면, Authorization 헤더 내의 토큰 값을 사용할 수 없음
