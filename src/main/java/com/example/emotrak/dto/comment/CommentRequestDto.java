@@ -1,4 +1,4 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.comment;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

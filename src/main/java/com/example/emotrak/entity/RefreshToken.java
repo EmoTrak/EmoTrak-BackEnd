@@ -1,7 +1,5 @@
-package com.example.emotrak.util;
+package com.example.emotrak.entity;
 
-import com.example.emotrak.entity.Timestamped;
-import com.example.emotrak.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

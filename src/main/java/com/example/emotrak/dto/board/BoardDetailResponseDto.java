@@ -1,5 +1,6 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.board;
 
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;

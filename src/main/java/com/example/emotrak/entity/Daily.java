@@ -1,6 +1,6 @@
 package com.example.emotrak.entity;
 
-import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.board.BoardRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,9 +54,6 @@ public class Daily extends Timestamped {
 
     @Column(nullable = false)
     private boolean draw;
-
-    @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
-    private List<Comment> comments;
 
     public Daily(Long id) {
         this.id = id;

@@ -1,4 +1,4 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.comment;
 
 import com.example.emotrak.entity.Comment;
 import com.example.emotrak.entity.User;
