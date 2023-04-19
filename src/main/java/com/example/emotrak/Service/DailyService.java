@@ -1,6 +1,8 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.*;
+import com.example.emotrak.dto.daily.DailyDetailResponseDto;
+import com.example.emotrak.dto.daily.DailyMonthResponseDto;
+import com.example.emotrak.dto.daily.DailyResponseDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.CustomErrorCode;

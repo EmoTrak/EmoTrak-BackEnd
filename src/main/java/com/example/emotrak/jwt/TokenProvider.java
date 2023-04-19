@@ -1,19 +1,15 @@
 package com.example.emotrak.jwt;
 
-import com.example.emotrak.dto.TokenDto;
+import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.repository.RefreshTokenRepository;
-import com.example.emotrak.security.UserDetailsImpl;
-import com.example.emotrak.util.RefreshToken;
+import com.example.emotrak.entity.RefreshToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

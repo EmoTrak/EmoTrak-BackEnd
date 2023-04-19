@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.*;
+import com.example.emotrak.dto.user.*;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -11,8 +11,8 @@ import com.example.emotrak.repository.RefreshTokenRepository;
 import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.repository.*;
 
-import com.example.emotrak.util.RefreshToken;
-import com.example.emotrak.util.Validation;
+import com.example.emotrak.entity.RefreshToken;
+import com.example.emotrak.jwt.Validation;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;

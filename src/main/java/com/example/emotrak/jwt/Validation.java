@@ -1,6 +1,6 @@
-package com.example.emotrak.util;
+package com.example.emotrak.jwt;
 
-import com.example.emotrak.dto.TokenDto;
+import com.example.emotrak.dto.user.TokenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

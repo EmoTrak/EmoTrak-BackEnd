@@ -1,6 +1,6 @@
 package com.example.emotrak.entity;
 
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

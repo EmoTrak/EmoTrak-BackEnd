@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.GraphResponseDto;
+import com.example.emotrak.dto.graph.GraphResponseDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.repository.GraphRepository;
 import lombok.RequiredArgsConstructor;

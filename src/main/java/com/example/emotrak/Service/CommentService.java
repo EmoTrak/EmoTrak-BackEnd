@@ -1,8 +1,8 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.CommentRequestDto;
-import com.example.emotrak.dto.LikeResponseDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;

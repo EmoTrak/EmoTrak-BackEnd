@@ -1,10 +1,8 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
 
 @Getter
 @NoArgsConstructor

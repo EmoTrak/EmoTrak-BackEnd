@@ -1,9 +1,9 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.CommentService;
-import com.example.emotrak.dto.CommentRequestDto;
-import com.example.emotrak.dto.LikeResponseDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,9 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.validation.Valid;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor

@@ -1,6 +1,9 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.*;
+import com.example.emotrak.dto.board.*;
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;

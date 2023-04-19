@@ -1,4 +1,4 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.graph;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
