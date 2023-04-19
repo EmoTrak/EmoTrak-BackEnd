@@ -33,7 +33,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ReportResponseDto reportBoard(int page) {
         int size = 15;
-        Pageable pageable = PageRequest.of(page, size);  //첫번째 파라미터값 = 첫번째 페이지, 두번째 파라미터값 = 한페이지당 들어가는 데이터 갯수
+        Pageable pageable = PageRequest.of(page-1, size);  //첫번째 파라미터값 = 첫번째 페이지, 두번째 파라미터값 = 한페이지당 들어가는 데이터 갯수
                                                          //페이지 정보와 사이즈 정보를 담은 객체생성
         List<Object[]> objectList = adminRepository.getReportBoard(pageable);   //해당 페이지의 목록을 조회
 
@@ -41,7 +41,7 @@ public class AdminService {
         long totalCount = 0;
 
         for(int i = 0; i < objectList.size(); i++) {
-            if(i==0) {
+            if(i == 0) {
                 totalCount = ((BigInteger) objectList.get(0)[0]).longValue();
             }
             ReportHistory reportHistory = new ReportHistory(objectList.get(i));
@@ -56,7 +56,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ReportResponseDto reportComment(int page) {
         int size = 15;
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page-1, size);
 
         List<Object[]> objectList = adminRepository.getReportComment(pageable);
 
