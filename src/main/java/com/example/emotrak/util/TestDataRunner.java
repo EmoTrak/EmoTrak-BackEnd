@@ -84,13 +84,16 @@ public class TestDataRunner implements ApplicationRunner {
         BoardRequestDto boardRequestDto;
         int ranNum;
 
-        for (int i = 1; i <= 30; i++){
-            for (int j = 0; j < 2; j++)
-            {
-                ranNum = (int)(Math.random() * emotionList.size());
-                emotion = emotionList.get(ranNum);
-                boardRequestDto = new BoardRequestDto(false, 2023, 4, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
-                dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
+        int[] days = new int[] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+        for (int k = 0; k < days.length; k++) {
+            for (int i = 1; i <= days[k]; i++){
+                for (int j = 0; j < 2; j++)
+                {
+                    ranNum = (int)(Math.random() * emotionList.size());
+                    emotion = emotionList.get(ranNum);
+                    boardRequestDto = new BoardRequestDto(false, 2023, k+1, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
+                    dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
+                }
             }
         }
     }
@@ -98,7 +101,7 @@ public class TestDataRunner implements ApplicationRunner {
     private void createCommentData (List<User> userList) {
         int ranNum;
         long ranNum2;
-        for (int i = 1; i <= 30; i++)
+        for (int i = 1; i <= 300; i++)
         {
             ranNum = (int)(Math.random() * userList.size());
             ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
@@ -106,7 +109,7 @@ public class TestDataRunner implements ApplicationRunner {
             if (optionalDaily.isEmpty()) continue;
 
             CommentRequestDto commentRequestDto = new CommentRequestDto(i + "");
-            Comment comment = new Comment(commentRequestDto, optionalDaily.get(), userList.get(ranNum));
+            Comment comment = new Comment(commentRequestDto, optionalDaily.get(), userList.get(0));
             commentRepository.save(comment);
         }
     }
@@ -115,14 +118,14 @@ public class TestDataRunner implements ApplicationRunner {
         int ranNum;
         long ranNum2;
         Likes likes;
-        for (int i = 1; i <= 50; i++)
+        for (int i = 1; i <= 300; i++)
         {
             ranNum = (int)(Math.random() * userList.size());
             ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
             Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            likes = new Likes(optionalDaily.get(), userList.get(ranNum));
+            likes = new Likes(optionalDaily.get(), userList.get(0));
             likesRepository.save(likes);
 
             ranNum = (int)(Math.random() * userList.size());
@@ -130,7 +133,7 @@ public class TestDataRunner implements ApplicationRunner {
             Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            likes = new Likes(optionalComment.get(), userList.get(ranNum));
+            likes = new Likes(optionalComment.get(), userList.get(0));
             likesRepository.save(likes);
         }
     }
@@ -142,14 +145,14 @@ public class TestDataRunner implements ApplicationRunner {
         Report report;
         ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
 
-        for (int i = 1; i <= 30; i++)
+        for (int i = 1; i <= 300; i++)
         {
             ranNum = (int)(Math.random() * userList.size());
             ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
             Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            report = new Report(reportRequestDto, userList.get(ranNum), optionalDaily.get());
+            report = new Report(reportRequestDto, userList.get(0), optionalDaily.get());
             reportRepository.save(report);
 
             ranNum = (int)(Math.random() * userList.size());
@@ -157,7 +160,7 @@ public class TestDataRunner implements ApplicationRunner {
             Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
             if (optionalDaily.isEmpty()) continue;
 
-            report = new Report(reportRequestDto, userList.get(ranNum), optionalComment.get());
+            report = new Report(reportRequestDto, userList.get(0), optionalComment.get());
             reportRepository.save(report);
         }
     }
