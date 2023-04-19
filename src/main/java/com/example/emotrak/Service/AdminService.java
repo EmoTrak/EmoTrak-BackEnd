@@ -88,7 +88,7 @@ public class AdminService {
         likesRepository.deleteCommentLike(daily.getId());
 
         // 댓글 신고 날리기
-        reportRepository.deleteByDaily(daily.getId());
+        reportRepository.deleteCommentByDaily(daily.getId());
 
         // 댓글 날리기
         commentRepository.deleteByDaily(daily.getId());
