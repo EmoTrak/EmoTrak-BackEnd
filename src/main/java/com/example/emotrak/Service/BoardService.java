@@ -101,13 +101,16 @@ public class BoardService {
         likesRepository.deleteCommentLike(daily.getId());
 
         // 댓글 신고 날리기
-        reportRepository.deleteByDaily(daily.getId());
+        reportRepository.deleteCommentByDaily(daily.getId());
 
         // 댓글 날리기
         commentRepository.deleteByDaily(daily.getId());
 
         // 게시글 좋아요 날리기
         likesRepository.deleteBoardLike(daily.getId());
+
+        // 게시글 신고 날리기
+        reportRepository.deleteAllByDaily(daily);
 
         // 데이터베이스에서 Daily 객체 삭제
         try {

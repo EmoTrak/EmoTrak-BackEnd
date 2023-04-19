@@ -22,7 +22,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     void deleteAllByComment(Comment comment);
 
     void deleteAllByUser(User user);
-
     @Modifying
     @Query(value = " DELETE FROM report "
             + "  WHERE comment_id IN ("
@@ -30,7 +29,7 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             + "                           from comment "
             + "                          where daily_id = :dailyId)"
             , nativeQuery = true)
-    void deleteByDaily(@Param("dailyId") Long dailyId);
+    void deleteCommentByDaily(@Param("dailyId") Long dailyId);
 
     @Modifying
     @Query(value = " DELETE FROM report "
