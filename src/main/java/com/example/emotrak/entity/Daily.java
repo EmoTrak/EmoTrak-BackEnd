@@ -55,8 +55,14 @@ public class Daily extends Timestamped {
     @Column(nullable = false)
     private boolean draw;
 
-    @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    @OneToMany(mappedBy = "daily", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Comment> commentList;
+
+    @OneToMany(mappedBy = "daily", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Likes> likesList;
+
+    @OneToMany(mappedBy = "daily", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Report> reportList;
 
     public Daily(Long id) {
         this.id = id;

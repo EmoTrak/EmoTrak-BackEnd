@@ -245,27 +245,6 @@ public class UserService {
             googleService.unlinkGoogle(user, accessToken);
         }
 
-        // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
-        likesRepository.deleteAllByUser(user);
-
-        // 내가 신고한 내역 모두 날리기 (댓글, 게시글)
-        reportRepository.deleteAllByUser(user);
-
-        // 내가 쓴 댓글의 모든 좋아요 날리기
-        likesRepository.deleteCommentLikeByUser(user.getId());
-        // 내가 쓴 댓글의 모든 신고 날리기
-        reportRepository.deleteCommentLikeByUser(user.getId());
-        // 내가 쓴 모든 댓글 날리기
-        commentRepository.deleteAllByUser(user);
-
-        // 내가 쓴 게시글의 모든 좋아요, 모든 댓글의 좋아요 날리기
-        likesRepository.deleteByUser(user.getId());
-        likesRepository.deleteByUserComment(user.getId());
-        // 내가 쓴 게시글의 모든 신고, 모든 댓글의 신고 날리기
-        reportRepository.deleteByUser(user.getId());
-        reportRepository.deleteByUserComment(user.getId());
-        // 내가 쓴 게시글의 모든 댓글 날리기
-        commentRepository.deleteByUser(user.getId());
         // 내가 쓴 모든 게시글 날리기
         boardRepository.deleteAllByUser(user);
 

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -25,6 +26,12 @@ public class Comment extends Timestamped {
     @ManyToOne
     @JoinColumn(name = "dailyId")
     private Daily daily;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Likes> likesList;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Report> reportList;
 
     public Comment(Long id) {
         this.id = id;
