@@ -1,6 +1,6 @@
 package com.example.emotrak.entity;
 
-import com.example.emotrak.dto.BoardRequestDto;
+import com.example.emotrak.dto.board.BoardRequestDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

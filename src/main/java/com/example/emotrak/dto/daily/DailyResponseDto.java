@@ -1,4 +1,4 @@
-package com.example.emotrak.dto;
+package com.example.emotrak.dto.daily;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
