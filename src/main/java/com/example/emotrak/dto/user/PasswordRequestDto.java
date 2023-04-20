@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PasswordRequestDto {
-    @ApiModelProperty(value = "체크할 패스워드", required = true, example = "패스워드 예시")
-    String password;
+    @ApiModelProperty(value = "수정할 패스워드", required = true, example = "패스워드 예시")
+    private String password;
 }

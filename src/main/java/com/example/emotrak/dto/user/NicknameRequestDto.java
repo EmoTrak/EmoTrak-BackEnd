@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NicknameRequestDto {
-    @ApiModelProperty(value = "체크할 닉네임", required = true, example = "닉네임 예시")
-    String nickname;
+    @ApiModelProperty(value = "수정할 닉네임", required = true, example = "닉네임 예시")
+    private String nickname;
 }
