@@ -60,9 +60,9 @@ public class KakaoService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
 
-        body.add("redirect_uri", "http://iamnobody.xyz/oauth/kakao");
+//        body.add("redirect_uri", "http://iamnobody.xyz/oauth/kakao");
+//        body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
-        body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 
         // HTTP 요청 보내기
