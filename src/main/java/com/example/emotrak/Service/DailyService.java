@@ -20,7 +20,7 @@ public class DailyService {
     private final DailyRepository dailyRepository;
 
     @Transactional
-    public DailyResponseDto<DailyMonthResponseDto> getDailyMonth(int year, int month, User user) {
+    public DailyResponseDto getDailyMonth(int year, int month, User user) {
         List<DailyMonthResponseDto> dailyMonthResponseDtoList
                 = dailyRepository.getDailyMonth(year, month, user.getId());
         return new DailyResponseDto(year, month, dailyMonthResponseDtoList);
