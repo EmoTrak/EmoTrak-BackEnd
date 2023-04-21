@@ -62,11 +62,8 @@ public class BoardService {
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
-        try {
-            boardRepository.save(daily);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
-        }
+        boardRepository.save(daily);
+
         return new BoardIdResponseDto(daily);
     }
 
@@ -81,11 +78,7 @@ public class BoardService {
         // Emotion 객체 찾기
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
-        try {
-            daily.update(newImageUrl, boardRequestDto, emotion);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
-        }
+        daily.update(newImageUrl, boardRequestDto, emotion);
     }
 
     // 글 삭제
@@ -113,11 +106,7 @@ public class BoardService {
         reportRepository.deleteAllByDaily(daily);
 
         // 데이터베이스에서 Daily 객체 삭제
-        try {
-            boardRepository.delete(daily);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION); // 이걸 빼자 !! 또는 수정
-        }
+        boardRepository.delete(daily);
     }
 
     //예외처리
