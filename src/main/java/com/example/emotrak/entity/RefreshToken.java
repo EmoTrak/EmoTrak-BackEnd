@@ -1,15 +1,12 @@
 package com.example.emotrak.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.util.Date;
 
-
+@Setter
 @Getter
 @Entity
 @NoArgsConstructor
