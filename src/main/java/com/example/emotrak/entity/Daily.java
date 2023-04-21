@@ -1,14 +1,12 @@
 package com.example.emotrak.entity;
 
 import com.example.emotrak.dto.board.BoardRequestDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @Entity
