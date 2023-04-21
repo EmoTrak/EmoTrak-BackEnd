@@ -11,14 +11,14 @@ import java.math.BigInteger;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReportHistory {
+public class ReportHistoryDto {
     private Long reportId;
     private Long id;
     private String nickname;
     private String email;
     private String reason;
     private Long count;
-    public ReportHistory(Object[] object) {
+    public ReportHistoryDto(Object[] object) {
         this.reportId = ((BigInteger) object[1]).longValue();
         this.id = ((BigInteger) object[2]).longValue();
         this.nickname = (String) object[3];

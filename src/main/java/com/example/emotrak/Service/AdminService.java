@@ -1,6 +1,6 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.report.ReportHistory;
+import com.example.emotrak.dto.report.ReportHistoryDto;
 import com.example.emotrak.dto.report.ReportResponseDto;
 
 import com.example.emotrak.entity.Daily;
@@ -37,17 +37,17 @@ public class AdminService {
                                                          //페이지 정보와 사이즈 정보를 담은 객체생성
         List<Object[]> objectList = adminRepository.getReportBoard(pageable);   //해당 페이지의 목록을 조회
 
-        List<ReportHistory> reportHistoryList = new ArrayList<>();
+        List<ReportHistoryDto> reportHistoryDtoList = new ArrayList<>();
         long totalCount = 0;
 
         for(int i = 0; i < objectList.size(); i++) {
             if(i == 0) {
                 totalCount = ((BigInteger) objectList.get(0)[0]).longValue();
             }
-            ReportHistory reportHistory = new ReportHistory(objectList.get(i));
-            reportHistoryList.add(reportHistory);
+            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(objectList.get(i));
+            reportHistoryDtoList.add(reportHistoryDto);
         }
-        return new ReportResponseDto(totalCount, reportHistoryList);
+        return new ReportResponseDto(totalCount, reportHistoryDtoList);
     }
 
     //신고 댓글 조회
@@ -58,17 +58,17 @@ public class AdminService {
 
         List<Object[]> objectList = adminRepository.getReportComment(pageable);
 
-        List<ReportHistory> reportHistoryList = new ArrayList<>();
+        List<ReportHistoryDto> reportHistoryDtoList = new ArrayList<>();
         long totalCount = 0;
 
         for(int i = 0; i < objectList.size(); i++) {
             if(i == 0) {
                 totalCount = ((BigInteger)objectList.get(0)[0]).longValue();
             }
-            ReportHistory reportHistory = new ReportHistory(objectList.get(i));
-            reportHistoryList.add(reportHistory);
+            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(objectList.get(i));
+            reportHistoryDtoList.add(reportHistoryDto);
         }
-        return new ReportResponseDto(totalCount,reportHistoryList);
+        return new ReportResponseDto(totalCount, reportHistoryDtoList);
     }
 
     // 게시글 공유 중지
