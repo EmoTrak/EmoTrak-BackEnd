@@ -165,7 +165,7 @@ public class GoogleService {
             attempts++;
         } while (userRepository.existsByNickname(generatedString) && attempts < maxAttempts);
 
-        if (attempts >= maxAttempts) {
+        if (attempts >= maxAttempts) { // 6자리 끝나면 7자리로 ?
             // 기본값을 생성하려면 사용자 이름에 접미사를 추가합니다.
             log.warn("최대 시도 횟수 내에서 고유한 랜덤 문자열을 생성하지 못했으므로 기본값을 사용합니다.");
             String defaultNickname = username + "_default";
