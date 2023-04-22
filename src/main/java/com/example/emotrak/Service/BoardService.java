@@ -10,7 +10,6 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,9 +34,6 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final LikesRepository likesRepository;
-
-    @Value("${app.image.maxFileSize}")
-    private long maxFileSize;
 
     @Value("#{'${app.image.allowedContentTypes}'.split(',')}")
     private List<String> allowedImageContentTypes;
@@ -111,7 +107,7 @@ public class BoardService {
 
     //예외처리
     public void validateImage(MultipartFile image) {
-        if (image.getSize() > maxFileSize || !allowedImageContentTypes.contains(image.getContentType())) {
+        if (!allowedImageContentTypes.contains(image.getContentType())) {
             throw new CustomException(CustomErrorCode.INVALID_FILE_TYPE);
         }
     }
