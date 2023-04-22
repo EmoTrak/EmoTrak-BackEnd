@@ -72,7 +72,10 @@ class CommentServiceTest {
             when(boardRepository.findById(dailyId)).thenReturn(Optional.of(new Daily()));
             // when : 테스트할 메서드를 호출
             commentService.createComment(dailyId, commentRequestDto, user);
-            // then : 테스트 결과를 검증
+            /* then : 테스트 결과를 검증
+             * 호출된 메서드의 결과값을 검증하는 것이 아니라, 메서드가 정상적으로 실행되어서 특정 메서드가 호출되었는지 검증하는 것이 목적
+             * verify 메서드를 사용해서 호출 횟수나 파라미터 값을 검증
+             */
             verify(commentRepository, times(1)).saveAndFlush(Mockito.any(Comment.class));
         }
 
@@ -83,6 +86,7 @@ class CommentServiceTest {
             when(boardRepository.findById(dailyId)).thenReturn(Optional.empty());
             // when, then
             assertThrows(CustomException.class, () -> commentService.createComment(dailyId, commentRequestDto, user));
+            verify(commentRepository, Mockito.never()).saveAndFlush(Mockito.any(Comment.class));
         }
     }
 
@@ -102,29 +106,27 @@ class CommentServiceTest {
 
         @Test
         @DisplayName("관리자가 댓글을 수정하는 경우")
-        void deleteCommentSuccessByAdmin() {
+        void updateCommentSuccessByAdmin() {
             // given
             User admin = new User("1234", "admin@gmail.com", "admin", UserRoleEnum.ADMIN);
+            CommentRequestDto updatedCommentRequest = new CommentRequestDto("수정된 댓글 내용입니다.");
             when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
             // when
-            commentService.deleteComment(commentId, admin);
+            commentService.updateComment(commentId, updatedCommentRequest, admin);
             // then
-            verify(likesRepository, times(1)).deleteAllByComment(comment);
-            verify(reportRepository, times(1)).deleteAllByComment(comment);
-            verify(commentRepository, times(1)).delete(comment);
+            verify(commentRepository, times(1)).save(comment);
         }
 
         @Test
         @DisplayName("작성자가 아닌 유저가 댓글을 수정하는 경우")
-        void deleteCommentFailByNotAuthor() {
+        void updateCommentFailByNotAuthor() {
             // given
             User otherUser = new User("1234", "other@gmail.com", "other", UserRoleEnum.USER);
+            CommentRequestDto newCommentRequestDto = new CommentRequestDto("수정하려는 댓글 내용");
             when(commentRepository.findById(commentId)).thenReturn(Optional.of(comment));
             // then
-            assertThrows(CustomException.class, () -> commentService.deleteComment(commentId, otherUser));
-            verify(likesRepository, Mockito.never()).deleteAllByComment(comment);
-            verify(reportRepository, Mockito.never()).deleteAllByComment(comment);
-            verify(commentRepository, Mockito.never()).delete(comment);
+            assertThrows(CustomException.class, () -> commentService.updateComment(commentId, newCommentRequestDto, otherUser));
+            verify(commentRepository, Mockito.never()).save(comment);
         }
 
         @Test
@@ -134,6 +136,7 @@ class CommentServiceTest {
             when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
             // when, then
             assertThrows(CustomException.class, () -> commentService.updateComment(commentId, commentRequestDto, user));
+            verify(commentRepository, Mockito.never()).save(comment);
         }
     }
 
@@ -183,11 +186,14 @@ class CommentServiceTest {
 
         @Test
         @DisplayName("존재하지 않는 댓글 삭제")
-        void updateCommentFail_commentNotFound() {
+        void deleteCommentFail_commentNotFound() {
             // given
             when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
             // when, then
-            assertThrows(CustomException.class, () -> commentService.updateComment(commentId, commentRequestDto, user));
+            assertThrows(CustomException.class, () -> commentService.deleteComment(commentId, user));
+            verify(likesRepository, Mockito.never()).deleteAllByComment(comment);
+            verify(reportRepository, Mockito.never()).deleteAllByComment(comment);
+            verify(commentRepository, Mockito.never()).delete(comment);
         }
     }
 
@@ -229,7 +235,7 @@ class CommentServiceTest {
         when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
         // when
         assertThrows(CustomException.class, () -> commentService.commentLikes(user, commentId),
-                "댓글이 존재하지 않는 경우에는 CustomException이 발생해야 합니다.");
+                "댓글이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
         // then
         verify(likesRepository, Mockito.never()).save(Mockito.any());
         verify(likesRepository, Mockito.never()).delete(Mockito.any());
@@ -243,8 +249,6 @@ class CommentServiceTest {
         @DisplayName("정상적인 댓글 신고")
         void createReport() {
             // given
-            User user = new User("1234", "user@gmail.com", "user", UserRoleEnum.USER);
-            user.setId(1L);
             Comment comment = new Comment(new CommentRequestDto("댓글 내용"), new Daily(), user);
             comment.setId(1L);
             ReportRequestDto reportRequestDto = new ReportRequestDto("신고 사유");
@@ -257,16 +261,15 @@ class CommentServiceTest {
 
         @Test
         @DisplayName("존재하지 않는 댓글 신고")
-        void commentLikesCommentNotFound() {
+        void reportCommentNotFound() {
             // given
             Long commentId = 1L;
             when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
             // when
-            assertThrows(CustomException.class, () -> commentService.commentLikes(user, commentId),
-                    "댓글이 존재하지 않는 경우에는 CustomException이 발생해야 합니다.");
+            assertThrows(CustomException.class, () -> commentService.createReport(reportRequestDto, user, commentId),
+                    "댓글이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
             // then
-            verify(likesRepository, Mockito.never()).save(Mockito.any());
-            verify(likesRepository, Mockito.never()).delete(Mockito.any());
+            verify(reportRepository, Mockito.never()).save(Mockito.any());
         }
 
         @Test
