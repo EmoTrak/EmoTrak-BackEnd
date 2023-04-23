@@ -54,14 +54,6 @@ class CommentServiceTest {
         commentId = 1L;
         comment = new Comment(commentRequestDto, new Daily(), user);
         reportRequestDto = new ReportRequestDto("신고합니다.");
-        /* 테스트의 격리성을 유지하고 의존하는 객체들의 동작을 제어하기 위해 모의 객체를 사용
-         * CommentService 의 메서드를 호출할 때, 실제 의존성 객체들이 아닌, 모킹된 객체들이 사용되어 테스트가 수행
-         */
-        commentRepository = Mockito.mock(CommentRepository.class);
-        likesRepository = Mockito.mock(LikesRepository.class);
-        boardRepository = Mockito.mock(BoardRepository.class);
-        reportRepository = Mockito.mock(ReportRepository.class);
-        commentService = new CommentService(commentRepository, boardRepository, reportRepository, likesRepository);
     }
 
     @Nested

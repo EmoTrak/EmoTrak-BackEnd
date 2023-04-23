@@ -1,6 +1,8 @@
 package com.example.emotrak.Service;
 
+import com.example.emotrak.dto.board.BoardDetailResponseDto;
 import com.example.emotrak.dto.board.BoardRequestDto;
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
@@ -15,10 +17,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,7 +51,6 @@ class BoardServiceTest {
     private MultipartFile validImage;
     private Emotion emotion;
     private Daily daily;
-    private Long dailyId;
     private ReportRequestDto reportRequestDto;
 
     @BeforeEach
@@ -76,16 +78,7 @@ class BoardServiceTest {
         reportRequestDto = new ReportRequestDto("신고합니다.");
         List<String> allowedImageContentTypes = Arrays.asList("image/jpeg", "image/png", "image/gif");
         validImage = new MockMultipartFile("image", "image.jpg", "image/jpeg", "test-image".getBytes());
-        invalidImage = new MockMultipartFile("invalidImage","invalidImage.jpg", "invalid/imageType", "someImageData".getBytes(StandardCharsets.UTF_8));
-
-        boardRepository = Mockito.mock(BoardRepository.class);
-        fileUploadService = Mockito.mock(FileUploadService.class);
-        emotionRepository = Mockito.mock(EmotionRepository.class);
-        commentRepository = Mockito.mock(CommentRepository.class);
-        reportRepository = Mockito.mock(ReportRepository.class);
-        likesRepository = Mockito.mock(LikesRepository.class);
-        boardService = new BoardService(boardRepository, fileUploadService, emotionRepository, commentRepository, reportRepository, likesRepository);
-
+        invalidImage = new MockMultipartFile("invalidImage","invalidImage.jpg", "invalid/imageType", "someImageData".getBytes());
         // BoardService 의 allowedImageContentTypes 필드에 목록 설정
         ReflectionTestUtils.setField(boardService, "allowedImageContentTypes", allowedImageContentTypes);
     }
@@ -340,13 +333,107 @@ class BoardServiceTest {
         @Test
         @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 같은 경우")
         void getBoardDetail_authorAndUserSame() {
+            // given
+            Daily daily = Daily.builder()
+                    .id(1L)
+                    .user(user)
+                    .emotion(emotion)
+                    .dailyYear(2023)
+                    .dailyMonth(4)
+                    .dailyDay(22)
+                    .detail("저는 테스트입니다.")
+                    .star(5)
+                    .imgUrl("imgUrl")
+                    .share(true)
+                    .hasRestrict(false)
+                    .draw(false)
+                    .build();
+            // createdAt 설정
+            ReflectionTestUtils.setField(daily, "createdAt", LocalDateTime.now());
+            List<CommentDetailResponseDto> commentList = new ArrayList<>();
+            BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(daily, user, commentList, 0, false, true, false, 0);
+            when(boardRepository.findById(daily.getId())).thenReturn(Optional.of(daily));
+            when(likesRepository.findByUserAndDaily(user, daily)).thenReturn(Optional.empty());
+            when(reportRepository.findByUserAndDailyId(user, daily.getId())).thenReturn(Optional.empty());
+            when(commentRepository.countByDaily(any(Daily.class))).thenReturn(0);
+            when(commentRepository.findAllByDaily(any(Daily.class), any(Pageable.class))).thenReturn(new PageImpl<>(new ArrayList<>())); // 댓글이 없는 경우
 
+            // when
+            BoardDetailResponseDto actualResponse = boardService.getBoardDetail(daily.getId(), user, 1);
+
+            // then
+            assertEquals(expectedResponse.getId(), actualResponse.getId());
+            assertEquals(expectedResponse.getDate(), actualResponse.getDate());
+            assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
+            assertEquals(expectedResponse.getStar(), actualResponse.getStar());
+            assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
+            assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
+            assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
+            assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
+            assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
+            assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
+            assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
+            assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
+            assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
+            assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
+            assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
+            assertEquals(expectedResponse.getCommentDetailResponseDtoList(), actualResponse.getCommentDetailResponseDtoList());
+
+            verify(boardRepository, times(1)).findById(daily.getId());
         }
 
         @Test
         @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 다른 경우")
         void getBoardDetail_authorAndUserDifferent() {
+            // given
+            User otherUser = new User("5678", "otherUser@gmail.com", "otherUser", UserRoleEnum.USER);
+            otherUser.setId(2L);
+            Daily otherUserDaily = Daily.builder()
+                    .id(1L)
+                    .user(otherUser)
+                    .emotion(emotion)
+                    .dailyYear(2023)
+                    .dailyMonth(4)
+                    .dailyDay(22)
+                    .detail("저는 테스트입니다.")
+                    .star(5)
+                    .imgUrl("imgUrl")
+                    .share(true)
+                    .hasRestrict(false)
+                    .draw(false)
+                    .build();
+            // createdAt 설정
+            ReflectionTestUtils.setField(otherUserDaily, "createdAt", LocalDateTime.now());
+            List<CommentDetailResponseDto> commentList = new ArrayList<>();
+            BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(otherUserDaily, user, commentList, 0, false, true, false, 0);
+            when(boardRepository.findById(otherUserDaily.getId())).thenReturn(Optional.of(otherUserDaily));
+            when(likesRepository.findByUserAndDaily(user, otherUserDaily)).thenReturn(Optional.empty());
+            when(reportRepository.findByUserAndDailyId(user, otherUserDaily.getId())).thenReturn(Optional.empty());
+            when(commentRepository.countByDaily(any(Daily.class))).thenReturn(0);
+            when(commentRepository.findAllByDaily(any(Daily.class), any(Pageable.class))).thenReturn(new PageImpl<>(new ArrayList<>())); // 댓글이 없는 경우
 
+            // when
+            BoardDetailResponseDto actualResponse = boardService.getBoardDetail(otherUserDaily.getId(), user, 1);
+
+            // then
+            assertEquals(expectedResponse.getId(), actualResponse.getId());
+            assertEquals(expectedResponse.getDate(), actualResponse.getDate());
+            assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
+            assertEquals(expectedResponse.getStar(), actualResponse.getStar());
+            assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
+            assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
+            assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
+            assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
+            assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
+            assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
+            assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
+            assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
+            assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
+            assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
+            assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
+            assertEquals(expectedResponse.getCommentDetailResponseDtoList(), actualResponse.getCommentDetailResponseDtoList());
+
+            verify(boardRepository, times(1)).findById(otherUserDaily.getId());
         }
 
         @Test
@@ -435,11 +522,12 @@ class BoardServiceTest {
         @DisplayName("게시글 좋아요 추가 및 삭제")
         void toggleBoardLike() {
             // given
-            when(boardRepository.findById(dailyId)).thenReturn(Optional.of(daily));
+            Long id = 1L;
+            when(boardRepository.findById(id)).thenReturn(Optional.of(daily));
             when(likesRepository.findByUserAndDaily(user, daily)).thenReturn(Optional.empty());
 
             // when: 좋아요 추가
-            LikeResponseDto likeResponseDto = boardService.boardLikes(user, dailyId);
+            LikeResponseDto likeResponseDto = boardService.boardLikes(user, id);
 
             // then: 좋아요가 추가되었는지 확인
             assertThat(likeResponseDto.isHasLike()).isTrue();
@@ -453,7 +541,7 @@ class BoardServiceTest {
             doNothing().when(likesRepository).deleteById(Mockito.anyLong());
 
             // when: 좋아요 취소
-            likeResponseDto = boardService.boardLikes(user, dailyId);
+            likeResponseDto = boardService.boardLikes(user, id);
 
             // then: 좋아요가 취소되었는지 확인
             assertThat(likeResponseDto.isHasLike()).isFalse();
