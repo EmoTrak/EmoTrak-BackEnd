@@ -91,10 +91,10 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("감정글 추가")
+    @DisplayName("감정글 작성")
     class CreateDaily {
         @Test
-        @DisplayName("정상적인 감정글 추가")
+        @DisplayName("정상적인 감정글 작성")
         void createDailySuccess() {
             // given
             when(boardRepository.countDailyPostsByUserAndDate(user, boardRequestDto.getYear(), boardRequestDto.getMonth(), boardRequestDto.getDay())).thenReturn(1L);
@@ -126,7 +126,7 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("이미지가 제공되지 않은 경우")
+        @DisplayName("이미지가 제공되지 않은 경우, 정상적인 게시글 작성")
         void createDailyWithoutImage() {
             // given
             when(emotionRepository.findById(emotion.getId())).thenReturn(Optional.of(emotion));
@@ -350,7 +350,7 @@ class BoardServiceTest {
 
     @Nested
     @DisplayName("게시글 신고")
-    class RepostDaily {
+    class ReportDaily {
 
 
     }

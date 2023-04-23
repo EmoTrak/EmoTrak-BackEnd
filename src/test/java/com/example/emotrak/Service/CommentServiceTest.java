@@ -22,7 +22,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-// JUnit 5와 Mockito 가 통합되어 테스트를 수행
+// JUnit 5와 Mockito 가 통합되어 테스트를 수행(단위테스트)
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
     @InjectMocks
@@ -44,7 +44,7 @@ class CommentServiceTest {
     private Long commentId;
     private ReportRequestDto reportRequestDto;
 
-    // 각 테스트 메서드 실행 전에 setUp() 메서드를 호출, 및 초기화
+    // 각 테스트 메서드 실행 전에 setUp() 메서드의 호출 및 초기화
     @BeforeEach
     void setUp() {
         dailyId = 1L;
@@ -54,7 +54,9 @@ class CommentServiceTest {
         commentId = 1L;
         comment = new Comment(commentRequestDto, new Daily(), user);
         reportRequestDto = new ReportRequestDto("신고합니다.");
-        // 테스트의 격리성을 유지하고 의존하는 객체들의 동작을 제어하기 위해 모의 객체를 사용
+        /* 테스트의 격리성을 유지하고 의존하는 객체들의 동작을 제어하기 위해 모의 객체를 사용
+         * CommentService 의 메서드를 호출할 때, 실제 의존성 객체들이 아닌, 모킹된 객체들이 사용되어 테스트가 수행
+         */
         commentRepository = Mockito.mock(CommentRepository.class);
         likesRepository = Mockito.mock(LikesRepository.class);
         boardRepository = Mockito.mock(BoardRepository.class);
