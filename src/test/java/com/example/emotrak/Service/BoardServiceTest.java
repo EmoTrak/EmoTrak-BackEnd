@@ -1,10 +1,9 @@
 package com.example.emotrak.Service;
 
 import com.example.emotrak.dto.board.BoardRequestDto;
-import com.example.emotrak.entity.Daily;
-import com.example.emotrak.entity.Emotion;
-import com.example.emotrak.entity.User;
-import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
+import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -51,6 +48,8 @@ class BoardServiceTest {
     private MultipartFile validImage;
     private Emotion emotion;
     private Daily daily;
+    private Long dailyId;
+    private ReportRequestDto reportRequestDto;
 
     @BeforeEach
     void setUp() {
@@ -74,6 +73,7 @@ class BoardServiceTest {
                 .draw(false)
                 .build();
         daily.setId(1L);
+        reportRequestDto = new ReportRequestDto("신고합니다.");
         List<String> allowedImageContentTypes = Arrays.asList("image/jpeg", "image/png", "image/gif");
         validImage = new MockMultipartFile("image", "image.jpg", "image/jpeg", "test-image".getBytes());
         invalidImage = new MockMultipartFile("invalidImage","invalidImage.jpg", "invalid/imageType", "someImageData".getBytes(StandardCharsets.UTF_8));
@@ -170,8 +170,8 @@ class BoardServiceTest {
         }
 
         @Test
-        @DisplayName("작성자 또는 관리자가 아닌 경우 수정 불가")
-        void notAuthorOrAdmin() {
+        @DisplayName("작성자가 아닌 경우 수정 불가")
+        void updateNotAuthor() {
             // given
             User nonAuthorUser = new User("user2@test.com", "user2Password", "user2Nickname", UserRoleEnum.USER);
             nonAuthorUser.setId(2L);
@@ -267,7 +267,7 @@ class BoardServiceTest {
     class DeleteDaily {
         @Test
         @DisplayName("정상적인 감정글 삭제")
-        void deleteDaily_success() {
+        void deleteDailySuccess() {
             // given
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(daily));
 
@@ -286,7 +286,7 @@ class BoardServiceTest {
 
         @Test
         @DisplayName("정상적인 감정글 삭제, 이미지가 없는 경우")
-        void deleteDaily_success_withoutImage() {
+        void deleteDailySuccessWithoutImage() {
             // given
             daily.setImgUrl(null);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(daily));
@@ -308,7 +308,7 @@ class BoardServiceTest {
 
         @Test
         @DisplayName("작성자가 아닌 경우 삭제 불가")
-        void deleteDaily_notAuthor() {
+        void deleteDailyNotAuthor() {
             // given
             User nonAuthorUser = new User("user2@test.com", "user2Password", "user2Nickname", UserRoleEnum.USER);
             nonAuthorUser.setId(2L);
@@ -337,6 +337,93 @@ class BoardServiceTest {
     @Nested
     @DisplayName("공유게시판 조회")
     class DetailDaily {
+        @Test
+        @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 같은 경우")
+        void getBoardDetail_authorAndUserSame() {
+
+        }
+
+        @Test
+        @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 다른 경우")
+        void getBoardDetail_authorAndUserDifferent() {
+
+        }
+
+        @Test
+        @DisplayName("공유된 글 조회 - 유효하지 않은 페이지 번호")
+        void getBoardDetail_invalidPage() {
+            // given
+            Long id = 1L;
+            int invalidPage = -1;
+
+            // Create a shared Daily
+            Daily sharedDaily = Daily.builder()
+                    .id(id)
+                    .user(user)
+                    .emotion(emotion)
+                    .dailyYear(2023)
+                    .dailyMonth(4)
+                    .dailyDay(22)
+                    .detail("저는 테스트입니다.")
+                    .star(5)
+                    .imgUrl("imgUrl")
+                    .share(true)
+                    .hasRestrict(false)
+                    .draw(false)
+                    .build();
+            sharedDaily.setId(id);
+
+            when(boardRepository.findById(id)).thenReturn(Optional.of(sharedDaily));
+
+            // when & then
+            assertThrows(CustomException.class, () -> boardService.getBoardDetail(id, user, invalidPage));
+            verify(boardRepository, times(1)).findById(id);
+        }
+
+
+        @Test
+        @DisplayName("공유되지 않은 글 조회")
+        void getBoardDetail_Unauthorized() {
+            // given
+            Long id = 1L;
+            int page = 1;
+
+            // Create a non-shared Daily
+            Daily nonSharedDaily = Daily.builder()
+                    .id(id)
+                    .user(user)
+                    .emotion(emotion)
+                    .dailyYear(2023)
+                    .dailyMonth(4)
+                    .dailyDay(22)
+                    .detail("저는 테스트입니다.")
+                    .star(5)
+                    .imgUrl("imgUrl")
+                    .share(false)
+                    .hasRestrict(false)
+                    .draw(false)
+                    .build();
+            nonSharedDaily.setId(id);
+
+            when(boardRepository.findById(id)).thenReturn(Optional.of(nonSharedDaily));
+
+            // when, then
+            assertThrows(CustomException.class, () -> boardService.getBoardDetail(id, null, page));
+            verify(boardRepository, times(1)).findById(id);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 글 조회")
+        void getBoardDetail_DailyNotFound() {
+            // given
+            Long id = 1L;
+            int page = 1;
+            when(boardRepository.findById(id)).thenReturn(Optional.empty());
+
+            // when, then
+            assertThrows(CustomException.class, () -> boardService.getBoardDetail(id, user, page));
+            verify(boardRepository, times(1)).findById(id);
+        }
 
     }
 
@@ -344,15 +431,121 @@ class BoardServiceTest {
     @Nested
     @DisplayName("게시글 좋아요")
     class LikesDaily {
+        @Test
+        @DisplayName("게시글 좋아요 추가 및 삭제")
+        void toggleBoardLike() {
+            // given
+            when(boardRepository.findById(dailyId)).thenReturn(Optional.of(daily));
+            when(likesRepository.findByUserAndDaily(user, daily)).thenReturn(Optional.empty());
 
+            // when: 좋아요 추가
+            LikeResponseDto likeResponseDto = boardService.boardLikes(user, dailyId);
+
+            // then: 좋아요가 추가되었는지 확인
+            assertThat(likeResponseDto.isHasLike()).isTrue();
+            verify(likesRepository, times(1)).save(Mockito.any(Likes.class));
+            verify(likesRepository, times(1)).countByDaily(daily);
+
+            // given: 이미 좋아요가 눌러진 상태
+            Likes likes = new Likes(daily, user);
+            likes.setId(1L);
+            when(likesRepository.findByUserAndDaily(user, daily)).thenReturn(Optional.of(likes));
+            doNothing().when(likesRepository).deleteById(Mockito.anyLong());
+
+            // when: 좋아요 취소
+            likeResponseDto = boardService.boardLikes(user, dailyId);
+
+            // then: 좋아요가 취소되었는지 확인
+            assertThat(likeResponseDto.isHasLike()).isFalse();
+            verify(likesRepository, times(1)).deleteById(likes.getId());
+            verify(likesRepository, times(2)).countByDaily(daily);
+        }
+
+
+
+        @Test
+        @DisplayName("존재하지 않는 게시글 좋아요")
+        void boardLikesBoardNotFound() {
+            // given
+            Long boardId = 1L;
+            when(boardRepository.findById(boardId)).thenReturn(Optional.empty());
+
+            // when
+            assertThrows(CustomException.class, () -> boardService.boardLikes(user, boardId),
+                    "게시글이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
+
+            // then
+            verify(likesRepository, never()).save(any());
+            verify(likesRepository, never()).deleteById(anyLong());
+        }
     }
 
 
     @Nested
     @DisplayName("게시글 신고")
     class ReportDaily {
+        @Test
+        @DisplayName("정상적인 게시물 신고")
+        void createReport() {
+            // given
+            Long id = 1L;
+            Daily sharedDaily = Daily.builder()
+                    .id(id)
+                    .user(user)
+                    .emotion(emotion)
+                    .dailyYear(2023)
+                    .dailyMonth(4)
+                    .dailyDay(22)
+                    .detail("저는 테스트입니다.")
+                    .star(5)
+                    .imgUrl("imgUrl")
+                    .share(true)
+                    .hasRestrict(false)
+                    .draw(false)
+                    .build();
+            sharedDaily.setId(id);
+            ReportRequestDto reportRequestDto = new ReportRequestDto("신고 사유");
+            when(boardRepository.findById(daily.getId())).thenReturn(Optional.of(daily));
+            // when
+            boardService.createReport(reportRequestDto, user, daily.getId());
+            // then
+            verify(reportRepository, times(1)).save(Mockito.any(Report.class));
+        }
 
+        @Test
+        @DisplayName("존재하지 않는 게시물 신고")
+        void reportDailyNotFound() {
+            // given
+            Long dailyId = 1L;
+            when(boardRepository.findById(dailyId)).thenReturn(Optional.empty());
+            ReportRequestDto reportRequestDto = new ReportRequestDto("신고 사유");
+            // when
+            assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId),
+                    "게시물이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
+            // then
+            verify(reportRepository, Mockito.never()).save(Mockito.any());
+        }
 
+        @Test
+        @DisplayName("중복되는 게시물 신고")
+        void reportDailyDuplicate() {
+            // given
+            Long dailyId = 1L;
+            when(boardRepository.findById(dailyId)).thenReturn(Optional.empty());
+            // when
+            assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId),
+                    "게시물이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
+            // then
+            verify(reportRepository, Mockito.never()).save(Mockito.any());
+//            // given
+//            when(boardRepository.findById(dailyId)).thenReturn(Optional.of(daily));
+//            when(reportRepository.findByUserAndDailyId(user, dailyId)).thenReturn(Optional.of(new Report(reportRequestDto, user, daily)));
+//
+//            // when & then
+//            CustomException exception = assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId));
+//            assertThat(exception.getErrorCode()).isEqualTo(CustomErrorCode.DUPLICATE_REPORT);
+//            verify(reportRepository, never()).save(any(Report.class));
+        }
     }
 
 }

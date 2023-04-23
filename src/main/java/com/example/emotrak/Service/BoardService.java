@@ -195,6 +195,9 @@ public class BoardService {
         // 게시글의 전체 댓글 수 계산
         int totalComments = commentRepository.countByDaily(daily);
         // 페이지네이션을 적용하여 댓글 목록 가져오기
+        if (page <= 0) {
+            throw new CustomException(CustomErrorCode.INVALID_PAGE);
+        }
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();

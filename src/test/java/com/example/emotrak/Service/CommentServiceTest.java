@@ -229,20 +229,20 @@ class CommentServiceTest {
             verify(likesRepository, times(2)).countByComment(comment);
         }
 
-    @Test
-    @DisplayName("존재하지 않는 댓글 좋아요.")
-    void commentLikesCommentNotFound() {
-        // given
-        Long commentId = 1L;
-        when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
-        // when
-        assertThrows(CustomException.class, () -> commentService.commentLikes(user, commentId),
-                "댓글이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
-        // then
-        verify(likesRepository, Mockito.never()).save(Mockito.any());
-        verify(likesRepository, Mockito.never()).delete(Mockito.any());
+        @Test
+        @DisplayName("존재하지 않는 댓글 좋아요.")
+        void commentLikesCommentNotFound() {
+            // given
+            Long commentId = 1L;
+            when(commentRepository.findById(commentId)).thenReturn(Optional.empty());
+            // when
+            assertThrows(CustomException.class, () -> commentService.commentLikes(user, commentId),
+                    "댓글이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
+            // then
+            verify(likesRepository, Mockito.never()).save(Mockito.any());
+            verify(likesRepository, Mockito.never()).delete(Mockito.any());
+        }
     }
-}
 
     @Nested
     @DisplayName("댓글 신고")
