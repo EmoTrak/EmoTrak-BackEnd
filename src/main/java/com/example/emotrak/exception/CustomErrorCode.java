@@ -28,6 +28,7 @@ public enum CustomErrorCode {
     INVALID_FILE_TYPE(BAD_REQUEST,"x-1015","파일 형식이 유효하지 않습니다."),
     INVALID_FILE_SIZE(BAD_REQUEST, "x-1016", "파일 크기가 유효하지 않습니다."),
     TOO_MANY_POSTS(BAD_REQUEST,"x-1017", "하루에 두 개 이상의 게시물을 작성할 수 없습니다."),
+    INVALID_PAGE(BAD_REQUEST, "x-1018", "페이지는 1부터 시작합니다."),
 
 
     /* 401 UNAUTHORIZED : 권한 없음 */
