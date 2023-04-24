@@ -27,7 +27,7 @@ public class GraphService {
         for (Object[] object : objectList) {
             int month = ((Integer)object[0]).intValue();
             Long id = ((BigInteger) object[1]).longValue();
-            Long count = ((BigInteger) object[2]).longValue();
+            float count = ((BigDecimal) object[2]).floatValue();
             float percentage = ((BigDecimal) object[3]).floatValue();
 
             if (graphResponseDto == null || graphResponseDto.getMonth() != month) {

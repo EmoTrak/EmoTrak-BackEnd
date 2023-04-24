@@ -21,7 +21,7 @@ public class GraphResponseDto {
         this.graph = new ArrayList<>();
     }
 
-    public void addidCountPercentage(Long id, Long count, float percentage){
+    public void addidCountPercentage(Long id, float count, float percentage){
         this.graph.add(new GraphIdCountResponseDto(id,count,percentage));
     }
 }
