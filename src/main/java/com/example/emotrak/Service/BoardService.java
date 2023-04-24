@@ -198,7 +198,7 @@ public class BoardService {
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
