@@ -82,13 +82,6 @@ public class CommentService {
         reportRepository.save(report);
     }
 
-    // 댓글 신고 삭제하기
-    public void deleteReport(User user, Long commentId) {
-        Report report = reportRepository.findByUserAndCommentId(user, commentId)
-                .orElseThrow(() -> new CustomException(CustomErrorCode.REPORT_NOT_FOUND));
-        reportRepository.delete(report);
-    }
-
     //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)
     public LikeResponseDto commentLikes(User user, Long commentId) {
         Comment comment = findCommentById(commentId);
