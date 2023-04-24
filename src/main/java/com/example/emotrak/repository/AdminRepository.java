@@ -19,15 +19,16 @@ public interface AdminRepository extends JpaRepository<Report, Long> {
                  + "   FROM report r,"
                  + "        ("
                  + "            SELECT daily_id, count(*) AS count FROM report"
-                 + "            GROUP BY  daily_id"
+                 + "             WHERE daily_id IS NOT NULL"
+                 + "             GROUP BY  daily_id"
                  + "        ) a,"
                  + "        users u, "
                  + "        ("
                  + "            SELECT COUNT(*) AS totalCount FROM report"
-                 + "            WHERE comment_id IS NULL"
+                 + "             WHERE comment_id IS NULL"
                  + "        ) c"
                  + "  WHERE a.daily_id = r.daily_id AND r.user_id = u.id"
-                 + "  ORDER BY count DESC ", nativeQuery = true)
+                 + "  ORDER BY count DESC, reportId DESC", nativeQuery = true)
     List<Object[]> getReportBoard(Pageable pageable);
 
     @Query(value = "SELECT c.totalCount,"
@@ -40,14 +41,15 @@ public interface AdminRepository extends JpaRepository<Report, Long> {
                  + "  FROM report r,"
                  + "       ("
                  + "           SELECT comment_id, count(*) AS count From report"
-                 + "           GROUP BY comment_id"
+                 + "            WHERE comment_id IS NOT NULL"
+                 + "            GROUP BY comment_id"
                  + "       ) a,"
                  + "        users u,"
                  + "       ("
                  + "           SELECT COUNT(*) AS totalCount FROM report"
-                 + "           WHERE daily_id IS NULL"
+                 + "            WHERE daily_id IS NULL"
                  + "       ) c"
                  + " WHERE a.comment_id = r.comment_id AND r.user_id = u.id"
-                 + " ORDER BY count DESC ", nativeQuery = true)
+                 + " ORDER BY count DESC, reportId DESC", nativeQuery = true)
     List<Object[]> getReportComment(Pageable pageable);
 }

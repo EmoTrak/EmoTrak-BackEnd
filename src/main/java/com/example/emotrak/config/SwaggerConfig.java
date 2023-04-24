@@ -1,6 +1,6 @@
 package com.example.emotrak.config;
 
-import com.example.emotrak.dto.DailyMonthResponseDto;
+import com.example.emotrak.dto.daily.DailyMonthResponseDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.context.annotation.Bean;

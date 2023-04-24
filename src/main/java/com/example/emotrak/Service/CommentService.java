@@ -1,8 +1,8 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.CommentRequestDto;
-import com.example.emotrak.dto.LikeResponseDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
@@ -82,13 +80,6 @@ public class CommentService {
         }
         Report report = new Report(reportRequestDto, user, comment);
         reportRepository.save(report);
-    }
-
-    // 댓글 신고 삭제하기
-    public void deleteReport(User user, Long commentId) {
-        Report report = reportRepository.findByUserAndCommentId(user, commentId)
-                .orElseThrow(() -> new CustomException(CustomErrorCode.REPORT_NOT_FOUND));
-        reportRepository.delete(report);
     }
 
     //댓글 좋아요 (좋아요와 취소 번갈아가며 진행)

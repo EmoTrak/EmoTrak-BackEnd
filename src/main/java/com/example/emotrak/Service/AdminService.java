@@ -1,7 +1,7 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.ReportHistory;
-import com.example.emotrak.dto.ReportResponseDto;
+import com.example.emotrak.dto.report.ReportHistory;
+import com.example.emotrak.dto.report.ReportResponseDto;
 
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.Report;
@@ -47,9 +47,7 @@ public class AdminService {
             ReportHistory reportHistory = new ReportHistory(objectList.get(i));
             reportHistoryList.add(reportHistory);
         }
-        ReportResponseDto reportResponseDto = new ReportResponseDto(totalCount, reportHistoryList);
-
-        return reportResponseDto;
+        return new ReportResponseDto(totalCount, reportHistoryList);
     }
 
     //신고 댓글 조회
@@ -70,9 +68,7 @@ public class AdminService {
             ReportHistory reportHistory = new ReportHistory(objectList.get(i));
             reportHistoryList.add(reportHistory);
         }
-        ReportResponseDto reportResponseDto = new ReportResponseDto(totalCount,reportHistoryList);
-
-        return reportResponseDto;
+        return new ReportResponseDto(totalCount,reportHistoryList);
     }
 
     // 게시글 공유 중지
@@ -92,7 +88,7 @@ public class AdminService {
         likesRepository.deleteCommentLike(daily.getId());
 
         // 댓글 신고 날리기
-        reportRepository.deleteByDaily(daily.getId());
+        reportRepository.deleteCommentByDaily(daily.getId());
 
         // 댓글 날리기
         commentRepository.deleteByDaily(daily.getId());

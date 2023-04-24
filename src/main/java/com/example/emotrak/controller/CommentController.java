@@ -1,9 +1,9 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.CommentService;
-import com.example.emotrak.dto.CommentRequestDto;
-import com.example.emotrak.dto.LikeResponseDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,9 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
-import javax.validation.Valid;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,15 +63,6 @@ public class CommentController {
         // 게시글 신고 처리
         commentService.createReport(reportRequestDto, userDetails.getUser(), commentId);
         return ResponseMessage.successResponse(HttpStatus.CREATED, "댓글 신고 성공", null);
-    }
-
-    @Tag(name = "Report")
-    @Operation(summary = "댓글 신고삭제", description = "댓글 신고 삭제 성공")
-    @DeleteMapping("/comments/report/{commentId}")
-    public ResponseEntity<?> deleteReport(@PathVariable Long commentId,
-                                          @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        commentService.deleteReport(userDetails.getUser(), commentId);
-        return ResponseMessage.successResponse(HttpStatus.OK, "댓글 신고 삭제 성공", null);
     }
 
     @Tag(name = "Likes")

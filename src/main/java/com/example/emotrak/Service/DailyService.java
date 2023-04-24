@@ -1,6 +1,8 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.*;
+import com.example.emotrak.dto.daily.DailyDetailResponseDto;
+import com.example.emotrak.dto.daily.DailyMonthResponseDto;
+import com.example.emotrak.dto.daily.DailyResponseDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -18,7 +20,7 @@ public class DailyService {
     private final DailyRepository dailyRepository;
 
     @Transactional
-    public DailyResponseDto<DailyMonthResponseDto> getDailyMonth(int year, int month, User user) {
+    public DailyResponseDto getDailyMonth(int year, int month, User user) {
         List<DailyMonthResponseDto> dailyMonthResponseDtoList
                 = dailyRepository.getDailyMonth(year, month, user.getId());
         return new DailyResponseDto(year, month, dailyMonthResponseDtoList);

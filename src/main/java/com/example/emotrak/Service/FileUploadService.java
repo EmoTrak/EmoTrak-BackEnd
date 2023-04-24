@@ -25,7 +25,7 @@ public class FileUploadService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    //AWS SDK를 사용하여 AWS S3에 파일을 업로드
+    //AWS SDK 를 사용하여 AWS S3에 파일을 업로드
     public String uploadFile(MultipartFile file) {
         try {
             String fileName = generateFileName(file.getOriginalFilename());
@@ -50,7 +50,7 @@ public class FileUploadService {
         }
     }
 
-    // 원래 파일 이름을 랜덤 UUID와 조합하여 새로운 파일 이름을 생성
+    // 원래 파일 이름을 랜덤 UUID 와 조합하여 새로운 파일 이름을 생성
     private String generateFileName(String originalFilename) {
         return UUID.randomUUID().toString() + "_" + originalFilename;
     }
@@ -79,7 +79,8 @@ public class FileUploadService {
         } catch (Exception e) {
             /*
              * 위에서 언급한 예외들 외에 발생할 수 있는 다른 모든 예외를 처리
-             * 파일 URL 에서 파일 이름을 추출하는 과정에서 발생할 수 있는 예외, 예를 들어, fileUrl 이 null 이거나 올바르지 않은 형식일 때 발생할 수 있는 StringIndexOutOfBoundsException 등이 포함
+             * 파일 URL 에서 파일 이름을 추출하는 과정에서 발생할 수 있는 예외,
+             * 예를 들어, fileUrl 이 null 이거나 올바르지 않은 형식일 때 발생할 수 있는 StringIndexOutOfBoundsException 등이 포함
              */
             throw new CustomException(CustomErrorCode.FILE_DELETION_ERROR);
 

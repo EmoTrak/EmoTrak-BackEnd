@@ -1,10 +1,9 @@
 package com.example.emotrak.controller;
 
 import com.example.emotrak.Service.BoardService;
-import com.example.emotrak.dto.BoardDetailResponseDto;
-import com.example.emotrak.dto.BoardRequestDto;
-import com.example.emotrak.dto.LikeResponseDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.board.BoardRequestDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor

@@ -1,13 +1,15 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.*;
+import com.example.emotrak.dto.board.*;
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
+import com.example.emotrak.dto.like.LikeResponseDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,9 +35,6 @@ public class BoardService {
     private final ReportRepository reportRepository;
     private final LikesRepository likesRepository;
 
-    @Value("${app.image.maxFileSize}")
-    private long maxFileSize;
-
     @Value("#{'${app.image.allowedContentTypes}'.split(',')}")
     private List<String> allowedImageContentTypes;
 
@@ -59,11 +58,8 @@ public class BoardService {
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 생성 및 저장
         Daily daily = new Daily(imageUrl, boardRequestDto, user, emotion);
-        try {
-            boardRepository.save(daily);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
-        }
+        boardRepository.save(daily);
+
         return new BoardIdResponseDto(daily);
     }
 
@@ -78,11 +74,7 @@ public class BoardService {
         // Emotion 객체 찾기
         Emotion emotion = findEmotionById(boardRequestDto.getEmoId());
         // Daily 객체 업데이트 및 저장
-        try {
-            daily.update(newImageUrl, boardRequestDto, emotion);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
-        }
+        daily.update(newImageUrl, boardRequestDto, emotion);
     }
 
     // 글 삭제
@@ -98,7 +90,7 @@ public class BoardService {
         likesRepository.deleteCommentLike(daily.getId());
 
         // 댓글 신고 날리기
-        reportRepository.deleteByDaily(daily.getId());
+        reportRepository.deleteCommentByDaily(daily.getId());
 
         // 댓글 날리기
         commentRepository.deleteByDaily(daily.getId());
@@ -106,17 +98,16 @@ public class BoardService {
         // 게시글 좋아요 날리기
         likesRepository.deleteBoardLike(daily.getId());
 
+        // 게시글 신고 날리기
+        reportRepository.deleteAllByDaily(daily);
+
         // 데이터베이스에서 Daily 객체 삭제
-        try {
-            boardRepository.delete(daily);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(CustomErrorCode.DATA_INTEGRITY_VIOLATION);
-        }
+        boardRepository.delete(daily);
     }
 
     //예외처리
     public void validateImage(MultipartFile image) {
-        if (image.getSize() > maxFileSize || !allowedImageContentTypes.contains(image.getContentType())) {
+        if (!allowedImageContentTypes.contains(image.getContentType())) {
             throw new CustomException(CustomErrorCode.INVALID_FILE_TYPE);
         }
     }
@@ -133,7 +124,7 @@ public class BoardService {
 
     private String handleImage(MultipartFile image, String currentImageUrl, boolean deleteImg) {
         String newImageUrl = currentImageUrl;
-        //deleteImg가 true(이미지삭제요청)인 경우 기존 이미지 삭제
+        //deleteImg 가 true(이미지삭제요청)인 경우 기존 이미지 삭제
         if (deleteImg) {
             if (currentImageUrl != null) {
                 fileUploadService.deleteFile(currentImageUrl);
@@ -192,30 +183,26 @@ public class BoardService {
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
-        Daily daily = boardRepository.findById(id).orElseThrow(
-                () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
-        );
-
-        // share가 false이고, 사용자와 작성자가 다를 경우 예외 처리
+        Daily daily = findDailyById(id);
+        // share 가 false 이고, 사용자와 작성자가 다를 경우 예외 처리
         if (!daily.isShare() && (user == null || daily.getUser().getId() != user.getId())) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
-
         // 사용자와 게시물 간의 좋아요 관계 확인
         boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
-
         // 사용자가 게시물을 신고했는지 확인
         boolean hasReport = user != null ? reportRepository.findByUserAndDailyId(user, id).isPresent() : false;
-
         // 게시글의 전체 댓글 수 계산
         int totalComments = commentRepository.countByDaily(daily);
-
         // 페이지네이션을 적용하여 댓글 목록 가져오기
+        if (page <= 0) {
+            throw new CustomException(CustomErrorCode.INVALID_PAGE);
+        }
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> {
+                .map(comment -> { //쿼리날아가는거 한번 수정 필요 ! 무조건,,, 네이티브 쿼리일듯..? 아무튼 상세페이지는 리펙토링이 필요하다
                     // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
                     boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
                     // 사용자가 댓글을 신고했는지 확인

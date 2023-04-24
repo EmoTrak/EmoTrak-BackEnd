@@ -1,14 +1,14 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.OauthUserInfoDto;
-import com.example.emotrak.dto.TokenDto;
+import com.example.emotrak.dto.user.OauthUserInfoDto;
+import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
-import com.example.emotrak.util.Validation;
+import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,10 +59,7 @@ public class KakaoService {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
-
-        body.add("redirect_uri", "http://iamnobody.xyz/oauth/kakao");
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
-        body.add("redirect_uri", "http://localhost:3000/oauth/kakao");
         body.add("code", code);
 
         // HTTP 요청 보내기

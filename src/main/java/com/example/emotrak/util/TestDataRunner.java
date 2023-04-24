@@ -1,8 +1,8 @@
 package com.example.emotrak.util;
 
-import com.example.emotrak.dto.BoardRequestDto;
-import com.example.emotrak.dto.CommentRequestDto;
-import com.example.emotrak.dto.ReportRequestDto;
+import com.example.emotrak.dto.board.BoardRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
+import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;

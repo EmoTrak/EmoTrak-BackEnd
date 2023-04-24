@@ -1,14 +1,14 @@
 package com.example.emotrak.Service;
 
-import com.example.emotrak.dto.OauthUserInfoDto;
-import com.example.emotrak.dto.TokenDto;
+import com.example.emotrak.dto.user.OauthUserInfoDto;
+import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
-import com.example.emotrak.util.Validation;
+import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,11 +66,7 @@ public class NaverService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", "http://iamnobody.xyz/oauth/naver");
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/naver");
-        body.add("redirect_uri", "http://localhost:3000/oauth/naver");
-//        body.add("redirect_uri", "http://localhost:8080/naver/callback");
-        body.add("redirect_uri", "http://pingu-lj.shop/naver/callback");
         body.add("code", code);
         body.add("state", state);
 
