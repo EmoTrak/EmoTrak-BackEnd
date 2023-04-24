@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -49,14 +48,10 @@ public class TestDataRunner implements ApplicationRunner {
 
         createMonthData();
         createEmotionData();
-//        createDailyData(testUser1);
-        createDailyDataOnly(testUser1);
-//        createCommentData(userList);
-        createCommentDataOnly(testUser1);
-//        createLikeData(userList);
-        createLikeDataOnly(testUser1);
+        createDailyData(userList);
+        createCommentData();
+        createLikeData();
 //        createReportData(userList);
-        createReportDataOnly(testUser1);
 
     }
 
@@ -74,7 +69,7 @@ public class TestDataRunner implements ApplicationRunner {
         emotionRepository.save(new Emotion(6L,"슬픔", 2));
     }
 
-    private void createDailyData(User testUser1) {
+    private void createDailyData(List<User> userList) {
         List<Emotion> emotionList = new ArrayList<>();
         emotionList.add(new Emotion(1L));
         emotionList.add(new Emotion(2L));
@@ -96,130 +91,109 @@ public class TestDataRunner implements ApplicationRunner {
                     ranNum = (int)(Math.random() * emotionList.size());
                     emotion = emotionList.get(ranNum);
                     boardRequestDto = new BoardRequestDto(false, 2023, k+1, i, emotion.getId(), (int) (Math.random() * 5) + 1, "날이 좋아서 기분이 좋아요", true, false);
-                    dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
+                    for (User user : userList) {
+                        dailyRepository.save(new Daily(imageUrl, boardRequestDto, user, emotion));
+                    }
                 }
             }
         }
     }
 
-    private void createDailyDataOnly(User testUser1) {
-        List<Emotion> emotionList = new ArrayList<>();
+    private void createCommentData () {
+        Daily daily = new Daily();
+        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
+        Long dailyCount = dailyRepository.count();
+        User user = new User();
+        User user2 = new User();
+        User user3 = new User();
+        user.setId(1L);
+        user2.setId(2L);
+        user3.setId(3L);
 
-        String imageUrl = "https://emotraks3bucket.s3.ap-northeast-2.amazonaws.com/864148d4-d71d-4bdd-a224-2199c1373d1a_blob";
-        Emotion emotion = new Emotion();
-        emotion.setId(1L);
-        BoardRequestDto boardRequestDto;
-
-        boardRequestDto = new BoardRequestDto(false, 2023, 4, 1, emotion.getId(), 5, "날이 좋아서 기분이 좋아요", true, false);
-        dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
-        dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
-    }
-
-    private void createCommentData (List<User> userList) {
-        int ranNum;
-        long ranNum2;
-        for (int i = 1; i <= 300; i++)
+        for (int i = 1; i <= dailyCount; i++)
         {
-            ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
-            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
-            if (optionalDaily.isEmpty()) continue;
+            if (i == (int)(dailyCount / 3)) {
+                user.setId(2L);
+                user2.setId(3L);
+                user3.setId(1L);
+            }
+            if (i == (int)(dailyCount * 2 / 3)) {
+                user.setId(3L);
+                user2.setId(1L);
+                user3.setId(2L);
+            }
 
+            daily.setId((long)i);
             CommentRequestDto commentRequestDto = new CommentRequestDto(i + "");
-            Comment comment = new Comment(commentRequestDto, optionalDaily.get(), userList.get(0));
+            Comment comment = new Comment(commentRequestDto, daily, user);
             commentRepository.save(comment);
+            Likes likes = new Likes(daily, user2);
+            likesRepository.save(likes);
+            Report report = new Report(reportRequestDto, user3, daily);
+            reportRepository.save(report);
         }
     }
 
-    private void createCommentDataOnly (User user) {
-        Daily daily = new Daily();
-        daily.setId(1L);
-        CommentRequestDto commentRequestDto = new CommentRequestDto("댓글");
-        commentRepository.save(new Comment(commentRequestDto, daily, user));
-
-        daily.setId(2L);
-        commentRepository.save(new Comment(commentRequestDto, daily, user));
-    }
-
-    private void createLikeData (List<User> userList) {
-        int ranNum;
-        long ranNum2;
+    private void createLikeData () {
+        Comment comment = new Comment();
+        Long commentCount = commentRepository.count();
         Likes likes;
-        for (int i = 1; i <= 300; i++)
-        {
-            ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
-            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
-            if (optionalDaily.isEmpty()) continue;
-
-            likes = new Likes(optionalDaily.get(), userList.get(0));
-            likesRepository.save(likes);
-
-            ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
-            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
-            if (optionalDaily.isEmpty()) continue;
-
-            likes = new Likes(optionalComment.get(), userList.get(0));
-            likesRepository.save(likes);
-        }
-    }
-
-    private void createLikeDataOnly (User user) {
-        Daily daily = new Daily();
-        daily.setId(1L);
-        likesRepository.save(new Likes(daily, user));
-        daily.setId(2L);
-        likesRepository.save(new Likes(daily, user));
-
-        Comment comment = new Comment();
-        comment.setId(1L);
-        likesRepository.save(new Likes(comment, user));
-        comment.setId(2L);
-        likesRepository.save(new Likes(comment, user));
-    }
-
-    private void createReportData (List<User> userList) {
-        int ranNum;
-        long ranNum2;
-
-        Report report;
         ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
+        User user = new User();
+        User user2 = new User();
+        User user3 = new User();
+        user.setId(1L);
+        user2.setId(2L);
+        user3.setId(3L);
 
-        for (int i = 1; i <= 300; i++)
+        for (int i = 1; i <= commentCount; i++)
         {
-            ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
-            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
-            if (optionalDaily.isEmpty()) continue;
+            if (i == (int)(commentCount / 3)) {
+                user.setId(2L);
+                user2.setId(3L);
+                user3.setId(1L);
+            }
+            if (i == (int)(commentCount * 2 / 3)) {
+                user.setId(3L);
+                user2.setId(1L);
+                user3.setId(2L);
+            }
 
-            report = new Report(reportRequestDto, userList.get(0), optionalDaily.get());
-            reportRepository.save(report);
-
-            ranNum = (int)(Math.random() * userList.size());
-            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
-            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
-            if (optionalDaily.isEmpty()) continue;
-
-            report = new Report(reportRequestDto, userList.get(0), optionalComment.get());
+            comment.setId((long)i);
+            likes = new Likes(comment, user);
+            likesRepository.save(likes);
+            likes = new Likes(comment, user2);
+            likesRepository.save(likes);
+            Report report = new Report(reportRequestDto, user3, comment);
             reportRepository.save(report);
         }
     }
-
-    private void createReportDataOnly (User user) {
-        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
-
-        Daily daily = new Daily();
-        daily.setId(1L);
-        reportRepository.save(new Report(reportRequestDto, user, daily));
-        daily.setId(2L);
-        reportRepository.save(new Report(reportRequestDto, user, daily));
-
-        Comment comment = new Comment();
-        comment.setId(1L);
-        reportRepository.save(new Report(reportRequestDto, user, comment));
-        comment.setId(2L);
-        reportRepository.save(new Report(reportRequestDto, user, comment));
-    }
+//
+//    private void createReportData (List<User> userList) {
+//        int ranNum;
+//        long ranNum2;
+//
+//        Report report;
+//        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
+//
+//        for (int i = 1; i <= 300; i++)
+//        {
+//            ranNum = (int)(Math.random() * userList.size());
+//            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
+//            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
+//            if (optionalDaily.isEmpty()) continue;
+//
+//            report = new Report(reportRequestDto, userList.get(0), optionalDaily.get());
+//            reportRepository.save(report);
+//
+//            ranNum = (int)(Math.random() * userList.size());
+//            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
+//            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
+//            if (optionalDaily.isEmpty()) continue;
+//
+//            report = new Report(reportRequestDto, userList.get(0), optionalComment.get());
+//            reportRepository.save(report);
+//        }
+//    }
 
 }
