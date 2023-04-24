@@ -1,14 +1,14 @@
 package com.example.emotrak.entity;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Setter
 @Entity(name = "users")
 public class User {
 
