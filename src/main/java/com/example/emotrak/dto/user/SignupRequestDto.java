@@ -1,15 +1,13 @@
 package com.example.emotrak.dto.user;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SignupRequestDto {
     @ApiModelProperty(value = "가입할 이메일", required = true, example = "이메일 예시")
     private String email;
