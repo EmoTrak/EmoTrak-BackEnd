@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -47,23 +48,22 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList,
-                                  int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport, int totalComments) {
-        this.id = daily.getId();
-        this.date = formatCreatedAt(daily.getCreatedAt());
-        this.emoId = daily.getEmotion().getId();
-        this.star = daily.getStar();
-        this.detail = daily.getDetail();
-        this.imgUrl = daily.getImgUrl();
-        this.hasAuth = (user != null) && daily.getUser().getId().equals(user.getId());
+    public BoardDetailResponseDto(Object[] daily, List<CommentDetailResponseDto> commentDetailResponseDtoList, Boolean lastPage) {
+        this.id = ((BigInteger) daily[2]).longValue();
+        this.date = (String) daily[3];
+        this.emoId = ((BigInteger) daily[4]).longValue();
+        this.star = (int) daily[5];
+        this.detail = (String) daily[6];
+        this.imgUrl = (String) daily[7];
+        this.hasAuth = ((BigInteger) daily[8]).intValue() == 0 ? false : true;
         this.commentDetailResponseDtoList = commentDetailResponseDtoList;
-        this.nickname = daily.getUser().getNickname();
-        this.likesCnt = likesCnt;
-        this.restrict = daily.isHasRestrict();
-        this.hasLike = hasLike;
+        this.nickname = (String) daily[9];
+        this.likesCnt =  ((BigInteger) daily[10]).intValue();
+        this.restrict = (boolean) daily[11];
+        this.hasLike = ((BigInteger) daily[12]).intValue() == 0 ? false : true;
         this.lastPage = lastPage;
-        this.draw = daily.isDraw();
-        this.hasReport = hasReport;
-        this.totalComments = totalComments;
+        this.draw = (boolean) daily[13];
+        this.hasReport = ((BigInteger) daily[14]).intValue() == 0 ? false : true;
+        this.totalComments = ((BigInteger) daily[15]).intValue();
     }
 }
