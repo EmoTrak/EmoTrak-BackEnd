@@ -17,7 +17,11 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     // 게시글에 대한 댓글 수 계산
     int countByDaily(Daily daily);
 
-    void deleteAllByUser(User user);
+    @Modifying
+    @Query(value = " DELETE FROM comment "
+            + "  WHERE user_id = :userId"
+            , nativeQuery = true)
+    void deleteAllByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM comment "
