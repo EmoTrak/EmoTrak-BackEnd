@@ -49,10 +49,14 @@ public class TestDataRunner implements ApplicationRunner {
 
         createMonthData();
         createEmotionData();
-        createDailyData(testUser1);
-        createCommentData(userList);
-        createLikeData(userList);
-        createReportData(userList);
+//        createDailyData(testUser1);
+        createDailyDataOnly(testUser1);
+//        createCommentData(userList);
+        createCommentDataOnly(testUser1);
+//        createLikeData(userList);
+        createLikeDataOnly(testUser1);
+//        createReportData(userList);
+        createReportDataOnly(testUser1);
 
     }
 
@@ -98,6 +102,19 @@ public class TestDataRunner implements ApplicationRunner {
         }
     }
 
+    private void createDailyDataOnly(User testUser1) {
+        List<Emotion> emotionList = new ArrayList<>();
+
+        String imageUrl = "https://emotraks3bucket.s3.ap-northeast-2.amazonaws.com/864148d4-d71d-4bdd-a224-2199c1373d1a_blob";
+        Emotion emotion = new Emotion();
+        emotion.setId(1L);
+        BoardRequestDto boardRequestDto;
+
+        boardRequestDto = new BoardRequestDto(false, 2023, 4, 1, emotion.getId(), 5, "날이 좋아서 기분이 좋아요", true, false);
+        dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
+        dailyRepository.save(new Daily(imageUrl, boardRequestDto, testUser1, emotion));
+    }
+
     private void createCommentData (List<User> userList) {
         int ranNum;
         long ranNum2;
@@ -112,6 +129,16 @@ public class TestDataRunner implements ApplicationRunner {
             Comment comment = new Comment(commentRequestDto, optionalDaily.get(), userList.get(0));
             commentRepository.save(comment);
         }
+    }
+
+    private void createCommentDataOnly (User user) {
+        Daily daily = new Daily();
+        daily.setId(1L);
+        CommentRequestDto commentRequestDto = new CommentRequestDto("댓글");
+        commentRepository.save(new Comment(commentRequestDto, daily, user));
+
+        daily.setId(2L);
+        commentRepository.save(new Comment(commentRequestDto, daily, user));
     }
 
     private void createLikeData (List<User> userList) {
@@ -136,6 +163,20 @@ public class TestDataRunner implements ApplicationRunner {
             likes = new Likes(optionalComment.get(), userList.get(0));
             likesRepository.save(likes);
         }
+    }
+
+    private void createLikeDataOnly (User user) {
+        Daily daily = new Daily();
+        daily.setId(1L);
+        likesRepository.save(new Likes(daily, user));
+        daily.setId(2L);
+        likesRepository.save(new Likes(daily, user));
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        likesRepository.save(new Likes(comment, user));
+        comment.setId(2L);
+        likesRepository.save(new Likes(comment, user));
     }
 
     private void createReportData (List<User> userList) {
@@ -164,4 +205,21 @@ public class TestDataRunner implements ApplicationRunner {
             reportRepository.save(report);
         }
     }
+
+    private void createReportDataOnly (User user) {
+        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
+
+        Daily daily = new Daily();
+        daily.setId(1L);
+        reportRepository.save(new Report(reportRequestDto, user, daily));
+        daily.setId(2L);
+        reportRepository.save(new Report(reportRequestDto, user, daily));
+
+        Comment comment = new Comment();
+        comment.setId(1L);
+        reportRepository.save(new Report(reportRequestDto, user, comment));
+        comment.setId(2L);
+        reportRepository.save(new Report(reportRequestDto, user, comment));
+    }
+
 }
