@@ -37,17 +37,6 @@ public class BoardDetailResponseDto {
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
-    private String formatCreatedAt(LocalDateTime createdAt) {
-        LocalDateTime now = LocalDateTime.now();
-        if (createdAt.toLocalDate().equals(now.toLocalDate())) {
-            // 오늘 작성한 게시글인 경우, 시간 정보까지 반환
-            return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        } else {
-            // 오늘 이전에 작성한 게시글인 경우, 시간 정보는 09:00:00으로 고정하여 반환
-            return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 09:00:00";
-        }
-    }
-
     public BoardDetailResponseDto(Object[] daily, List<CommentDetailResponseDto> commentDetailResponseDtoList, Boolean lastPage) {
         this.id = ((BigInteger) daily[2]).longValue();
         this.date = (String) daily[3];

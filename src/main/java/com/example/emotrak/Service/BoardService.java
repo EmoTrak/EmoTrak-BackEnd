@@ -182,7 +182,7 @@ public class BoardService {
 
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
-    public Object getBoardDetail(Long id, User user, int page) {
+    public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
