@@ -201,15 +201,12 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();
-        List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> {
-                    // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
-                    boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
-                    // 사용자가 댓글을 신고했는지 확인
-                    boolean commentHasReport = user != null ? reportRepository.findByUserAndCommentId(user, comment.getId()).isPresent() : false;
-                    return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport);
-                })
-                .collect(Collectors.toList());
+        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
+        for (Comment comment : commentsPage.getContent()) {
+            boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
+            boolean commentHasReport = user != null ? reportRepository.findByUserAndCommentId(user, comment.getId()).isPresent() : false;
+            commentDetailResponseDtoList.add(new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport));
+        }
         return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport, totalComments);
     }
 
