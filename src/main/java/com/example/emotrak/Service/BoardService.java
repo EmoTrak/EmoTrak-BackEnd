@@ -202,7 +202,7 @@ public class BoardService {
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> { //쿼리날아가는거 한번 수정 필요 ! 무조건,,, 네이티브 쿼리일듯..? 아무튼 상세페이지는 리펙토링이 필요하다
+                .map(comment -> {
                     // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
                     boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
                     // 사용자가 댓글을 신고했는지 확인
