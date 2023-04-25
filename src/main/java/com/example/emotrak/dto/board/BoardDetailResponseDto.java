@@ -11,8 +11,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,8 +47,8 @@ public class BoardDetailResponseDto {
         }
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList,
-                                  int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport, int totalComments) {
+    public BoardDetailResponseDto(Daily daily, User user, Long ignored,
+                                  long likesCnt, boolean hasLike, boolean lastPage, boolean hasReport, long totalComments) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
@@ -56,14 +56,15 @@ public class BoardDetailResponseDto {
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
         this.hasAuth = (user != null) && daily.getUser().getId().equals(user.getId());
-        this.commentDetailResponseDtoList = commentDetailResponseDtoList;
+        this.commentDetailResponseDtoList = Collections.emptyList(); // 기본값으로 빈 리스트를 설정합니다.
         this.nickname = daily.getUser().getNickname();
-        this.likesCnt = likesCnt;
+        this.likesCnt = (int) likesCnt;
         this.restrict = daily.isHasRestrict();
         this.hasLike = hasLike;
         this.lastPage = lastPage;
         this.draw = daily.isDraw();
         this.hasReport = hasReport;
-        this.totalComments = totalComments;
+        this.totalComments = (int) totalComments;
     }
+
 }

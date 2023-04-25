@@ -188,26 +188,19 @@ public class BoardService {
         if (!daily.isShare() && (user == null || daily.getUser().getId() != user.getId())) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
-        // 사용자와 게시물 간의 좋아요 관계 확인
-        boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
-        // 사용자가 게시물을 신고했는지 확인
-        boolean hasReport = user != null ? reportRepository.findByUserAndDailyId(user, id).isPresent() : false;
-        // 게시글의 전체 댓글 수 계산
-        int totalComments = commentRepository.countByDaily(daily);
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
-        Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
-        boolean lastPage = commentsPage.isLast();
-        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
-        for (Comment comment : commentsPage.getContent()) {
-            boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
-            boolean commentHasReport = user != null ? reportRepository.findByUserAndCommentId(user, comment.getId()).isPresent() : false;
-            commentDetailResponseDtoList.add(new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport));
-        }
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport, totalComments);
+        BoardDetailResponseDto boardDetail = boardRepository.findBoardDetailWithCommentsByUserAndDaily(user.getId(), id)
+                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
+
+        Pageable pageable = PageRequest.of(page - 1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Page<CommentDetailResponseDto> commentDetailResponseDtoPage = commentRepository.findAllCommentsWithLikeAndReportByDailyId(id, user.getId(), pageable);
+
+        boardDetail.setCommentDetailResponseDtoList(commentDetailResponseDtoPage.getContent());
+        boardDetail.setLastPage(commentDetailResponseDtoPage.isLast());
+        return boardDetail;
     }
 
 

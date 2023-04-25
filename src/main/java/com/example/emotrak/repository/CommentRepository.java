@@ -1,7 +1,7 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.entity.Comment;
-import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,11 +11,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    // 게시글에 대한 모든 댓글 검색 (페이지네이션 적용)
-    Page<Comment> findAllByDaily(Daily daily, Pageable pageable);
+    //  댓글, 좋아요 수, 좋아요 여부, 신고 여부를 반환
+    @Query(value = "SELECT new com.example.emotrak.dto.comment.CommentDetailResponseDto(c, u, " +
+            "(SELECT COUNT(l) FROM Likes l WHERE l.comment.id = c.id), " +
+            "(SELECT CASE WHEN COUNT(l) > 0 THEN true ELSE false END FROM Likes l WHERE l.user.id = :userId AND l.comment.id = c.id), " +
+            "(SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Report r WHERE r.user.id = :userId AND r.comment.id = c.id)) " +
+            "FROM Comment c JOIN c.user u WHERE c.daily.id = :dailyId",
+            countQuery = "SELECT COUNT(c) FROM Comment c WHERE c.daily.id = :dailyId")
+    Page<CommentDetailResponseDto> findAllCommentsWithLikeAndReportByDailyId(@Param("dailyId") Long dailyId, @Param("userId") Long userId, Pageable pageable);
 
-    // 게시글에 대한 댓글 수 계산
-    int countByDaily(Daily daily);
 
     void deleteAllByUser(User user);
 
