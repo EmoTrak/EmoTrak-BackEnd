@@ -1,5 +1,6 @@
 package com.example.emotrak.Service;
 
+import com.example.emotrak.dto.user.CheckEmailRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,8 +68,8 @@ public class EmailSendService {
         MimeMessage 객체 안에 내가 전송할 메일의 내용을 담아준다.
         bean으로 등록해둔 javaMailSender 객체를 사용하여 이메일 send
      */
-    public String sendSimpleMessage(String to)throws Exception {
-        MimeMessage message = createMessage(to);
+    public String sendSimpleMessage(CheckEmailRequestDto checkEmailRequestDto)throws Exception {
+        MimeMessage message = createMessage(checkEmailRequestDto.getEmail());
         try{
             javaMailSender.send(message); // 메일 발송
         }catch(MailException es){
