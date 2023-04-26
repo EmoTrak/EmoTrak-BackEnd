@@ -48,7 +48,7 @@ public class BoardDetailResponseDto {
     }
 
     public BoardDetailResponseDto(Daily daily, User user, Long ignored,
-                                  long likesCnt, boolean hasLike, boolean lastPage, boolean hasReport, long totalComments) {
+                                  int likesCnt, boolean hasLike, boolean lastPage, boolean hasReport, int totalComments) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.emoId = daily.getEmotion().getId();
@@ -58,13 +58,13 @@ public class BoardDetailResponseDto {
         this.hasAuth = (user != null) && daily.getUser().getId().equals(user.getId());
         this.commentDetailResponseDtoList = Collections.emptyList(); // 기본값으로 빈 리스트를 설정합니다.
         this.nickname = daily.getUser().getNickname();
-        this.likesCnt = (int) likesCnt;
+        this.likesCnt = likesCnt;
         this.restrict = daily.isHasRestrict();
         this.hasLike = hasLike;
         this.lastPage = lastPage;
         this.draw = daily.isDraw();
         this.hasReport = hasReport;
-        this.totalComments = (int) totalComments;
+        this.totalComments = totalComments;
     }
 
 }

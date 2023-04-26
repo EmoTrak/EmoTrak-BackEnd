@@ -192,7 +192,7 @@ public class BoardService {
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        BoardDetailResponseDto boardDetail = boardRepository.findBoardDetailWithCommentsByUserAndDaily(user.getId(), id)
+        BoardDetailResponseDto boardDetail = boardRepository.findBoardDetailWithCommentsByUserAndDaily(id,user.getId())
                 .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(page - 1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
