@@ -12,10 +12,10 @@ import java.util.List;
 @NoArgsConstructor
 public class ReportResponseDto {
     private long totalCount;
-    private List<ReportHistory> contents = new ArrayList<>();
+    private List<ReportHistoryDto> contents = new ArrayList<>();
 
-    public ReportResponseDto(long totalCount, List<ReportHistory> reportHistoryList) {
+    public ReportResponseDto(long totalCount, List<ReportHistoryDto> reportHistoryDtoList) {
         this.totalCount = totalCount;
-        this.contents = reportHistoryList;
+        this.contents = reportHistoryDtoList;
     }
 }

@@ -47,7 +47,8 @@ public class GoogleService {
     public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code, scope);
-
+        log.info("Access Token: {}", accessToken);
+        log.info("서버로 요청");
         // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
         OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
 
@@ -71,10 +72,7 @@ public class GoogleService {
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-        body.add("redirect_uri", "http://iamnobody.xyz/oauth/google");
-        body.add("redirect_uri", "http://localhost:3000/oauth/google");
 //        body.add("redirect_uri", "http://localhost:8080/google/callback");
-        body.add("redirect_uri", "http://pingu-lj.shop/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         // HTTP 요청 보내기
@@ -118,6 +116,11 @@ public class GoogleService {
                 googleUserInfoRequest,
                 String.class
         );
+
+        // 서버로 응답이 오지 않는 경우 로그 출력
+        if (response.getStatusCode() != HttpStatus.OK) {
+            log.info("Google API 요청 결과: {}", response.getBody());
+        }
 
 
         String responseBody = response.getBody();

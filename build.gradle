@@ -13,6 +13,14 @@ repositories {
     mavenCentral()
 }
 
+// 어노테이션 프로세싱 기능을 활성화 및 Asciidoctor를 확장하기 위한 플러그인
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    asciidoctorExt
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -41,6 +49,9 @@ dependencies {
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // 메일 발송 기능
+    implementation 'org.springframework.boot:spring-boot-starter-mail:2.7.0'
+
 }
 
 tasks.named('test') {

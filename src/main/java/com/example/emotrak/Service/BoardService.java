@@ -10,7 +10,6 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,9 +34,6 @@ public class BoardService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final LikesRepository likesRepository;
-
-    @Value("${app.image.maxFileSize}")
-    private long maxFileSize;
 
     @Value("#{'${app.image.allowedContentTypes}'.split(',')}")
     private List<String> allowedImageContentTypes;
@@ -111,7 +107,7 @@ public class BoardService {
 
     //예외처리
     public void validateImage(MultipartFile image) {
-        if (image.getSize() > maxFileSize || !allowedImageContentTypes.contains(image.getContentType())) {
+        if (!allowedImageContentTypes.contains(image.getContentType())) {
             throw new CustomException(CustomErrorCode.INVALID_FILE_TYPE);
         }
     }
@@ -184,7 +180,7 @@ public class BoardService {
         return new BoardImgPageRequestDto(lastPage, boardImgRequestDtoList);
     }
 
-    // 공유게시판 상세페이지  //아무튼 상세페이지는 리펙토링이 필요하다
+    // 공유게시판 상세페이지
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = findDailyById(id);
@@ -199,11 +195,14 @@ public class BoardService {
         // 게시글의 전체 댓글 수 계산
         int totalComments = commentRepository.countByDaily(daily);
         // 페이지네이션을 적용하여 댓글 목록 가져오기
-        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+        if (page <= 0) {
+            throw new CustomException(CustomErrorCode.INVALID_PAGE);
+        }
+        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
         boolean lastPage = commentsPage.isLast();
         List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> { //쿼리날아가는거 한번 수정 필요 ! 무조건,,, 네이티브 쿼리일듯..?
+                .map(comment -> { //쿼리날아가는거 한번 수정 필요 ! 무조건,,, 네이티브 쿼리일듯..? 아무튼 상세페이지는 리펙토링이 필요하다
                     // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
                     boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
                     // 사용자가 댓글을 신고했는지 확인

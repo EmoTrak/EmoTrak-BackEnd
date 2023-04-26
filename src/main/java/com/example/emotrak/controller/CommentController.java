@@ -65,15 +65,6 @@ public class CommentController {
         return ResponseMessage.successResponse(HttpStatus.CREATED, "댓글 신고 성공", null);
     }
 
-    @Tag(name = "Report")
-    @Operation(summary = "댓글 신고삭제", description = "댓글 신고 삭제 성공")
-    @DeleteMapping("/comments/report/{commentId}")
-    public ResponseEntity<?> deleteReport(@PathVariable Long commentId,
-                                          @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        commentService.deleteReport(userDetails.getUser(), commentId);
-        return ResponseMessage.successResponse(HttpStatus.OK, "댓글 신고 삭제 성공", null);
-    }
-
     @Tag(name = "Likes")
     @Operation(summary = "댓글 좋아요", description = "좋아요와 취소 번갈아가며 진행")
     @PostMapping("/comments/likes/{commentId}")
