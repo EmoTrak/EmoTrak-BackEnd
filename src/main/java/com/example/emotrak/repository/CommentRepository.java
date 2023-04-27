@@ -1,5 +1,6 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.entity.Comment;
 import com.example.emotrak.entity.User;
 import org.springframework.data.domain.Pageable;

@@ -12,8 +12,8 @@ import lombok.Setter;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -55,4 +55,5 @@ public class BoardDetailResponseDto {
         this.hasReport = ((BigInteger) daily[14]).intValue() == 0 ? false : true;
         this.totalComments = ((BigInteger) daily[15]).intValue();
     }
+
 }
