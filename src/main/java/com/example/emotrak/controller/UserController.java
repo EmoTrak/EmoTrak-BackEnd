@@ -30,15 +30,6 @@ public class UserController {
         userService.signup(signupRequestDto);
         return ResponseMessage.successResponse(HttpStatus.OK, "회원가입 완료", null);
     }
-    @Tag(name = "Users")
-    @Operation(summary = "이메일 체크", description = "회원 가입에 필요한 이메일을 체크합니다.")
-    // 1-1. 회원 가입시 이메일 체크
-    @PostMapping("/em-check")
-    public ResponseEntity<?> signupEmailCheck(@RequestBody CheckEmailRequestDto checkEmailRequestDto){
-        userService.signupEmailCheck(checkEmailRequestDto);
-        return ResponseMessage.successResponse(HttpStatus.OK, "사용가능한 이메일 입니다.", null);
-
-    }
 
     // 1-2. 회원 가입시 닉네임 체크
     @Tag(name = "Users")
