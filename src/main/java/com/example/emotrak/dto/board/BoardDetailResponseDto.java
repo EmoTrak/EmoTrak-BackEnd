@@ -9,10 +9,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,34 +37,23 @@ public class BoardDetailResponseDto {
     @JsonProperty("comments")
     private List<CommentDetailResponseDto> commentDetailResponseDtoList;
 
-    private String formatCreatedAt(LocalDateTime createdAt) {
-        LocalDateTime now = LocalDateTime.now();
-        if (createdAt.toLocalDate().equals(now.toLocalDate())) {
-            // 오늘 작성한 게시글인 경우, 시간 정보까지 반환
-            return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        } else {
-            // 오늘 이전에 작성한 게시글인 경우, 시간 정보는 09:00:00으로 고정하여 반환
-            return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 09:00:00";
-        }
+    public BoardDetailResponseDto(Object[] daily, List<CommentDetailResponseDto> commentDetailResponseDtoList, Boolean lastPage) {
+        this.id = ((BigInteger) daily[2]).longValue();
+        this.date = (String) daily[3];
+        this.emoId = ((BigInteger) daily[4]).longValue();
+        this.star = (int) daily[5];
+        this.detail = (String) daily[6];
+        this.imgUrl = (String) daily[7];
+        this.hasAuth = ((BigInteger) daily[8]).intValue() == 0 ? false : true;
+        this.commentDetailResponseDtoList = commentDetailResponseDtoList;
+        this.nickname = (String) daily[9];
+        this.likesCnt =  ((BigInteger) daily[10]).intValue();
+        this.restrict = (boolean) daily[11];
+        this.hasLike = ((BigInteger) daily[12]).intValue() == 0 ? false : true;
+        this.lastPage = lastPage;
+        this.draw = (boolean) daily[13];
+        this.hasReport = ((BigInteger) daily[14]).intValue() == 0 ? false : true;
+        this.totalComments = ((BigInteger) daily[15]).intValue();
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, List<CommentDetailResponseDto> commentDetailResponseDtoList,
-                                  int likesCnt, boolean hasLike,  boolean lastPage, boolean hasReport, int totalComments) {
-        this.id = daily.getId();
-        this.date = formatCreatedAt(daily.getCreatedAt());
-        this.emoId = daily.getEmotion().getId();
-        this.star = daily.getStar();
-        this.detail = daily.getDetail();
-        this.imgUrl = daily.getImgUrl();
-        this.hasAuth = (user != null) && daily.getUser().getId().equals(user.getId());
-        this.commentDetailResponseDtoList = commentDetailResponseDtoList;
-        this.nickname = daily.getUser().getNickname();
-        this.likesCnt = likesCnt;
-        this.restrict = daily.isHasRestrict();
-        this.hasLike = hasLike;
-        this.lastPage = lastPage;
-        this.draw = daily.isDraw();
-        this.hasReport = hasReport;
-        this.totalComments = totalComments;
-    }
 }
