@@ -10,14 +10,14 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -183,34 +183,34 @@ public class BoardService {
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
-        Daily daily = findDailyById(id);
-        // share 가 false 이고, 사용자와 작성자가 다를 경우 예외 처리
-        if (!daily.isShare() && (user == null || daily.getUser().getId() != user.getId())) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-        }
-        // 사용자와 게시물 간의 좋아요 관계 확인
-        boolean hasLike = likesRepository.findByUserAndDaily(user, daily).isPresent();
-        // 사용자가 게시물을 신고했는지 확인
-        boolean hasReport = user != null ? reportRepository.findByUserAndDailyId(user, id).isPresent() : false;
-        // 게시글의 전체 댓글 수 계산
-        int totalComments = commentRepository.countByDaily(daily);
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
-        Page<Comment> commentsPage = commentRepository.findAllByDaily(daily, pageable);
-        boolean lastPage = commentsPage.isLast();
-        List<CommentDetailResponseDto> commentDetailResponseDtoList = commentsPage.getContent().stream()
-                .map(comment -> { //쿼리날아가는거 한번 수정 필요 ! 무조건,,, 네이티브 쿼리일듯..? 아무튼 상세페이지는 리펙토링이 필요하다
-                    // 사용자와 댓글 간의 좋아요 관계 확인 및 설정
-                    boolean commentHasLike = user != null ? likesRepository.findByUserAndComment(user, comment).isPresent() : false;
-                    // 사용자가 댓글을 신고했는지 확인
-                    boolean commentHasReport = user != null ? reportRepository.findByUserAndCommentId(user, comment.getId()).isPresent() : false;
-                    return new CommentDetailResponseDto(comment, user, likesRepository.countByComment(comment), commentHasLike, commentHasReport);
-                })
-                .collect(Collectors.toList());
-        return new BoardDetailResponseDto(daily, user, commentDetailResponseDtoList, likesRepository.countByDaily(daily), hasLike, lastPage, hasReport, totalComments);
+
+        Long userId = user == null ? 0L : user.getId();
+        List<Object[]> objectList = boardRepository.getDailyDetail(userId, id);
+        if (objectList.size() == 0) throw new CustomException(CustomErrorCode.BOARD_NOT_FOUND);
+
+        Object[] daily = objectList.get(0);
+        if (!((Boolean) daily[0]) && (user == null || ((BigInteger) daily[1]).longValue() != user.getId())) {
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        int size = 20;
+        Pageable pageable = PageRequest.of(page-1, size+1);
+        objectList = commentRepository.getCommentDetail(userId, id, pageable);
+        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
+        boolean lastPage = true;
+        for (int i = 0; i < objectList.size(); i++){
+            if (i == size) {
+                lastPage = false;
+                break;
+            }
+            CommentDetailResponseDto commentDetailResponseDto = new CommentDetailResponseDto(objectList.get(i));
+            commentDetailResponseDtoList.add(commentDetailResponseDto);
+        }
+        return new BoardDetailResponseDto(daily, commentDetailResponseDtoList, lastPage);
     }
 
 
