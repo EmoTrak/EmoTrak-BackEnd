@@ -98,4 +98,7 @@ public class User {
         this.naverRefresh = refreshToken;
     }
 
+    public void updateGoogleRefresh(String refreshToken) {
+        this.googleRefresh = refreshToken;
+    }
 }
