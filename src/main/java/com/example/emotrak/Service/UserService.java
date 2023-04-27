@@ -219,7 +219,7 @@ public class UserService {
 
         // 연동된 계정이 있을 경우 연동 해제
         if (user.getKakaoId() != null) {
-            kakaoService.unlinkKakao(user, accessToken);
+            kakaoService.unlinkKakao(user);
         }
         if (user.getNaverId() != null) {
             Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
