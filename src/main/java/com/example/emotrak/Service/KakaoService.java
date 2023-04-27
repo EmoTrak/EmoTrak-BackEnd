@@ -160,9 +160,6 @@ public class KakaoService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("user.getId() = {}", user.getId());
-        log.info("user.getKakaoId() = {}", user.getKakaoId());
-        log.info("user = {}", user);
         log.info("카카오 연동해제 완료");
     }
 

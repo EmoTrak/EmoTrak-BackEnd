@@ -33,6 +33,12 @@ public class User {
     @Column(nullable = false)
     private boolean hasSocial;
 
+    @Column
+    private String naverRefresh;
+
+    @Column
+    private String googleRefresh;
+
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private UserRoleEnum role;
@@ -87,4 +93,9 @@ public class User {
         // 관리자 권한을 확인하는 로직을 작성합니다.
         return this.role == UserRoleEnum.ADMIN;
     }
+
+    public void updateNaverRefresh(String refreshToken) {
+        this.naverRefresh = refreshToken;
+    }
+
 }

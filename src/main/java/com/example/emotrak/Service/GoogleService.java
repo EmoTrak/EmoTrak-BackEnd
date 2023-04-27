@@ -4,8 +4,6 @@ import com.example.emotrak.dto.user.OauthUserInfoDto;
 import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
-import com.example.emotrak.exception.CustomErrorCode;
-import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.jwt.Validation;
@@ -24,9 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Random;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -71,8 +67,8 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-//        body.add("redirect_uri", "http://localhost:8080/google/callback");
+//        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
+        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         // HTTP 요청 보내기
@@ -181,14 +177,14 @@ public class GoogleService {
         return googleUser;
     }
 
-    public void unlinkGoogle(User user, String accessToken) {
-        if (accessToken == null) {
-            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
-        }
-        boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
-        if (!isUnlinked) {
-            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
-        }
+    public void unlinkGoogle(User user) {
+//        if (accessToken == null) {
+//            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
+//        }
+//        boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
+//        if (!isUnlinked) {
+//            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
+//        }
         log.info("user.getId() = {}", user.getId());
         log.info("user.getGoogleId() = {}", user.getGoogleId());
         log.info("user = {}", user);

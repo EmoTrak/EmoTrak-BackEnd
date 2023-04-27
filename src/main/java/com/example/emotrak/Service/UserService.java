@@ -209,7 +209,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(User user, String accessToken) {
+    public void deleteUser(User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러
@@ -222,11 +222,10 @@ public class UserService {
             kakaoService.unlinkKakao(user);
         }
         if (user.getNaverId() != null) {
-            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
-            refreshTokenOptional.ifPresent(refreshToken -> naverService.unlinkNaver(user, accessToken, refreshToken.getValue()));
+            naverService.unlinkNaver(user);
         }
         if (user.getGoogleId() != null) {
-            googleService.unlinkGoogle(user, accessToken);
+            googleService.unlinkGoogle(user);
         }
 
         // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
