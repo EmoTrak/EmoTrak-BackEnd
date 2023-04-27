@@ -51,7 +51,6 @@ public class TestDataRunner implements ApplicationRunner {
         createDailyData(userList);
         createCommentData();
         createLikeData();
-//        createReportData(userList);
 
     }
 
@@ -85,7 +84,9 @@ public class TestDataRunner implements ApplicationRunner {
 
         int[] days = new int[] {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
         for (int k = 0; k < days.length; k++) {
+            if (k == 1) return;
             for (int i = 1; i <= days[k]; i++){
+                if (i == 8) return;
                 for (int j = 0; j < 2; j++)
                 {
                     ranNum = (int)(Math.random() * emotionList.size());
@@ -112,12 +113,12 @@ public class TestDataRunner implements ApplicationRunner {
 
         for (int i = 1; i <= dailyCount; i++)
         {
-            if (i == (int)(dailyCount / 3)) {
+            if (i == (int)(dailyCount / 3) + 1) {
                 user.setId(2L);
                 user2.setId(3L);
                 user3.setId(1L);
             }
-            if (i == (int)(dailyCount * 2 / 3)) {
+            else if (i == (int)(dailyCount * 2 / 3) + 1) {
                 user.setId(3L);
                 user2.setId(1L);
                 user3.setId(2L);
@@ -148,12 +149,12 @@ public class TestDataRunner implements ApplicationRunner {
 
         for (int i = 1; i <= commentCount; i++)
         {
-            if (i == (int)(commentCount / 3)) {
+            if (i == (int)(commentCount / 3) + 1) {
                 user.setId(2L);
                 user2.setId(3L);
                 user3.setId(1L);
             }
-            if (i == (int)(commentCount * 2 / 3)) {
+            else if (i == (int)(commentCount * 2 / 3) + 1) {
                 user.setId(3L);
                 user2.setId(1L);
                 user3.setId(2L);
@@ -168,32 +169,5 @@ public class TestDataRunner implements ApplicationRunner {
             reportRepository.save(report);
         }
     }
-//
-//    private void createReportData (List<User> userList) {
-//        int ranNum;
-//        long ranNum2;
-//
-//        Report report;
-//        ReportRequestDto reportRequestDto = new ReportRequestDto("신고합니다");
-//
-//        for (int i = 1; i <= 300; i++)
-//        {
-//            ranNum = (int)(Math.random() * userList.size());
-//            ranNum2 = (long)(Math.random() * dailyRepository.count()) + 1;
-//            Optional<Daily> optionalDaily = dailyRepository.findById(ranNum2);
-//            if (optionalDaily.isEmpty()) continue;
-//
-//            report = new Report(reportRequestDto, userList.get(0), optionalDaily.get());
-//            reportRepository.save(report);
-//
-//            ranNum = (int)(Math.random() * userList.size());
-//            ranNum2 = (int)(Math.random() * commentRepository.count()) + 1;
-//            Optional<Comment> optionalComment = commentRepository.findById(ranNum2);
-//            if (optionalDaily.isEmpty()) continue;
-//
-//            report = new Report(reportRequestDto, userList.get(0), optionalComment.get());
-//            reportRepository.save(report);
-//        }
-//    }
 
 }
