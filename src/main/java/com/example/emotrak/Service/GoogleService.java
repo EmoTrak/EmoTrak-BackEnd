@@ -128,7 +128,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
         String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : "구글";
+        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : "google";
         return new OauthUserInfoDto(id, email, nickname);
     }
 
