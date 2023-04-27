@@ -24,7 +24,11 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     void deleteAllByComment(Comment comment);
 
-    void deleteAllByUser(User user);
+    @Modifying
+    @Query(value = " DELETE FROM likes "
+            + "  WHERE user_id = :userId"
+            , nativeQuery = true)
+    void deleteAllByUser(@Param("userId") Long userId);
 
     @Modifying
     @Query(value = " DELETE FROM likes "
