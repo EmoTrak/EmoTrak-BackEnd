@@ -39,6 +39,22 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
                                       @Param("month") int month,
                                       @Param("day") int day);
 
+    @Query(value = " SELECT d.share, d.user_id, d.id ,DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"
+                 + "      , d.emotion_id, d.star, d.detail, d.img_url "
+                 + "      , CASE WHEN d.user_id = :userId THEN true ELSE false END auth "
+                 + "      , u.nickname, l.count, d.has_restrict, COALESCE(l2.has_like, false) has_like"
+                 + "      , d.draw, COALESCE(r.has_report, false) has_report, c.count coment_count  "
+                 + "   FROM daily d "
+                 + "        JOIN users u ON d.user_id = u.id "
+                 + "        JOIN (SELECT count(*) count FROM likes WHERE daily_id = :dailyId) l "
+                 + "        JOIN (SELECT count(*) count FROM comment WHERE daily_id = :dailyId) c "
+                 + "   LEFT JOIN (SELECT true has_like FROM likes WHERE daily_id = :dailyId AND user_id = :userId) l2 "
+                 + "              ON l2.has_like IS NOT NULL "
+                 + "   LEFT JOIN (SELECT true has_report FROM report WHERE daily_id = :dailyId AND user_id = :userId) r "
+                 + "              ON r.has_report IS NOT NULL "
+                 + "  WHERE d.id = :dailyId", nativeQuery = true)
+    List<Object[]> getDailyDetail (@Param("userId") Long userId, @Param("dailyId") Long dailyId);
+
     void deleteAllByUser(User user);
 
     @Query(value = " SELECT d.id, d.img_url "

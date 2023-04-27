@@ -1,12 +1,11 @@
 package com.example.emotrak.dto.comment;
 
-import com.example.emotrak.entity.Comment;
-import com.example.emotrak.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,18 +23,14 @@ public class CommentDetailResponseDto {
     private boolean hasLike;
     private boolean hasReport; // 댓글을 신고했는지 여부
 
-    private String formatCreatedAt(LocalDateTime createdAt) {
-       return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    }
-
-    public CommentDetailResponseDto(Comment comment, User user, int likesCnt, boolean hasLike, boolean hasReport) {
-        this.id = comment.getId();
-        this.comment = comment.getComment();
-        this.createdAt = formatCreatedAt(comment.getCreatedAt());
-        this.hasAuth = (user != null) && (comment.getUser().getId().equals(user.getId()) || user.hasAdmin());
-        this.nickname = comment.getUser().getNickname();
-        this.likesCnt = likesCnt;
-        this.hasLike = hasLike;
-        this.hasReport = hasReport;
+    public CommentDetailResponseDto(Object[] object) {
+        this.id = ((BigInteger)object[0]).longValue();
+        this.comment = (String) object[1];
+        this.createdAt = (String) object[2];
+        this.hasAuth = ((BigInteger) object[3]).intValue() == 0 ? false : true;
+        this.nickname = (String) object[4];
+        this.likesCnt = ((BigInteger)object[5]).intValue();
+        this.hasLike = ((BigInteger) object[6]).intValue() == 0 ? false : true;
+        this.hasReport = ((BigInteger) object[7]).intValue() == 0 ? false : true;
     }
 }

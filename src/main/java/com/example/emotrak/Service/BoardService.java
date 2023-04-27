@@ -10,14 +10,14 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -183,24 +183,34 @@ public class BoardService {
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
-        Daily daily = findDailyById(id);
-        // share 가 false 이고, 사용자와 작성자가 다를 경우 예외 처리
-        if (!daily.isShare() && (user == null || daily.getUser().getId() != user.getId())) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
-        }
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        BoardDetailResponseDto boardDetail = boardRepository.findBoardDetailWithCommentsByUserAndDaily(id,user.getId())
-                .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
 
-        Pageable pageable = PageRequest.of(page - 1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
-        Page<CommentDetailResponseDto> commentDetailResponseDtoPage = commentRepository.findAllCommentsWithLikeAndReportByDailyId(id, user.getId(), pageable);
+        Long userId = user == null ? 0L : user.getId();
+        List<Object[]> objectList = boardRepository.getDailyDetail(userId, id);
+        if (objectList.size() == 0) throw new CustomException(CustomErrorCode.BOARD_NOT_FOUND);
 
-        boardDetail.setCommentDetailResponseDtoList(commentDetailResponseDtoPage.getContent());
-        boardDetail.setLastPage(commentDetailResponseDtoPage.isLast());
-        return boardDetail;
+        Object[] daily = objectList.get(0);
+        if (!((Boolean) daily[0]) && (user == null || ((BigInteger) daily[1]).longValue() != user.getId())) {
+            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+        }
+
+        int size = 20;
+        Pageable pageable = PageRequest.of(page-1, size+1);
+        objectList = commentRepository.getCommentDetail(userId, id, pageable);
+        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
+        boolean lastPage = true;
+        for (int i = 0; i < objectList.size(); i++){
+            if (i == size) {
+                lastPage = false;
+                break;
+            }
+            CommentDetailResponseDto commentDetailResponseDto = new CommentDetailResponseDto(objectList.get(i));
+            commentDetailResponseDtoList.add(commentDetailResponseDto);
+        }
+        return new BoardDetailResponseDto(daily, commentDetailResponseDtoList, lastPage);
     }
 
 
