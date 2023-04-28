@@ -34,10 +34,10 @@ public class KakaoService {
     private final TokenProvider tokenProvider;
     private final Validation validation;
 
-    @Value("${KakaoClientId}")
+    @Value("${kakao_client_id}")
     private String KakaoClientId;
 
-    @Value("${KakaoAdminKey}")
+    @Value("${kakao_admin_key}")
     private String KakaoAdminKey;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
