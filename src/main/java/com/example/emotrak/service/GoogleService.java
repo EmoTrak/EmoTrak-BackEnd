@@ -74,8 +74,8 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-//        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-        body.add("redirect_uri", "http://localhost:8080/google/callback");
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
+//        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         body.add("access_type", offline); // access_type 추가
