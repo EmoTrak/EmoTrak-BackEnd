@@ -1,6 +1,6 @@
 package com.example.emotrak.users.service;
 
-import com.example.emotrak.Service.UserService;
+import com.example.emotrak.service.UserService;
 import com.example.emotrak.dto.user.LoginRequestDto;
 import com.example.emotrak.dto.user.SignupRequestDto;
 import com.example.emotrak.entity.User;

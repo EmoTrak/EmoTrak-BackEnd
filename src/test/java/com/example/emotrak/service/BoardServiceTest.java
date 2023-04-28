@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.board.BoardDetailResponseDto;
 import com.example.emotrak.dto.board.BoardRequestDto;

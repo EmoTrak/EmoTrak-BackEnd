@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.OauthUserInfoDto;
 import com.example.emotrak.dto.user.TokenDto;
@@ -13,16 +13,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,41 +29,37 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GoogleService {
-
+public class NaverService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
 
-    @Value("${google_client_id}")
+    @Value("${client_id}")
     private String clientId;
 
-    @Value("${google_client_secret}")
+    @Value("${client_secret}")
     private String clientSecret;
 
-    public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
-        // 1. "인가 코드"로 "액세스 토큰" 요청
-        Map<String, String> tokens = getToken(code, scope);
+    public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
+        // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
+        Map<String, String> tokens = getToken(code, state);
         String accessToken = tokens.get("access_token");
         String refreshToken = tokens.get("refresh_token");
-        log.info("Access Token: {}", accessToken);
-        log.info("Refresh Token: {}", refreshToken);
-        log.info("서버로 요청");
-        // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
-        OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
+        // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
+        OauthUserInfoDto oauthUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
-        User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
+        User naverUser = registerNaverUserIfNeeded(oauthUserInfo);
         // 4. 사용자 엔티티에 리프레시 토큰 저장
-        googleUser.updateGoogleRefresh(refreshToken);
+        naverUser.updateNaverRefresh(refreshToken);
         // 5. JWT 토큰 반환
-        TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
         log.info("JWT Access Token: {}", tokenDto.getAccessToken());
-        validation.tokenToHeaders(tokenDto, response);
+        log.info("JWT Refresh Token: {}", tokenDto.getRefreshToken());
+        validation.tokenToHeaders(tokenDto,response);
     }
-
-    // 1. "인가 코드"로 "액세스 토큰" 요청
-    private Map<String, String> getToken(String code, String scope) throws JsonProcessingException {
+    // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
+    private Map<String, String> getToken(String code, String state) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -74,26 +68,25 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-//        body.add("redirect_uri", "http://localhost:8080/google/callback");
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/naver");
         body.add("code", code);
-        body.add("scope", scope); // 스코프 추가
-        body.add("access_type", "offline"); // access_type 추가
+        body.add("state", state);
+
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
         RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
-                "https://oauth2.googleapis.com/token",
+                "https://nid.naver.com/oauth2.0/token",
                 HttpMethod.POST,
                 tokenRequest,
                 String.class
         );
-        // HTTP 응답 (JSON) -> 액세스 토큰 파싱
+        // HTTP 응답 (JSON) -> 액세스 토큰 & 리프레시 토큰 파싱
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        log.info("JSON Data: {}", jsonNode.toString());
+        log.info("JSON Data: {}", jsonNode);
         String accessToken = jsonNode.get("access_token").asText();
         String refreshToken = jsonNode.get("refresh_token").asText();
 
@@ -103,40 +96,40 @@ public class GoogleService {
         return tokens;
 
     }
-
-    // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
-    private OauthUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
+    // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
+    private OauthUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-        HttpEntity<MultiValueMap<String, String>> googleUserInfoRequest = new HttpEntity<>(headers);
+        HttpEntity<MultiValueMap<String, String>> naverUserInfoRequest = new HttpEntity<>(headers);
         RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
+                "https://openapi.naver.com/v1/nid/me",
                 HttpMethod.POST,
-                googleUserInfoRequest,
+                naverUserInfoRequest,
                 String.class
         );
 
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        String id = jsonNode.get("sub").asText(); // 변경된 부분, Google 사용자 정보 API 응답에서 response 필드는 존재하지 않는다
-        String email = jsonNode.get("email").asText();
-        String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : "google";
+        JsonNode responseNode = jsonNode.get("response");
+        String id = responseNode.get("id").asText(); // 변경된 부분
+        String email = responseNode.get("email").asText();
+        String nickname = responseNode.get("nickname").asText();
         return new OauthUserInfoDto(id, email, nickname);
     }
-
-    private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
-        String googleId = oauthUserInfo.getId();
-        User googleUser = userRepository.findByGoogleId(googleId).orElse(null);
-        if (googleUser == null) {
-            String googleEmail = oauthUserInfo.getEmail();
-            User sameEmailUser = userRepository.findByEmail(googleEmail).orElse(null);
+    private User registerNaverUserIfNeeded (OauthUserInfoDto oauthUserInfo) {
+        String naverId = oauthUserInfo.getId();
+        User naverUser = userRepository.findByNaverId(naverId).
+                orElse(null);
+        if (naverUser == null) {
+            String naverEmail = oauthUserInfo.getEmail();
+            User sameEmailUser = userRepository.findByEmail(naverEmail).orElse(null);
             if (sameEmailUser != null) {
-                googleUser = sameEmailUser;
-                googleUser = googleUser.googleIdUpdate(googleId);
+                naverUser = sameEmailUser;
+                naverUser = naverUser.naverIdUpdate(naverId);
             } else {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
@@ -149,54 +142,56 @@ public class GoogleService {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
 
-                googleUser = new User(encodedPassword, email, nickname, null, null, googleId, UserRoleEnum.USER);
+                naverUser = new User(encodedPassword, email, nickname, null, naverId, null, UserRoleEnum.USER);
             }
-            userRepository.save(googleUser);
+            userRepository.save(naverUser);
         }
-        return googleUser;
+        return naverUser;
     }
 
-    public void unlinkGoogle(User user) {
+    public void unlinkNaver(User user) {
         // DB에서 사용자의 리프레시 토큰 가져오기
-        String refreshToken = user.getGoogleRefresh();
+        String refreshToken = user.getNaverRefresh();
         // 리프레시 토큰을 사용하여 액세스 토큰 갱신
         String accessToken = refreshAccessToken(refreshToken);
         if (accessToken == null) {
             throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
-        // 연동해제를 위한 구글 API 호출
-        boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
+        // 연동해제를 위한 네이버 API 호출
+        boolean isUnlinked = unlinkNaverAccountApi(accessToken);
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("구글 연동해제 완료: userId={}", user.getId());
+        log.info("네이버 연동해제 완료: userId={}", user.getId());
     }
 
-
-    private boolean unlinkGoogleAccountApi(String accessToken) {
+    private boolean unlinkNaverAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        // 액세스 토큰을 통해 API 호출
-        UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl("https://accounts.google.com/o/oauth2/revoke")
-                .queryParam("token", accessToken);
-        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "delete");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("access_token", accessToken);
+        body.add("service_provider", "NAVER");
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
         RestTemplate rt = new RestTemplate();
-        try {
-            rt.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, String.class);
-            return true;
-        } catch (HttpClientErrorException ex) {
-            HttpStatus statusCode = ex.getStatusCode();
-            if (statusCode != HttpStatus.UNAUTHORIZED && statusCode != HttpStatus.NOT_FOUND) {
-                log.error("구글 연동 해제 실패");
-            }
-            return false;
-        }
+        ResponseEntity<String> response = rt.exchange(
+                "https://nid.naver.com/oauth2.0/token",
+                HttpMethod.POST,
+                requestEntity,
+                String.class
+        );
+
+        return response.getStatusCode() == HttpStatus.OK;
     }
 
     // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "refresh_token");
@@ -204,24 +199,27 @@ public class GoogleService {
         body.add("client_secret", clientSecret);
         body.add("refresh_token", refreshToken);
 
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(
-                "https://oauth2.googleapis.com/token",
-                HttpMethod.POST,
-                request,
-                String.class
-        );
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
+        RestTemplate rt = new RestTemplate();
 
-        // 응답에서 액세스 토큰 추출
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode;
         try {
-            jsonNode = objectMapper.readTree(response.getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse JSON", e);
-        }
+            ResponseEntity<String> response = rt.exchange(
+                    "https://nid.naver.com/oauth2.0/token",
+                    HttpMethod.POST,
+                    requestEntity,
+                    String.class
+            );
 
-        return jsonNode.get("access_token").asText();
+            if (response.getStatusCode() == HttpStatus.OK) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(response.getBody());
+                return jsonNode.get("access_token").asText();
+            }
+            return null;
+
+        } catch (Exception e) {
+            return null;
+        }
     }
+
 }

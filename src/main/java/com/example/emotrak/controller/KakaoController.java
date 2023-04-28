@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.KakaoService;
+import com.example.emotrak.service.KakaoService;
 import com.example.emotrak.exception.ResponseMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
