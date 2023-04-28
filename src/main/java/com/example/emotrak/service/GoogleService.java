@@ -44,9 +44,9 @@ public class GoogleService {
     @Value("${google_client_secret}")
     private String clientSecret;
 
-    public void googleLogin(String code, String scope, String offline, HttpServletResponse response) throws JsonProcessingException {
+    public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
-        Map<String, String> tokens = getToken(code, scope, offline);
+        Map<String, String> tokens = getToken(code, scope);
         String accessToken = tokens.get("access_token");
         String refreshToken = tokens.get("refresh_token");
         log.info("Access Token: {}", accessToken);
@@ -57,7 +57,9 @@ public class GoogleService {
         // 3. 필요시에 회원가입
         User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
         // 4. 사용자 엔티티에 리프레시 토큰 저장
-        googleUser.updateGoogleRefresh(refreshToken);
+        if (refreshToken != null) {
+            googleUser.updateGoogleRefresh(refreshToken);
+        }
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
         log.info("JWT Access Token: {}", tokenDto.getAccessToken());
@@ -65,7 +67,7 @@ public class GoogleService {
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
-    private Map<String, String> getToken(String code, String scope, String offline) throws JsonProcessingException {
+    private Map<String, String> getToken(String code, String scope) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -78,7 +80,6 @@ public class GoogleService {
 //        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
-        body.add("access_type", offline); // access_type 추가
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
