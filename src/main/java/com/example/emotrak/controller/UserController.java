@@ -81,7 +81,7 @@ public class UserController {
     // 4. 회원 탈퇴
     @Tag(name = "Users")
     @Operation(summary = "마이페이지 회원 탈퇴", description = "마이페이지에서 회원탈퇴 합니다.")
-    @DeleteMapping ("/delete")
+    @DeleteMapping ("")
     public ResponseEntity<?> deleteUser(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
         userService.deleteUser(userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
