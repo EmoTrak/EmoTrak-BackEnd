@@ -57,7 +57,9 @@ public class GoogleService {
         // 3. 필요시에 회원가입
         User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
         // 4. 사용자 엔티티에 리프레시 토큰 저장
-        googleUser.updateGoogleRefresh(refreshToken);
+        if (refreshToken != null) {
+            googleUser.updateGoogleRefresh(refreshToken);
+        }
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
         log.info("JWT Access Token: {}", tokenDto.getAccessToken());
@@ -74,11 +76,10 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-//        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-        body.add("redirect_uri", "http://localhost:8080/google/callback");
+        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
+//        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
-        body.add("access_type", "offline"); // access_type 추가
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
