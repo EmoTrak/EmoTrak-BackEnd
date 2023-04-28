@@ -24,9 +24,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,23 +46,26 @@ public class GoogleService {
 
     public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
-        String accessToken = getToken(code, scope);
+        Map<String, String> tokens = getToken(code, scope);
+        String accessToken = tokens.get("access_token");
+        String refreshToken = tokens.get("refresh_token");
         log.info("Access Token: {}", accessToken);
+        log.info("Refresh Token: {}", refreshToken);
         log.info("서버로 요청");
         // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
         OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
-
         // 3. 필요시에 회원가입
         User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
-
-        // 4. JWT 토큰 반환
+        // 4. 사용자 엔티티에 리프레시 토큰 저장
+        googleUser.updateGoogleRefresh(refreshToken);
+        // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
         log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto, response);
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
-    private String getToken(String code, String scope) throws JsonProcessingException {
+    private Map<String, String> getToken(String code, String scope) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -75,6 +78,7 @@ public class GoogleService {
 //        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
+        body.add("access_type", "offline"); // access_type 추가
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
@@ -89,21 +93,19 @@ public class GoogleService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        System.out.println("jsonNode = " + jsonNode);
-        System.out.println("jsonNode.toString() = " + jsonNode.toString());
         log.info("JSON Data: {}", jsonNode.toString());
-        return jsonNode.get("access_token").asText();
+        String accessToken = jsonNode.get("access_token").asText();
+        String refreshToken = jsonNode.get("refresh_token").asText();
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("access_token", accessToken);
+        tokens.put("refresh_token", refreshToken);
+        return tokens;
 
     }
 
     // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
     private OauthUserInfoDto getGoogleUserInfo(String accessToken) throws JsonProcessingException {
-        // 액세스 토큰이 유효한지 확인
-        if (!isTokenValid(accessToken)) {
-            log.error("Invalid or expired access token");
-            throw new RuntimeException("Invalid or expired access token");
-        }
-
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -117,12 +119,6 @@ public class GoogleService {
                 String.class
         );
 
-        // 서버로 응답이 오지 않는 경우 로그 출력
-        if (response.getStatusCode() != HttpStatus.OK) {
-            log.info("Google API 요청 결과: {}", response.getBody());
-        }
-
-
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
@@ -130,27 +126,6 @@ public class GoogleService {
         String email = jsonNode.get("email").asText();
         String nickname = jsonNode.get("name") != null ? jsonNode.get("name").asText() : "google";
         return new OauthUserInfoDto(id, email, nickname);
-    }
-
-    private boolean isTokenValid(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        HttpEntity<MultiValueMap<String, String>> tokenInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
-        try {
-            ResponseEntity<String> response = rt.exchange(
-                    "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=" + accessToken,
-                    HttpMethod.GET,
-                    tokenInfoRequest,
-                    String.class
-            );
-            return HttpStatus.OK.equals(response.getStatusCode());
-        } catch (HttpClientErrorException e) {
-            log.error("Invalid or expired access token: {}", e.getMessage());
-            return false;
-        }
     }
 
     private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
@@ -181,24 +156,25 @@ public class GoogleService {
         return googleUser;
     }
 
-    public void unlinkGoogle(User user, String accessToken) {
+    public void unlinkGoogle(User user) {
+        // DB에서 사용자의 리프레시 토큰 가져오기
+        String refreshToken = user.getGoogleRefresh();
+        // 리프레시 토큰을 사용하여 액세스 토큰 갱신
+        String accessToken = refreshAccessToken(refreshToken);
         if (accessToken == null) {
             throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
+        // 연동해제를 위한 구글 API 호출
         boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("user.getId() = {}", user.getId());
-        log.info("user.getGoogleId() = {}", user.getGoogleId());
-        log.info("user = {}", user);
-        log.info("구글 연동해제 완료");
+        log.info("구글 연동해제 완료: userId={}", user.getId());
     }
 
 
     private boolean unlinkGoogleAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-
         // 액세스 토큰을 통해 API 호출
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromHttpUrl("https://accounts.google.com/o/oauth2/revoke")
@@ -210,14 +186,42 @@ public class GoogleService {
             return true;
         } catch (HttpClientErrorException ex) {
             HttpStatus statusCode = ex.getStatusCode();
-            if (statusCode == HttpStatus.UNAUTHORIZED) {
-                log.error("Access token is invalid or expired");
-            } else if (statusCode == HttpStatus.NOT_FOUND) {
-                log.error("Token not found or user does not exist");
-            } else {
-                log.error("Google unlink failed");
+            if (statusCode != HttpStatus.UNAUTHORIZED && statusCode != HttpStatus.NOT_FOUND) {
+                log.error("구글 연동 해제 실패");
             }
             return false;
         }
+    }
+
+    // 리프레시 토큰을 사용하여 액세스 토큰 갱신
+    private String refreshAccessToken(String refreshToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "refresh_token");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("refresh_token", refreshToken);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(
+                "https://oauth2.googleapis.com/token",
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+
+        // 응답에서 액세스 토큰 추출
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode;
+        try {
+            jsonNode = objectMapper.readTree(response.getBody());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to parse JSON", e);
+        }
+
+        return jsonNode.get("access_token").asText();
     }
 }
