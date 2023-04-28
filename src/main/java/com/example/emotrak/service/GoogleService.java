@@ -95,7 +95,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         log.info("JSON Data: {}", jsonNode.toString());
         String accessToken = jsonNode.get("access_token").asText();
-        String refreshToken = jsonNode.get("refresh_token").asText();
+        String refreshToken = jsonNode.has("refresh_token") ? jsonNode.get("refresh_token").asText() : null;
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("access_token", accessToken);
