@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.CommentService;
+import com.example.emotrak.service.CommentService;
 import com.example.emotrak.dto.comment.CommentRequestDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;

@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.EmailSendService;
+import com.example.emotrak.service.EmailSendService;
 import com.example.emotrak.dto.user.CheckEmailRequestDto;
 import com.example.emotrak.exception.ResponseMessage;
 import io.swagger.v3.oas.annotations.Operation;

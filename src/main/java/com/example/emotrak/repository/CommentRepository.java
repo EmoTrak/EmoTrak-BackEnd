@@ -29,7 +29,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                  , nativeQuery = true)
     List<Object[]> getCommentDetail(@Param("userId") Long userId, @Param("dailyId") Long dailyId, Pageable pageable);
 
-    void deleteAllByUser(User user);
+    @Modifying
+    @Query(value = " DELETE FROM comment "
+            + "  WHERE user_id = :userId"
+            , nativeQuery = true)
+    void deleteAllByUser(@Param("userId") Long userId);
+
 
     @Modifying
     @Query(value = " DELETE FROM comment "

@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.OauthUserInfoDto;
 import com.example.emotrak.dto.user.TokenDto;
@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,12 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+
+    @Value("${kakao_client_id}")
+    private String KakaoClientId;
+
+    @Value("${kakao_admin_key}")
+    private String KakaoAdminKey;
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -58,7 +65,7 @@ public class KakaoService {
         // HTTP Body 생성
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", "07f88dbc408f08bcd7e1bd0b2ca3c993");
+        body.add("client_id", KakaoClientId);
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
         body.add("code", code);
 
@@ -147,25 +154,19 @@ public class KakaoService {
         return kakaoUser;
     }
 
-    public void unlinkKakao(User user, String accessToken) {
-        if (accessToken == null) {
-            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
-        }
+    public void unlinkKakao(User user) {
         // 연동해제를 위한 카카오 API 호출
-        boolean isUnlinked = unlinkKakaoAccountApi(user, accessToken);
+        boolean isUnlinked = unlinkKakaoAccountApi(user);
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("user.getId() = {}", user.getId());
-        log.info("user.getKakaoId() = {}", user.getKakaoId());
-        log.info("user = {}", user);
         log.info("카카오 연동해제 완료");
     }
 
-    private boolean unlinkKakaoAccountApi(User user, String accessToken) {
+    private boolean unlinkKakaoAccountApi(User user) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.setBearerAuth(accessToken);
+        headers.set("Authorization", KakaoAdminKey); // 여기를 수정
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("target_id_type", "user_id");

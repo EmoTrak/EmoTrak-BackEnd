@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.UUID;
 
-//AWS S3를 사용하여 파일 업로드, 수정, 삭제를 수행하는 Service Class
+//AWS S3를 사용하여 파일 업로드, 수정, 삭제를 수행하는 service Class
 @Service
 @RequiredArgsConstructor
 public class FileUploadService {

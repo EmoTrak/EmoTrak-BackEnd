@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.KakaoService;
+import com.example.emotrak.service.KakaoService;
 import com.example.emotrak.exception.ResponseMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,15 +27,5 @@ public class KakaoController {
         kakaoService.kakaoLogin(code, response);
         return ResponseMessage.successResponse(HttpStatus.OK, "카카오 로그인 완료", null);
     }
-
-//    @Tag(name = "Oauth2")
-//    @Operation(summary = "카카오 연동 해제", description = "소셜 연동 해제")
-//    @PostMapping("/kakao/unlink")
-//    public ResponseEntity<?> kakaoUnlink(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails,
-//                                         HttpServletRequest request) {
-//        String accessToken = request.getHeader("Authorization");
-//        kakaoService.unlinkKakaoAccount(userDetails.getUser(), accessToken);
-//        return ResponseMessage.successResponse(HttpStatus.OK, "카카오 연동 해제 완료", null);
-//    }
 
 }

@@ -21,7 +21,12 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
     void deleteAllByComment(Comment comment);
 
-    void deleteAllByUser(User user);
+    @Modifying
+    @Query(value = " DELETE FROM report "
+            + "  WHERE user_id = :userId"
+            , nativeQuery = true)
+    void deleteAllByUser(@Param("userId") Long userId);
+
     @Modifying
     @Query(value = " DELETE FROM report "
             + "  WHERE comment_id IN ("

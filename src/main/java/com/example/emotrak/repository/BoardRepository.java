@@ -4,6 +4,7 @@ import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
@@ -38,7 +39,11 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             + "  WHERE d.id = :dailyId", nativeQuery = true)
     List<Object[]> getDailyDetail (@Param("userId") Long userId, @Param("dailyId") Long dailyId);
 
-    void deleteAllByUser(User user);
+    @Modifying
+    @Query(value = " DELETE FROM daily "
+            + "  WHERE user_id = :userId"
+            , nativeQuery = true)
+    void deleteAllByUser(@Param("userId") Long userId);
 
     @Query(value = " SELECT d.id, d.img_url "
             + "   FROM daily d"

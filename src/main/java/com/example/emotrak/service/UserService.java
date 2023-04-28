@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.*;
 import com.example.emotrak.entity.User;
@@ -209,7 +209,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(User user, String accessToken) {
+    public void deleteUser(User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러
@@ -219,28 +219,27 @@ public class UserService {
 
         // 연동된 계정이 있을 경우 연동 해제
         if (user.getKakaoId() != null) {
-            kakaoService.unlinkKakao(user, accessToken);
+            kakaoService.unlinkKakao(user);
         }
         if (user.getNaverId() != null) {
-            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
-            refreshTokenOptional.ifPresent(refreshToken -> naverService.unlinkNaver(user, accessToken, refreshToken.getValue()));
+            naverService.unlinkNaver(user);
         }
         if (user.getGoogleId() != null) {
-            googleService.unlinkGoogle(user, accessToken);
+            googleService.unlinkGoogle(user);
         }
 
         // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
-        likesRepository.deleteAllByUser(user);
+        likesRepository.deleteAllByUser(user.getId());
 
         // 내가 신고한 내역 모두 날리기 (댓글, 게시글)
-        reportRepository.deleteAllByUser(user);
+        reportRepository.deleteAllByUser(user.getId());
 
         // 내가 쓴 댓글의 모든 좋아요 날리기
         likesRepository.deleteCommentLikeByUser(user.getId());
         // 내가 쓴 댓글의 모든 신고 날리기
         reportRepository.deleteCommentLikeByUser(user.getId());
         // 내가 쓴 모든 댓글 날리기
-        commentRepository.deleteAllByUser(user);
+        commentRepository.deleteAllByUser(user.getId());
 
         // 내가 쓴 게시글의 모든 좋아요, 모든 댓글의 좋아요 날리기
         likesRepository.deleteByUser(user.getId());
@@ -251,7 +250,7 @@ public class UserService {
         // 내가 쓴 게시글의 모든 댓글 날리기
         commentRepository.deleteByUser(user.getId());
         // 내가 쓴 모든 게시글 날리기
-        boardRepository.deleteAllByUser(user);
+        boardRepository.deleteAllByUser(user.getId());
 
         // 리프레시 토큰 삭제
         refreshTokenRepository.deleteByUser(user);

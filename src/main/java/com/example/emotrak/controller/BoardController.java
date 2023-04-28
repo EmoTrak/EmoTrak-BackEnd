@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.BoardService;
+import com.example.emotrak.service.BoardService;
 import com.example.emotrak.dto.board.BoardRequestDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;

@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.DailyService;
+import com.example.emotrak.service.DailyService;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import io.swagger.annotations.ApiImplicitParam;
