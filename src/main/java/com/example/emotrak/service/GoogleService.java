@@ -74,8 +74,8 @@ public class GoogleService {
         body.add("grant_type", "authorization_code");
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
-        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-//        body.add("redirect_uri", "http://localhost:8080/google/callback");
+//        body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
+        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         body.add("access_type", offline); // access_type 추가
@@ -95,7 +95,7 @@ public class GoogleService {
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         log.info("JSON Data: {}", jsonNode.toString());
         String accessToken = jsonNode.get("access_token").asText();
-        String refreshToken = jsonNode.get("refresh_token").asText();
+        String refreshToken = jsonNode.has("refresh_token") ? jsonNode.get("refresh_token").asText() : null;
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("access_token", accessToken);

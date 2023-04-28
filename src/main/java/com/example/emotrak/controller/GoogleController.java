@@ -25,6 +25,7 @@ public class GoogleController {
                                          @RequestParam String scope,
                                          @RequestParam(required = false) String offline,
                                          HttpServletResponse response) throws JsonProcessingException {
+        offline = (offline == null) ? "offline" : offline;
         googleService.googleLogin(code, scope, offline, response);
         return ResponseMessage.successResponse(HttpStatus.OK, "구글 로그인 완료", null);
     }
