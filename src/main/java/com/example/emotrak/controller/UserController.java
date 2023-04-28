@@ -30,15 +30,6 @@ public class UserController {
         userService.signup(signupRequestDto);
         return ResponseMessage.successResponse(HttpStatus.OK, "회원가입 완료", null);
     }
-    @Tag(name = "Users")
-    @Operation(summary = "이메일 체크", description = "회원 가입에 필요한 이메일을 체크합니다.")
-    // 1-1. 회원 가입시 이메일 체크
-    @PostMapping("/em-check")
-    public ResponseEntity<?> signupEmailCheck(@RequestBody CheckEmailRequestDto checkEmailRequestDto){
-        userService.signupEmailCheck(checkEmailRequestDto);
-        return ResponseMessage.successResponse(HttpStatus.OK, "사용가능한 이메일 입니다.", null);
-
-    }
 
     // 1-2. 회원 가입시 닉네임 체크
     @Tag(name = "Users")
@@ -91,9 +82,8 @@ public class UserController {
     @Tag(name = "Users")
     @Operation(summary = "마이페이지 회원 탈퇴", description = "마이페이지에서 회원탈퇴 합니다.")
     @DeleteMapping ("/delete")
-    public ResponseEntity<?> deleteUser(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletRequest request) {
-        String accessToken = request.getHeader("Access_Token");
-        userService.deleteUser(userDetails.getUser(),accessToken);
+    public ResponseEntity<?> deleteUser(@ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        userService.deleteUser(userDetails.getUser());
         return ResponseMessage.successResponse(HttpStatus.OK, "회원 탈퇴 완료", null);
     }
 

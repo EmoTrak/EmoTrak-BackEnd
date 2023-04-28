@@ -50,7 +50,9 @@ public class NaverService {
         OauthUserInfoDto oauthUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
         User naverUser = registerNaverUserIfNeeded(oauthUserInfo);
-        // 4. JWT 토큰 반환
+        // 4. 사용자 엔티티에 리프레시 토큰 저장
+        naverUser.updateNaverRefresh(refreshToken);
+        // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
         log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         log.info("JWT Refresh Token: {}", tokenDto.getRefreshToken());
@@ -147,22 +149,17 @@ public class NaverService {
         return naverUser;
     }
 
-    public void unlinkNaver(User user, String accessToken, String refreshToken) {
-        if (!isTokenValid(accessToken)) {
-            // 유효하지 않은 토큰인 경우, 토큰 갱신
-            accessToken = refreshAccessToken(refreshToken);
-            if (accessToken == null || !isTokenValid(accessToken)) {
-                throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
-            }
+    public void unlinkNaver(User user) {
+        // DB에서 사용자의 리프레시 토큰 가져오기
+        String refreshToken = user.getNaverRefresh();
+        // 리프레시 토큰을 사용하여 액세스 토큰 갱신
+        String accessToken = refreshAccessToken(refreshToken);
+        if (accessToken == null) {
+            throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         // 연동해제를 위한 네이버 API 호출
         boolean isUnlinked = unlinkNaverAccountApi(accessToken);
         if (!isUnlinked) {
-            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
-        }
-        // 연동 해제 후 리프레시 토큰을 사용하여 액세스 토큰을 갱신하려고 시도
-        String newAccessToken = refreshAccessToken(refreshToken);
-        if (newAccessToken != null) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
         log.info("네이버 연동해제 완료: userId={}", user.getId());
@@ -191,30 +188,7 @@ public class NaverService {
         return response.getStatusCode() == HttpStatus.OK;
     }
 
-    // 토큰의 유효성 검사
-    private boolean isTokenValid(String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", accessToken);
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
-
-        try {
-            ResponseEntity<String> response = rt.exchange(
-                    "https://openapi.naver.com/v1/nid/me",
-                    HttpMethod.POST,
-                    requestEntity,
-                    String.class
-            );
-
-            return response.getStatusCode() == HttpStatus.OK;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    // 유효하지 않은 토큰인 경우, 토큰 갱신
+    // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

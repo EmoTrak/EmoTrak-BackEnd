@@ -115,23 +115,7 @@ public class UserService {
         validation.tokenToHeaders(tokenDto, response);
     }
 
-    // 이메일 중복 체크. 이메일이 있으면 true - 중복된 이메일 반환 / 이메일이 없으면 false 사용가능한 이메일
-    public void signupEmailCheck(CheckEmailRequestDto checkEmailRequestDto) {
 
-        // 이메일이 비어있는지 체크
-        if(checkEmailRequestDto.getEmail().equals("")) throw new CustomException(CustomErrorCode.EMAIL_BLANK);
-
-        // 이메일 형식이 일치하는지 체크
-        Pattern passPattern1 = Pattern.compile("^[A-Za-z0-9_\\.\\-]+@[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-]+$"); // 정규식을 적는부분 e+을 지우고 쓰세요
-        Matcher matcher = passPattern1.matcher(checkEmailRequestDto.getEmail());
-        if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_EMAIL_PATTERN);
-
-        // 중복된 이메일이 존재하는지 체크
-        boolean isEmailExist = userRepository.existsByEmail(checkEmailRequestDto.getEmail());
-        if(isEmailExist){
-            throw new CustomException(CustomErrorCode.DUPLICATE_EMAIL);
-        }
-    }
     public void signupNicknameCheck(CheckNicknameRequestDto checkNicknameRequestDto) {
 
         // 닉네임이 비어있는지 체크
@@ -225,7 +209,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteUser(User user, String accessToken) {
+    public void deleteUser(User user) {
         // 유저 엔티티 가져오기
         Optional<User> getUser = userRepository.findById(user.getId());
         // 유저 엔티티가 없으면 에러
@@ -235,14 +219,13 @@ public class UserService {
 
         // 연동된 계정이 있을 경우 연동 해제
         if (user.getKakaoId() != null) {
-            kakaoService.unlinkKakao(user, accessToken);
+            kakaoService.unlinkKakao(user);
         }
         if (user.getNaverId() != null) {
-            Optional<RefreshToken> refreshTokenOptional = refreshTokenRepository.findByUser(user);
-            refreshTokenOptional.ifPresent(refreshToken -> naverService.unlinkNaver(user, accessToken, refreshToken.getValue()));
+            naverService.unlinkNaver(user);
         }
         if (user.getGoogleId() != null) {
-            googleService.unlinkGoogle(user, accessToken);
+            googleService.unlinkGoogle(user);
         }
 
         // 내가 좋아요한 내역 모두 날리기 (댓글, 게시글)
@@ -280,32 +263,43 @@ public class UserService {
         String refreshTokenValue = request.getHeader("Refresh-Token");
         tokenProvider.validateToken(refreshTokenValue);
         RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue).orElse(null);
-
-
+        // 해당유저의 리프레시 토큰이 DB에 없는 경우 예외처리
         if (refreshToken == null) {
             throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
         }
 
+        // 리프레시 토큰값에 대한 유저가 있는지 체크하고 없으면 예외처리
         Optional<User> user = userRepository.findById(refreshToken.getUser().getId());
+        if(!user.isPresent()){
+            throw new CustomException(CustomErrorCode.USER_NOT_FOUND);
+        }
         User requestingUser = user.get();
 
+        // 리프레시 토큰값이 유효한지 체크하고 아니면 예외처리
         if (!Objects.equals(refreshToken.getValue(), refreshTokenValue)) {
             tokenProvider.deleteRefreshToken(requestingUser);
             throw new CustomException(CustomErrorCode.INVALID_TOKEN);
         }
 
+        // 헤더에 저장된 엑세스토큰 안료기간을 가져오고 없으면 예외처리
         String expireTime = request.getHeader("Access-Token-Expire-Time");
         if (expireTime == null) throw new CustomException(CustomErrorCode.REFRESH_TOKEN_IS_EXPIRED);
+
         long accessTokenExpire = Long.parseLong(expireTime);
         long now = new Date().getTime();
+
+        // 엑세스토큰만료 시간이 현재시간을 초과하는지 체크
         if (now >= accessTokenExpire) {
+            // 엑세스토큰이 만료되고 리프레시 토큰도 만료됬을 시 DB에서 리프레시 토큰 삭제 후 예외처리
             if (now >= refreshToken.getExpirationDate().getTime()) {
                 tokenProvider.deleteRefreshToken(requestingUser);
                 throw new CustomException(CustomErrorCode.INVALID_TOKEN);
             } else {
+                // 엑세스토큰이 만료되고 리프레시토큰이 만료되지 않았을시 엑세스토큰 재발급
                 TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
                 validation.accessTokenToHeaders(tokenDto, response);
             }
+            // 엑세스 토큰이 만료되지 않았을 시 엑세스 토큰 재발급
         } else {
             TokenDto tokenDto = tokenProvider.generateAccessTokenDto(requestingUser, requestingUser.getRole());
             validation.accessTokenToHeaders(tokenDto, response);
