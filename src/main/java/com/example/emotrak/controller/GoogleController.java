@@ -23,8 +23,9 @@ public class GoogleController {
     @GetMapping("/google/callback")
     public ResponseEntity<?> googleLogin(@RequestParam String code,
                                          @RequestParam String scope,
+                                         @RequestParam String offline,
                                          HttpServletResponse response) throws JsonProcessingException {
-        googleService.googleLogin(code, scope, response);
+        googleService.googleLogin(code, scope, offline, response);
         return ResponseMessage.successResponse(HttpStatus.OK, "구글 로그인 완료", null);
     }
 
