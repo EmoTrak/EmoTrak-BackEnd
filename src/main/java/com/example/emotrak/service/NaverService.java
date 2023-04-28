@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.OauthUserInfoDto;
 import com.example.emotrak.dto.user.TokenDto;
@@ -35,10 +35,10 @@ public class NaverService {
     private final TokenProvider tokenProvider;
     private final Validation validation;
 
-    @Value("${client_id}")
+    @Value("${naver_client_id}")
     private String clientId;
 
-    @Value("${client_secret}")
+    @Value("${naver_client_secret}")
     private String clientSecret;
 
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {

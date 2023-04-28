@@ -1,4 +1,4 @@
-package com.example.emotrak.Service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.OauthUserInfoDto;
 import com.example.emotrak.dto.user.TokenDto;
