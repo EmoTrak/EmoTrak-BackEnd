@@ -1,4 +1,4 @@
-package com.example.emotrak.users.service;
+package com.example.emotrak.service;
 
 import com.example.emotrak.service.UserService;
 import com.example.emotrak.dto.user.LoginRequestDto;
