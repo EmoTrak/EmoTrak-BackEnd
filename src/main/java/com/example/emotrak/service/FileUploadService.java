@@ -25,6 +25,12 @@ public class FileUploadService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    @Value("{cloud.aws.cloudfront.target}")
+    private String target;
+
+    @Value("${cloud.aws.cloudfront.replacement}")
+    private String replacemet;
+
     //AWS SDK 를 사용하여 AWS S3에 파일을 업로드
     public String uploadFile(MultipartFile file) {
         try {
@@ -36,8 +42,9 @@ public class FileUploadService {
             //AmazonS3 객체를 사용, putObject 메서드를 호출하여 파일을 업로드
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file.getInputStream(), objectMetadata);
             amazonS3.putObject(putObjectRequest);
-            // 업로드된 파일의 URL을 문자열로 반환
-            return amazonS3.getUrl(bucketName, fileName).toString();
+            String s3Url = amazonS3.getUrl(bucketName, fileName).toString();
+            String cloudFrontUrl = s3Url.replace(target, replacemet);
+            return cloudFrontUrl;
             // 출력 관련 예외로, 파일이나 네트워크와 같은 입출력 작업 중에 발생할 수 있는 예외
         } catch (IOException e) {
             throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
@@ -52,23 +59,26 @@ public class FileUploadService {
 
     // 원래 파일 이름을 랜덤 UUID 와 조합하여 새로운 파일 이름을 생성
     private String generateFileName(String originalFilename) {
-        return UUID.randomUUID().toString() + "_" + originalFilename;
+        return UUID.randomUUID() + "_" + originalFilename;
     }
 
     //s3파일수정(파일삭제 후 새 파일 업로드)
     public String updateFile(String oldFileUrl, MultipartFile newFile) {
-            // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
-            if (oldFileUrl != null && !oldFileUrl.isEmpty()) {
-                deleteFile(oldFileUrl);
-            }
-            // 새 파일 업로드
-            return uploadFile(newFile);
+        // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
+        if (oldFileUrl != null && !oldFileUrl.isEmpty()) {
+            deleteFile(oldFileUrl);
+        }
+        // 새 파일 업로드
+        return uploadFile(newFile);
     }
 
     //s3파일삭제
     public void deleteFile(String fileUrl) {
         try {
-            String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+            // CloudFront URL이 입력되면 S3 버킷 URL로 변경
+            String s3Url = fileUrl.replace(target, replacemet);
+            String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
+//            String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
         } catch (AmazonServiceException e) {
             // 권한이 없거나, S3 버킷이 없는 경우, S3 서비스가 다운되거나 요청이 제한되는 경우
