@@ -25,7 +25,7 @@ public class FileUploadService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
-    @Value("{cloud.aws.cloudfront.target}")
+    @Value("${cloud.aws.cloudfront.target}")
     private String target;
 
     @Value("${cloud.aws.cloudfront.replacement}")
