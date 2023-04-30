@@ -59,7 +59,6 @@ public class GoogleService {
         }
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
-        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto, response);
     }
 
