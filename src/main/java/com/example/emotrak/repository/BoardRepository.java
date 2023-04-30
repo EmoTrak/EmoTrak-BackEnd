@@ -27,6 +27,10 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
                                       @Param("month") int month,
                                       @Param("day") int day);
 
+    @Query("select d.imgUrl from Daily d where d.user = :user")
+    List<String> findImgUrlByUser(@Param("user") User user);
+
+
     @Query(value = " SELECT d.share AS share, d.user_id AS userId, d.id AS dailyId "
                  + "      , DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt "
                  + "      , d.emotion_id AS emotionId, d.star AS star, d.detail AS detail, d.img_url AS imgUrl "
