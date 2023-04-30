@@ -35,8 +35,8 @@ public class EmailSendService {
     private String id;
 
     public MimeMessage createMessage(String to)throws MessagingException, UnsupportedEncodingException {
-        log.info("보내는 대상 : "+ to);
-        log.info("인증 번호 : " + ePw);
+//        log.info("보내는 대상 : "+ to);
+//        log.info("인증 번호 : " + ePw);
         MimeMessage  message = javaMailSender.createMimeMessage();
 
         message.addRecipients(MimeMessage.RecipientType.TO, to); // to 보내는 대상

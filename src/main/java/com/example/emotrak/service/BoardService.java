@@ -1,7 +1,7 @@
 package com.example.emotrak.service;
 
 import com.example.emotrak.dto.board.*;
-import com.example.emotrak.dto.comment.CommentDetailResponseDto;
+import com.example.emotrak.dto.comment.CommentDetailDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
@@ -10,6 +10,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -160,24 +160,13 @@ public class BoardService {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
-        Pageable pageable = PageRequest.of(page-1, size+1);
+        Pageable pageable = PageRequest.of(page-1, size);
 
-        List<Object[]> objectList;
-        if (sort.equals("recent")) objectList = boardRepository.getBoardImagesRecent(emoList, pageable);
-        else objectList = boardRepository.getBoardImagesPopular(emoList, pageable);
+        Page<BoardImgRequestDto> boardImgRequestDtoList;
+        if (sort.equals("recent")) boardImgRequestDtoList = boardRepository.getBoardImagesRecent(emoList, pageable);
+        else boardImgRequestDtoList = boardRepository.getBoardImagesPopular(emoList, pageable);
 
-        boolean lastPage = true;
-        List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-        for (int i = 0; i < objectList.size(); i++){
-            if (i == size) {
-                lastPage = false;
-                break;
-            }
-            BoardImgRequestDto boardImgRequestDto = new BoardImgRequestDto(objectList.get(i));
-            boardImgRequestDtoList.add(boardImgRequestDto);
-        }
-
-        return new BoardImgPageRequestDto(lastPage, boardImgRequestDtoList);
+        return new BoardImgPageRequestDto(boardImgRequestDtoList);
     }
 
     // 공유게시판 상세페이지
@@ -189,28 +178,18 @@ public class BoardService {
         }
 
         Long userId = user == null ? 0L : user.getId();
-        List<Object[]> objectList = boardRepository.getDailyDetail(userId, id);
-        if (objectList.size() == 0) throw new CustomException(CustomErrorCode.BOARD_NOT_FOUND);
+        Optional<BoardGetDetailDto> boardGetDetailDtoList = boardRepository.getDailyDetail(userId, id);
+        if (boardGetDetailDtoList.isEmpty()) throw new CustomException(CustomErrorCode.BOARD_NOT_FOUND);
 
-        Object[] daily = objectList.get(0);
-        if (!((Boolean) daily[0]) && (user == null || ((BigInteger) daily[1]).longValue() != user.getId())) {
+        // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
+        if (!(boardGetDetailDtoList.get().getShare()) &&
+                (user == null || boardGetDetailDtoList.get().getUserId() != user.getId())) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 
-        int size = 20;
-        Pageable pageable = PageRequest.of(page-1, size+1);
-        objectList = commentRepository.getCommentDetail(userId, id, pageable);
-        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
-        boolean lastPage = true;
-        for (int i = 0; i < objectList.size(); i++){
-            if (i == size) {
-                lastPage = false;
-                break;
-            }
-            CommentDetailResponseDto commentDetailResponseDto = new CommentDetailResponseDto(objectList.get(i));
-            commentDetailResponseDtoList.add(commentDetailResponseDto);
-        }
-        return new BoardDetailResponseDto(daily, commentDetailResponseDtoList, lastPage);
+        Pageable pageable = PageRequest.of(page-1, 20);
+        Page<CommentDetailDto> commentDetailDtoPage = commentRepository.getCommentDetail(userId, id, pageable);
+        return new BoardDetailResponseDto(boardGetDetailDtoList.get(), commentDetailDtoPage);
     }
 
 
