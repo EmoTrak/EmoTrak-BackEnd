@@ -1,5 +1,6 @@
 package com.example.emotrak.dto.board;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,10 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 public class BoardImgPageRequestDto {
     private boolean lastPage;
-    private List<BoardImgRequestDto> contents;
+    @JsonProperty("contents")
+    private List<BoardImgRequestDto> boardImgRequestDtoList;
 
-    public BoardImgPageRequestDto(Page<BoardImgRequestDto> contents) {
-        this.lastPage = !contents.hasNext();
-        this.contents = contents.getContent();
+    public BoardImgPageRequestDto(Page<BoardImgRequestDto> boardImgRequestDtoList) {
+        this.lastPage = !boardImgRequestDtoList.hasNext();
+        this.boardImgRequestDtoList = boardImgRequestDtoList.getContent();
     }
 }

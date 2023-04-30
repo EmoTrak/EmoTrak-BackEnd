@@ -25,7 +25,19 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                  + "   LEFT JOIN likes l2 ON c.id = l2.comment_id AND l2.user_id = :userId "
                  + "   LEFT JOIN report r ON c.id = r.comment_id AND r.user_id = :userId "
                  + "  WHERE c.daily_id = :dailyId"
-                 + "  ORDER BY c.created_at"
+                 + "  ORDER BY c.created_at",
+            countQuery = " SELECT count(c.id) "
+                       + "   FROM comment c "
+                       + "   LEFT JOIN users u ON c.user_id = u.id "
+                       + "   LEFT JOIN ( "
+                       + "                SELECT comment_id, COUNT(*) count "
+                       + "                FROM likes "
+                       + "                GROUP BY comment_id "
+                       + "             ) l ON c.id = l.comment_id "
+                       + "   LEFT JOIN likes l2 ON c.id = l2.comment_id AND l2.user_id = :userId "
+                       + "   LEFT JOIN report r ON c.id = r.comment_id AND r.user_id = :userId "
+                       + "  WHERE c.daily_id = :dailyId"
+                       + "  ORDER BY c.created_at"
                  , nativeQuery = true)
     Page<CommentDetailDto> getCommentDetail(@Param("userId") Long userId, @Param("dailyId") Long dailyId, Pageable pageable);
 
