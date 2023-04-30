@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CommentRequestDto {
 
-    @ApiModelProperty(value = "댓글 내용", required = true, example = "저는 댓글 예시입니다.")
+    @ApiModelProperty(value = "댓글 내용", required = true, example = "저는 댓글입니다.")
     private String comment;
 
 

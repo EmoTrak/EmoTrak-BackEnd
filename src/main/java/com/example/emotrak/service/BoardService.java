@@ -141,14 +141,14 @@ public class BoardService {
 
     // 수정 권한을 해당 유저와 관리자만 가능하게 메소드
     private void validateUserOrAdmin(User user, Daily daily) {
-        if (daily.getUser().getId() != user.getId() && user.getRole() != ADMIN) {
+        if (!daily.getUser().getId().equals(user.getId()) && user.getRole() != ADMIN) {
             throw new CustomException(CustomErrorCode.NOT_AUTHOR);
         }
     }
 
     // 삭제 권한을 해당 유저만 가능하게 변경
     private void validateUserOnly(User user, Daily daily) {
-        if (daily.getUser().getId() != user.getId()) {
+        if (!daily.getUser().getId().equals(user.getId())) {
             throw new CustomException(CustomErrorCode.NOT_AUTHOR);
         }
     }
@@ -183,7 +183,7 @@ public class BoardService {
 
         // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
         if (!(boardGetDetailDtoList.get().getShare()) &&
-                (user == null || boardGetDetailDtoList.get().getUserId() != user.getId())) {
+                (user == null || !boardGetDetailDtoList.get().getUserId().equals(user.getId()))) {
             throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
         }
 

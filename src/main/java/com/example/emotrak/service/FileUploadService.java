@@ -68,23 +68,12 @@ public class FileUploadService {
         return UUID.randomUUID() + "_" + originalFilename;
     }
 
-    //s3파일수정(파일삭제 후 새 파일 업로드)
-    public String updateFile(String oldFileUrl, MultipartFile newFile) {
-        // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
-        if (oldFileUrl != null && !oldFileUrl.isEmpty()) {
-            deleteFile(oldFileUrl);
-        }
-        // 새 파일 업로드
-        return uploadFile(newFile);
-    }
-
     //s3파일삭제
     public void deleteFile(String fileUrl) {
         try {
             // CloudFront URL이 입력되면 S3 버킷 URL로 변경
             String s3Url = fileUrl.replace(target, replacemet);
             String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
-//            String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
         } catch (AmazonServiceException e) {
             // 권한이 없거나, S3 버킷이 없는 경우, S3 서비스가 다운되거나 요청이 제한되는 경우
@@ -103,6 +92,7 @@ public class FileUploadService {
         }
     }
 
+    // 회원탈퇴시 여러객체 삭제
     public void deleteFiles(List<String> fileUrlList) {
         try {
             ArrayList<KeyVersion> keys = new ArrayList<>();
@@ -118,9 +108,11 @@ public class FileUploadService {
 
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
-            e.printStackTrace();
-        } catch (SdkClientException e) {
-            e.printStackTrace();
+            throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
+        } catch (AmazonClientException e) {
+            throw new CustomException(CustomErrorCode.AWS_CLIENT_ERROR);
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.FILE_DELETION_ERROR);
         }
     }
 }
