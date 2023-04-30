@@ -1,5 +1,6 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.graph.GraphQueryDto;
 import com.example.emotrak.entity.Daily;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,8 +9,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface GraphRepository extends JpaRepository<Daily, Long> {
-    @Query(value = " SELECT a.daily_month,"
-                 + "        a.emotion_id,"
+    @Query(value = " SELECT a.daily_month AS month,"
+                 + "        a.emotion_id AS id,"
                  + "        ROUND(COALESCE(AVG(d.star), 0), 1)             AS count,"
                  + "        COALESCE(ROUND(a.cocount * 100 / a.sum, 2), 0) AS percentage"
                  + "   FROM (SELECT d.daily_year,"
@@ -39,6 +40,6 @@ public interface GraphRepository extends JpaRepository<Daily, Long> {
                  + "                AND d.user_id = :userId"
                  + "  GROUP BY a.daily_month, a.emotion_id"
                  + "  ORDER BY a.daily_month, a.emotion_id", nativeQuery = true)
-    List<Object[]> getGraph(@Param("year") int year,
-                            @Param("userId") Long userId);
+    List<GraphQueryDto> getGraph(@Param("year") int year,
+                                 @Param("userId") Long userId);
 }
