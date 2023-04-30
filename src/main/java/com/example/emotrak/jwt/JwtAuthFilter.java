@@ -1,14 +1,22 @@
 package com.example.emotrak.jwt;
 
-import com.example.emotrak.dto.SecurityExceptionDto;
+import com.example.emotrak.exception.CustomErrorCode;
+import com.example.emotrak.exception.CustomException;
+import com.example.emotrak.security.UserDetailsServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -16,46 +24,74 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.Key;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    public static String AUTHORIZATION_HEADER = "Authorization";
+    public static String BEARER_PREFIX = "Bearer ";
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public static String AUTHORITIES_KEY = "auth";
 
-        String token = jwtUtil.resolveToken(request);
+    private final String SECRET_KEY;
 
-        if(token != null) {
-            if(!jwtUtil.validateToken(token)){
-                jwtExceptionHandler(response, "Token Error", HttpStatus.UNAUTHORIZED.value());
-                return;
+    private final TokenProvider tokenProvider;
+    private final UserDetailsServiceImpl userDetailsService;
+
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws IOException, ServletException {
+
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        Key key = Keys.hmacShaKeyFor(keyBytes);
+
+        String jwt = resolveToken(request);
+
+        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            Claims claims;
+            try {
+                claims = Jwts.parserBuilder().setSigningKey(key).build().
+                        parseClaimsJws(jwt).getBody();
+            } catch (ExpiredJwtException e) {
+                claims = e.getClaims();
             }
-            Claims info = jwtUtil.getUserInfoFromToken(token);
-            setAuthentication(info.getSubject());
+
+            if (claims.getExpiration().toInstant().toEpochMilli() < Instant.now().toEpochMilli()) {
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().println(
+                        new ObjectMapper().writeValueAsString(
+                                //ResponseDto.fail("BAD_REQUEST", "Token이 유효하지 않습니다.")
+                            new CustomException(CustomErrorCode.INVALID_TOKEN)
+                        )
+                );
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            }
+
+            String subject = claims.getSubject();
+            Collection<? extends GrantedAuthority> authorities =
+                    Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+
+            UserDetails principal = userDetailsService.loadUserByUsername(subject);
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(principal, jwt, authorities);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request,response);
+
+        filterChain.doFilter(request, response);
     }
-
-    public void setAuthentication(String username) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = jwtUtil.createAuthentication(username); // 인증 객체를 만든다
-        context.setAuthentication(authentication);
-
-        SecurityContextHolder.setContext(context);
-    }
-
-    public void jwtExceptionHandler(HttpServletResponse response, String msg, int statusCode) {
-        response.setStatus(statusCode);
-        response.setContentType("application/json");
-        try {
-            String json = new ObjectMapper().writeValueAsString(new SecurityExceptionDto(statusCode, msg));
-            response.getWriter().write(json);
-        } catch (Exception e) {
-            log.error(e.getMessage());
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(7);
         }
+        return null;
     }
 
 }
