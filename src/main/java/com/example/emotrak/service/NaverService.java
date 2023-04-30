@@ -54,8 +54,6 @@ public class NaverService {
         naverUser.updateNaverRefresh(refreshToken);
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
-        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
-        log.info("JWT Refresh Token: {}", tokenDto.getRefreshToken());
         validation.tokenToHeaders(tokenDto,response);
     }
     // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
@@ -86,7 +84,6 @@ public class NaverService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        log.info("JSON Data: {}", jsonNode);
         String accessToken = jsonNode.get("access_token").asText();
         String refreshToken = jsonNode.get("refresh_token").asText();
 
@@ -162,7 +159,6 @@ public class NaverService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("네이버 연동해제 완료: userId={}", user.getId());
     }
 
     private boolean unlinkNaverAccountApi(String accessToken) {

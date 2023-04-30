@@ -68,16 +68,6 @@ public class FileUploadService {
         return UUID.randomUUID() + "_" + originalFilename;
     }
 
-    //s3파일수정(파일삭제 후 새 파일 업로드)
-    public String updateFile(String oldFileUrl, MultipartFile newFile) {
-        // 이미지가 null이 아닌 경우에만 S3에서 이미지 파일 삭제
-        if (oldFileUrl != null && !oldFileUrl.isEmpty()) {
-            deleteFile(oldFileUrl);
-        }
-        // 새 파일 업로드
-        return uploadFile(newFile);
-    }
-
     //s3파일삭제
     public void deleteFile(String fileUrl) {
         try {
@@ -102,6 +92,7 @@ public class FileUploadService {
         }
     }
 
+    // 회원탈퇴시 여러객체 삭제
     public void deleteFiles(List<String> fileUrlList) {
         try {
             ArrayList<KeyVersion> keys = new ArrayList<>();

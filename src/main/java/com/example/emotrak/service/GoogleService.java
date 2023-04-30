@@ -49,9 +49,6 @@ public class GoogleService {
         Map<String, String> tokens = getToken(code, scope);
         String accessToken = tokens.get("access_token");
         String refreshToken = tokens.get("refresh_token");
-        log.info("Access Token: {}", accessToken);
-        log.info("Refresh Token: {}", refreshToken);
-        log.info("서버로 요청");
         // 2. 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기
         OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
         // 3. 필요시에 회원가입
@@ -77,7 +74,6 @@ public class GoogleService {
         body.add("client_id", clientId);
         body.add("client_secret", clientSecret);
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/google");
-//        body.add("redirect_uri", "http://localhost:8080/google/callback");
         body.add("code", code);
         body.add("scope", scope); // 스코프 추가
         // HTTP 요청 보내기
@@ -94,7 +90,6 @@ public class GoogleService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        log.info("JSON Data: {}", jsonNode.toString());
         String accessToken = jsonNode.get("access_token").asText();
         String refreshToken = jsonNode.has("refresh_token") ? jsonNode.get("refresh_token").asText() : null;
 
@@ -222,7 +217,6 @@ public class GoogleService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to parse JSON", e);
         }
-
         return jsonNode.get("access_token").asText();
     }
 }

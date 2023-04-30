@@ -52,7 +52,6 @@ public class KakaoService {
 
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(kakaoUser, kakaoUser.getRole());
-        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto,response);
     }
 
@@ -84,7 +83,6 @@ public class KakaoService {
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
-        log.info("JSON Data: {}", jsonNode.toString());
         return jsonNode.get("access_token").asText();
     }
 
@@ -114,7 +112,6 @@ public class KakaoService {
         String email = jsonNode.get("kakao_account")
                 .get("email").asText();
 
-        log.info("카카오 사용자 정보: " + id + ", " + email);
         return new OauthUserInfoDto(String.valueOf(id), email, nickname);
     }
 
@@ -160,7 +157,6 @@ public class KakaoService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("카카오 연동해제 완료");
     }
 
     private boolean unlinkKakaoAccountApi(User user) {
@@ -180,7 +176,6 @@ public class KakaoService {
                 requestEntity,
                 String.class
         );
-
         return response.getStatusCode() == HttpStatus.OK;
     }
 
