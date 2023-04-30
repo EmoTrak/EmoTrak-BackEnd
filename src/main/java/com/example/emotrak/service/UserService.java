@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -256,7 +257,9 @@ public class UserService {
         commentRepository.deleteByUser(user.getId());
 
         // 내가 쓴 모든 게시글 그림 날리기
-        fileUploadService.deleteFiles(boardRepository.findImgUrlByUser(user));
+        List<String> imgList = boardRepository.findImgUrlByUser(user);
+        if (imgList.size() > 0) fileUploadService.deleteFiles(imgList);
+
         // 내가 쓴 모든 게시글 날리기
         boardRepository.deleteAllByUser(user.getId());
 
