@@ -84,7 +84,6 @@ public class FileUploadService {
             // CloudFront URL이 입력되면 S3 버킷 URL로 변경
             String s3Url = fileUrl.replace(target, replacemet);
             String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
-//            String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
         } catch (AmazonServiceException e) {
             // 권한이 없거나, S3 버킷이 없는 경우, S3 서비스가 다운되거나 요청이 제한되는 경우
@@ -118,9 +117,11 @@ public class FileUploadService {
 
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
-            e.printStackTrace();
-        } catch (SdkClientException e) {
-            e.printStackTrace();
+            throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
+        } catch (AmazonClientException e) {
+            throw new CustomException(CustomErrorCode.AWS_CLIENT_ERROR);
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.FILE_DELETION_ERROR);
         }
     }
 }
