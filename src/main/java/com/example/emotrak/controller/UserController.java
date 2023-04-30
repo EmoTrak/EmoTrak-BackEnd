@@ -1,5 +1,6 @@
 package com.example.emotrak.controller;
 
+import com.example.emotrak.entity.User;
 import com.example.emotrak.service.UserService;
 import com.example.emotrak.dto.user.*;
 import com.example.emotrak.exception.ResponseMessage;
@@ -35,8 +36,10 @@ public class UserController {
     @Tag(name = "Users")
     @Operation(summary = "닉네임 체크", description = "회원 가입에 필요한 닉네임을 체크합니다.")
     @PostMapping("/nick-check")
-    public ResponseEntity<?> signupNicknameCheck(@RequestBody CheckNicknameRequestDto checkNicknameRequestDto){
-        userService.signupNicknameCheck((checkNicknameRequestDto));
+    public ResponseEntity<?> signupNicknameCheck(@RequestBody CheckNicknameRequestDto checkNicknameRequestDto,
+                                                 @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails){
+        User user = (userDetails != null) ? userDetails.getUser() : null;
+        userService.signupNicknameCheck(checkNicknameRequestDto, user);
         return ResponseMessage.successResponse(HttpStatus.OK, "사용가능한 닉네임 입니다.", null);
 
     }
