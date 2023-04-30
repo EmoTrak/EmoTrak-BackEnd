@@ -175,7 +175,7 @@ public class UserService {
         // 닉네임 형식이 일치하는지 체크
         Pattern passPattern1 = Pattern.compile("^[ㄱ-ㅎ|가-힣|a-z|A-Z|\\d$@!%*#?&()^]{1,8}$");
         Matcher matcher = passPattern1.matcher(nicknameRequestDto.getNickname());
-        if(!matcher.find()) throw new CustomException(CustomErrorCode.DUPLICATE_NICKNAME);
+        if(!matcher.find()) throw new CustomException(CustomErrorCode.NOT_NICKNAME_PATTERN);
 
         // 유저 닉네임 업데이트 및 저장
         updateUser.nicknameUpdate(nicknameRequestDto.getNickname());
