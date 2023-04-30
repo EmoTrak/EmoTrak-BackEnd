@@ -33,6 +33,7 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
 
     @Query(value = " SELECT d.share AS share, d.user_id AS userId, d.id AS dailyId "
                  + "      , DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt "
+                 + "      , d.daily_year AS year, d.daily_month AS month, d.daily_day AS day "
                  + "      , d.emotion_id AS emotionId, d.star AS star, d.detail AS detail, d.img_url AS imgUrl "
                  + "      , IF(d.user_id = :userId, 'true', 'false') AS auth "
                  + "      , u.nickname AS nickname, l.count AS likeCount, d.has_restrict AS hasRestrict "
