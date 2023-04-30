@@ -23,7 +23,7 @@ public class AccountController {
     @ResponseBody
     public ResponseEntity<?> mailConfirm(@RequestBody CheckEmailRequestDto checkEmailRequestDto) throws Exception {
         String code = emailSendService.sendSimpleMessage(checkEmailRequestDto);
-        log.info("인증코드 : " + code);
+//        log.info("인증코드 : " + code);
         return ResponseMessage.successResponse(HttpStatus.OK, "이메일 인증 번호", code);
     }
 }
