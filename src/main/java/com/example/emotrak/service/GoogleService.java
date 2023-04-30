@@ -59,7 +59,6 @@ public class GoogleService {
         }
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(googleUser, googleUser.getRole());
-        log.info("JWT Access Token: {}", tokenDto.getAccessToken());
         validation.tokenToHeaders(tokenDto, response);
     }
 
@@ -161,14 +160,11 @@ public class GoogleService {
             throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
         }
         // 연동해제를 위한 구글 API 호출
-        boolean isUnlinked = unlinkGoogleAccountApi(accessToken);
-        if (!isUnlinked) {
-            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
-        }
+        unlinkGoogleAccountApi(accessToken);
     }
 
 
-    private boolean unlinkGoogleAccountApi(String accessToken) {
+    private void unlinkGoogleAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         // 액세스 토큰을 통해 API 호출
         UriComponentsBuilder builder = UriComponentsBuilder
@@ -178,12 +174,14 @@ public class GoogleService {
         RestTemplate rt = new RestTemplate();
         try {
             rt.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, String.class);
-            return true;
         } catch (HttpClientErrorException ex) {
             HttpStatus statusCode = ex.getStatusCode();
-            return statusCode == HttpStatus.UNAUTHORIZED || statusCode == HttpStatus.NOT_FOUND ? false : true;
+            if (statusCode != HttpStatus.UNAUTHORIZED && statusCode != HttpStatus.NOT_FOUND) {
+                throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
+            }
         }
     }
+
 
     // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
