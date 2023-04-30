@@ -49,8 +49,7 @@ public class FileUploadService {
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file.getInputStream(), objectMetadata);
             amazonS3.putObject(putObjectRequest);
             String s3Url = amazonS3.getUrl(bucketName, fileName).toString();
-            String cloudFrontUrl = s3Url.replace(target, replacemet);
-            return cloudFrontUrl;
+            return s3Url.replace(target, replacemet);
             // 출력 관련 예외로, 파일이나 네트워크와 같은 입출력 작업 중에 발생할 수 있는 예외
         } catch (IOException e) {
             throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
