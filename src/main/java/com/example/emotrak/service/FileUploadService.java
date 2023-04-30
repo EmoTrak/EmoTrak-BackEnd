@@ -2,9 +2,13 @@ package com.example.emotrak.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 //AWS S3를 사용하여 파일 업로드, 수정, 삭제를 수행하는 service Class
@@ -94,6 +100,27 @@ public class FileUploadService {
              */
             throw new CustomException(CustomErrorCode.FILE_DELETION_ERROR);
 
+        }
+    }
+
+    public void deleteFiles(List<String> fileUrlList) {
+        try {
+            ArrayList<KeyVersion> keys = new ArrayList<>();
+            for (String fileUrl : fileUrlList) {
+                String s3Url = fileUrl.replace(target, replacemet);
+                String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
+                keys.add(new KeyVersion(fileName));
+            }
+
+            DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
+                    .withKeys(keys)
+                    .withQuiet(false);
+
+            amazonS3.deleteObjects(multiObjectDeleteRequest);
+        } catch (AmazonServiceException e) {
+            e.printStackTrace();
+        } catch (SdkClientException e) {
+            e.printStackTrace();
         }
     }
 }
