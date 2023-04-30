@@ -42,6 +42,7 @@ public class UserService {
     private final GoogleService googleService;
     private final KakaoService kakaoService;
     private final NaverService naverService;
+    private final FileUploadService fileUploadService;
 
 
     // 회원가입
@@ -253,6 +254,9 @@ public class UserService {
         reportRepository.deleteByUserComment(user.getId());
         // 내가 쓴 게시글의 모든 댓글 날리기
         commentRepository.deleteByUser(user.getId());
+
+        // 내가 쓴 모든 게시글 그림 날리기
+        fileUploadService.deleteFiles(boardRepository.findImgUrlByUser(user));
         // 내가 쓴 모든 게시글 날리기
         boardRepository.deleteAllByUser(user.getId());
 
