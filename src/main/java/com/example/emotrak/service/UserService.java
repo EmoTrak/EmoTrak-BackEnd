@@ -116,11 +116,15 @@ public class UserService {
     }
 
 
-    public void signupNicknameCheck(CheckNicknameRequestDto checkNicknameRequestDto) {
+    public void signupNicknameCheck(CheckNicknameRequestDto checkNicknameRequestDto, User user) {
 
         // 닉네임이 비어있는지 체크
         if(checkNicknameRequestDto.getNickname().equals("")) throw new CustomException(CustomErrorCode.NICKNAME_BLANK);
 
+        // 유저가  null이 아닐 시 닉네임이 현재와 같은지 체크
+        if(user != null){
+            if(checkNicknameRequestDto.getNickname().equals(user.getNickname())) throw new CustomException(CustomErrorCode.SAME_NICKNAME);
+        }
         // 중복된 닉네임이 있는지 체크
         boolean isNickExist = userRepository.existsByNickname(checkNicknameRequestDto.getNickname());
         if(isNickExist){
