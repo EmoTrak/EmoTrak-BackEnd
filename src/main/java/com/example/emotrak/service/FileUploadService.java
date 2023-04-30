@@ -105,7 +105,6 @@ public class FileUploadService {
 
     public void deleteFiles(List<String> fileUrlList) {
         try {
-            // Upload three sample objects.
             ArrayList<KeyVersion> keys = new ArrayList<>();
             for (String fileUrl : fileUrlList) {
                 String s3Url = fileUrl.replace(target, replacemet);
@@ -113,20 +112,14 @@ public class FileUploadService {
                 keys.add(new KeyVersion(fileName));
             }
 
-            // Delete the sample objects.
             DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
                     .withKeys(keys)
                     .withQuiet(false);
 
-            // Verify that the objects were deleted successfully.
-            DeleteObjectsResult delObjRes = amazonS3.deleteObjects(multiObjectDeleteRequest);
+            amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process
-            // it, so it returned an error response.
             e.printStackTrace();
         } catch (SdkClientException e) {
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
             e.printStackTrace();
         }
     }
