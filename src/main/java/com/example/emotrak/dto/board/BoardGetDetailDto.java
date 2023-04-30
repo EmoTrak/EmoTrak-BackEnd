@@ -5,6 +5,9 @@ public interface BoardGetDetailDto {
     Long getUserId();
     Long getDailyId();
     String getCreatedAt();
+    int getYear();
+    int getMonth();
+    int getDay();
     Long getEmotionId();
     int getStar();
     String getDetail();

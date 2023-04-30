@@ -17,6 +17,9 @@ import java.util.List;
 public class BoardDetailResponseDto {
     private Long id;
     private String date;
+    private int year;
+    private int month;
+    private int day;
     private Long emoId;
     private int star;
     private String detail;
@@ -36,6 +39,9 @@ public class BoardDetailResponseDto {
     public BoardDetailResponseDto(BoardGetDetailDto boardGetDetailDto, Page<CommentDetailDto> commentDetailDtoPage) {
         this.id = boardGetDetailDto.getDailyId();
         this.date = boardGetDetailDto.getCreatedAt();
+        this.year = boardGetDetailDto.getYear();
+        this.month = boardGetDetailDto.getMonth();
+        this.day = boardGetDetailDto.getDay();
         this.emoId = boardGetDetailDto.getEmotionId();
         this.star = boardGetDetailDto.getStar();
         this.detail = boardGetDetailDto.getDetail();
