@@ -138,7 +138,7 @@ public class KakaoService {
                 // email: kakao email
                 String email = oauthUserInfo.getEmail();
 
-                String nickname = oauthUserInfo.getNickname();
+                String nickname = oauthUserInfo.getNickname().replace("_", "");
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
