@@ -60,7 +60,7 @@ public class CommentService {
 
     //중복메서드 정리 1
     private void validateComment(User user, Comment comment) {
-        if (comment.getUser().getId() != user.getId() && user.getRole() != ADMIN) {
+        if (!comment.getUser().getId().equals(user.getId()) && user.getRole() != ADMIN) {
             throw new CustomException(CustomErrorCode.NOT_AUTHOR);
         }
     }

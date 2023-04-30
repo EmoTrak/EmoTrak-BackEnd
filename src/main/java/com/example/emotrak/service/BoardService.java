@@ -184,7 +184,7 @@ public class BoardService {
         // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
         if (!(boardGetDetailDtoList.get().getShare()) &&
                 (user == null || !boardGetDetailDtoList.get().getUserId().equals(user.getId()))) {
-            throw new CustomException(CustomErrorCode.UNAUTHORIZED_ACCESS);
+            throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
         }
 
         Pageable pageable = PageRequest.of(page-1, 20);
