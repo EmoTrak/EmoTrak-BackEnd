@@ -165,7 +165,6 @@ public class GoogleService {
         if (!isUnlinked) {
             throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
         }
-        log.info("구글 연동해제 완료: userId={}", user.getId());
     }
 
 
@@ -182,10 +181,7 @@ public class GoogleService {
             return true;
         } catch (HttpClientErrorException ex) {
             HttpStatus statusCode = ex.getStatusCode();
-            if (statusCode != HttpStatus.UNAUTHORIZED && statusCode != HttpStatus.NOT_FOUND) {
-                log.error("구글 연동 해제 실패");
-            }
-            return false;
+            return statusCode == HttpStatus.UNAUTHORIZED || statusCode == HttpStatus.NOT_FOUND ? false : true;
         }
     }
 
