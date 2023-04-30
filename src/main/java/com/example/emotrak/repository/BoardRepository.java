@@ -1,13 +1,17 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.board.BoardGetDetailDto;
+import com.example.emotrak.dto.board.BoardImgRequestDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Daily, Long> {
 
@@ -23,21 +27,23 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
                                       @Param("month") int month,
                                       @Param("day") int day);
 
-    @Query(value = " SELECT d.share, d.user_id, d.id ,DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS created_at"
-            + "      , d.emotion_id, d.star, d.detail, d.img_url "
-            + "      , CASE WHEN d.user_id = :userId THEN true ELSE false END auth "
-            + "      , u.nickname, l.count, d.has_restrict, COALESCE(l2.has_like, false) has_like"
-            + "      , d.draw, COALESCE(r.has_report, false) has_report, c.count coment_count  "
-            + "   FROM daily d "
-            + "        JOIN users u ON d.user_id = u.id "
-            + "        JOIN (SELECT count(*) count FROM likes WHERE daily_id = :dailyId) l "
-            + "        JOIN (SELECT count(*) count FROM comment WHERE daily_id = :dailyId) c "
-            + "   LEFT JOIN (SELECT true has_like FROM likes WHERE daily_id = :dailyId AND user_id = :userId) l2 "
-            + "              ON l2.has_like IS NOT NULL "
-            + "   LEFT JOIN (SELECT true has_report FROM report WHERE daily_id = :dailyId AND user_id = :userId) r "
-            + "              ON r.has_report IS NOT NULL "
-            + "  WHERE d.id = :dailyId", nativeQuery = true)
-    List<Object[]> getDailyDetail (@Param("userId") Long userId, @Param("dailyId") Long dailyId);
+    @Query(value = " SELECT d.share AS share, d.user_id AS userId, d.id AS dailyId "
+                 + "      , DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt "
+                 + "      , d.emotion_id AS emotionId, d.star AS star, d.detail AS detail, d.img_url AS imgUrl "
+                 + "      , IF(d.user_id = :userId, 'true', 'false') AS auth "
+                 + "      , u.nickname AS nickname, l.count AS likeCount, d.has_restrict AS hasRestrict "
+                 + "      , IF(l2.has_like, 'true', 'false') AS hasLike, d.draw AS draw "
+                 + "      , IF(r.has_report, 'true', 'false') AS hasReport, c.count AS commentCount  "
+                 + "   FROM daily d "
+                 + "        JOIN users u ON d.user_id = u.id "
+                 + "        JOIN (SELECT count(*) count FROM likes WHERE daily_id = :dailyId) l "
+                 + "        JOIN (SELECT count(*) count FROM comment WHERE daily_id = :dailyId) c "
+                 + "   LEFT JOIN (SELECT true has_like FROM likes WHERE daily_id = :dailyId AND user_id = :userId) l2 "
+                 + "              ON l2.has_like IS NOT NULL "
+                 + "   LEFT JOIN (SELECT true has_report FROM report WHERE daily_id = :dailyId AND user_id = :userId) r "
+                 + "              ON r.has_report IS NOT NULL "
+                 + "  WHERE d.id = :dailyId", nativeQuery = true)
+    Optional<BoardGetDetailDto> getDailyDetail (@Param("userId") Long userId, @Param("dailyId") Long dailyId);
 
     @Modifying
     @Query(value = " DELETE FROM daily "
@@ -45,18 +51,18 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             , nativeQuery = true)
     void deleteAllByUser(@Param("userId") Long userId);
 
-    @Query(value = " SELECT d.id, d.img_url "
-            + "   FROM daily d"
-            + "  WHERE d.emotion_id in (:emo)"
+    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl)"
+            + "   FROM Daily d"
+            + "  WHERE d.emotion.id in (:emo)"
             + "    AND d.share = true "
-            + "  ORDER BY d.created_at desc ", nativeQuery = true)
-    List<Object[]> getBoardImagesRecent(@Param("emo") List<Long> emoList, Pageable pageable);
+            + "  ORDER BY d.createdAt desc ")
+    Page<BoardImgRequestDto> getBoardImagesRecent(@Param("emo") List<Long> emoList, Pageable pageable);
 
-    @Query(value = " SELECT d.id, d.img_url"
-            + "   FROM daily d left join likes l on d.id = l.daily_id"
-            + "  WHERE d.emotion_id in (:emo)"
+    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl)"
+            + "   FROM Daily d left join Likes l on d.id = l.daily.id"
+            + "  WHERE d.emotion.id in (:emo)"
             + "    AND d.share = true "
-            + "  GROUP BY d.id, d.img_url"
-            + "  ORDER BY count(l.daily_id)  desc, d.created_at desc", nativeQuery = true)
-    List<Object[]> getBoardImagesPopular(@Param("emo") List<Long> emoList, Pageable pageable);
+            + "  GROUP BY d.id, d.imgUrl"
+            + "  ORDER BY count(l.daily.id)  desc, d.createdAt desc")
+    Page<BoardImgRequestDto> getBoardImagesPopular(@Param("emo") List<Long> emoList, Pageable pageable);
 }
