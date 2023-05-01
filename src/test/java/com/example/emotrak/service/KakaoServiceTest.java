@@ -52,7 +52,7 @@ class KakaoServiceTest {
 
     @Nested
     @DisplayName("KakaoLogin")
-    class LoginKakao {
+    class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
         public void getTokenTest() throws JsonProcessingException {
