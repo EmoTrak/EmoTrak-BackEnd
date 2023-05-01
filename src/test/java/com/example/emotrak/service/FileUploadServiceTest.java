@@ -61,9 +61,7 @@ class FileUploadServiceTest {
         void uploadFile_success() {
             // given
             String originalFilename = "testFile.jpg";
-            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "This is a test file".getBytes());
-
-            when(amazonS3.putObject(any(PutObjectRequest.class))).thenReturn(null);
+            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "테스트 파일입니다".getBytes());
             when(amazonS3.getUrl(eq(bucketName), anyString())).thenAnswer(invocation -> {
                 String usedFilename = invocation.getArgument(1);
                 return new URL("http://" + target + "/" + bucketName + "/" + usedFilename);
@@ -86,13 +84,14 @@ class FileUploadServiceTest {
         @DisplayName("파일 업로드 실패 - IOException 테스트")
         void uploadFile_failure_ioException() {
             // given
-            String originalFilename = "testFile.txt";
-            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes()) {
+            String originalFilename = "testFile.jpg";
+            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "테스트 파일입니다".getBytes()) {
                 @Override
                 public InputStream getInputStream() throws IOException {
-                    throw new IOException("Test IOException");
+                    throw new IOException("IOException");
                 }
             };
+
             // when
             CustomException exception = assertThrows(CustomException.class, () -> fileUploadService.uploadFile(file));
 
@@ -105,9 +104,8 @@ class FileUploadServiceTest {
         @DisplayName("파일 업로드 실패 - AmazonServiceException 테스트")
         void uploadFile_failure_amazonServiceException() {
             // given
-            String originalFilename = "testFile.txt";
-            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes());
-
+            String originalFilename = "testFile.jpg";
+            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "테스트 파일입니다".getBytes());
             when(amazonS3.putObject(any(PutObjectRequest.class))).thenThrow(AmazonServiceException.class);
 
             // when
@@ -122,9 +120,8 @@ class FileUploadServiceTest {
         @DisplayName("파일 업로드 실패 - AmazonClientException 테스트")
         void uploadFile_failure_amazonClientException() {
             // given
-            String originalFilename = "testFile.txt";
-            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes());
-
+            String originalFilename = "testFile.jpg";
+            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "테스트 파일입니다".getBytes());
             when(amazonS3.putObject(any(PutObjectRequest.class))).thenThrow(AmazonClientException.class);
 
             // when
@@ -143,8 +140,8 @@ class FileUploadServiceTest {
         @DisplayName("파일 삭제 성공 테스트")
         void deleteFile_success() {
             // given
-            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.txt";
-            String expectedFilename = "testFile.txt";
+            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.jpg";
+            String expectedFilename = "testFile.jpg";
 
             // when
             fileUploadService.deleteFile(fileUrl);
@@ -155,50 +152,47 @@ class FileUploadServiceTest {
 
         @Test
         @DisplayName("파일 삭제 실패 - 기타 예외 테스트")
-        void deleteFile_failure_otherException() {
+        void deleteFile_failure_Exception() {
             // given
-            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.txt";
-
-            doThrow(RuntimeException.class).when(amazonS3).deleteObject(bucketName, "testFile.txt");
+            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.jpg";
+            doThrow(RuntimeException.class).when(amazonS3).deleteObject(bucketName, "testFile.jpg");
 
             // when
             CustomException exception = assertThrows(CustomException.class, () -> fileUploadService.deleteFile(fileUrl));
 
             // then
             assertEquals(CustomErrorCode.FILE_DELETION_ERROR, exception.getErrorCode());
-            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.txt");
+            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.jpg");
         }
 
         @Test
         @DisplayName("파일 삭제 실패 - AmazonServiceException 테스트")
         void deleteFile_failure_amazonServiceException() {
             // given
-            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.txt";
-
-            doThrow(AmazonServiceException.class).when(amazonS3).deleteObject(bucketName, "testFile.txt");
+            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.jpg";
+            doThrow(AmazonServiceException.class).when(amazonS3).deleteObject(bucketName, "testFile.jpg");
 
             // when
             CustomException exception = assertThrows(CustomException.class, () -> fileUploadService.deleteFile(fileUrl));
 
             // then
             assertEquals(CustomErrorCode.AWS_SERVICE_ERROR, exception.getErrorCode());
-            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.txt");
+            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.jpg");
         }
 
         @Test
         @DisplayName("파일 삭제 실패 - AmazonClientException 테스트")
         void deleteFile_failure_amazonClientException() {
             // given
-            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.txt";
-
-            doThrow(AmazonClientException.class).when(amazonS3).deleteObject(bucketName, "testFile.txt");
+            String fileUrl = "http://" + replacement + "/" + bucketName + "/testFile.jpg";
+            doThrow(AmazonClientException.class).when(amazonS3).deleteObject(bucketName, "testFile.jpg");
 
             // when
             CustomException exception = assertThrows(CustomException.class, () -> fileUploadService.deleteFile(fileUrl));
 
             // then
             assertEquals(CustomErrorCode.AWS_CLIENT_ERROR, exception.getErrorCode());
-            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.txt");
+            verify(amazonS3, times(1)).deleteObject(bucketName, "testFile.jpg");
         }
 
     }
@@ -212,10 +206,10 @@ class FileUploadServiceTest {
         void deleteFiles_success() {
             // given
             List<String> fileUrls = Arrays.asList(
-                    "http://" + replacement + "/" + bucketName + "/testFile1.txt",
-                    "http://" + replacement + "/" + bucketName + "/testFile2.txt"
+                    "http://" + replacement + "/" + bucketName + "/testFile1.jpg",
+                    "http://" + replacement + "/" + bucketName + "/testFile2.jpg"
             );
-            List<String> expectedFilenames = Arrays.asList("testFile1.txt", "testFile2.txt");
+            List<String> expectedFilenames = Arrays.asList("testFile1.jpg", "testFile2.jpg");
 
             // when
             fileUploadService.deleteFiles(fileUrls);
@@ -226,6 +220,7 @@ class FileUploadServiceTest {
             DeleteObjectsRequest capturedRequest = argumentCaptor.getValue();
 
             assertEquals(bucketName, capturedRequest.getBucketName());
+
             List<DeleteObjectsRequest.KeyVersion> capturedKeys = capturedRequest.getKeys();
             assertEquals(expectedFilenames.size(), capturedKeys.size());
 
@@ -233,33 +228,14 @@ class FileUploadServiceTest {
                 assertEquals(expectedFilenames.get(i), capturedKeys.get(i).getKey());
             }
         }
-//        void deleteFiles_success() {
-//            // given
-//            List<String> fileUrls = Arrays.asList(
-//                    "http://" + target + "/" + bucketName + "/file1.txt",
-//                    "http://" + target + "/" + bucketName + "/file2.txt"
-//            );
-//
-//            DeleteObjectsRequest expectedRequest = new DeleteObjectsRequest(bucketName)
-//                    .withKeys("file1.txt", "file2.txt")
-//                    .withQuiet(false);
-//
-//            when(amazonS3.deleteObjects(expectedRequest)).thenReturn(null);
-//
-//            // when
-//            fileUploadService.deleteFiles(fileUrls);
-//
-//            // then
-//            verify(amazonS3, times(1)).deleteObjects(expectedRequest);
-//        }
 
         @Test
         @DisplayName("다중 파일 삭제 실패 - 기타 예외 테스트")
         void deleteFiles_failure_otherException() {
             // given
             List<String> fileUrls = Arrays.asList(
-                    "http://" + replacement + "/" + bucketName + "/testFile1.txt",
-                    "http://" + replacement + "/" + bucketName + "/testFile2.txt"
+                    "http://" + replacement + "/" + bucketName + "/testFile1.jpg",
+                    "http://" + replacement + "/" + bucketName + "/testFile2.jpg"
             );
 
             doThrow(RuntimeException.class).when(amazonS3).deleteObjects(any(DeleteObjectsRequest.class));
@@ -277,8 +253,8 @@ class FileUploadServiceTest {
         void deleteFiles_failure_amazonServiceException() {
             // given
             List<String> fileUrls = Arrays.asList(
-                    "http://" + replacement + "/" + bucketName + "/testFile1.txt",
-                    "http://" + replacement + "/" + bucketName + "/testFile2.txt"
+                    "http://" + replacement + "/" + bucketName + "/testFile1.jpg",
+                    "http://" + replacement + "/" + bucketName + "/testFile2.jpg"
             );
 
             doThrow(AmazonServiceException.class).when(amazonS3).deleteObjects(any(DeleteObjectsRequest.class));
@@ -296,8 +272,8 @@ class FileUploadServiceTest {
         void deleteFiles_failure_amazonClientException() {
             // given
             List<String> fileUrls = Arrays.asList(
-                    "http://" + replacement + "/" + bucketName + "/testFile1.txt",
-                    "http://" + replacement + "/" + bucketName + "/testFile2.txt"
+                    "http://" + replacement + "/" + bucketName + "/testFile1.jpg",
+                    "http://" + replacement + "/" + bucketName + "/testFile2.jpg"
             );
 
             doThrow(AmazonClientException.class).when(amazonS3).deleteObjects(any(DeleteObjectsRequest.class));
