@@ -35,7 +35,7 @@ public class FileUploadService {
     private String target;
 
     @Value("${cloud.aws.cloudfront.replacement}")
-    private String replacemet;
+    private String replacement;
 
     //AWS SDK 를 사용하여 AWS S3에 파일을 업로드
     public String uploadFile(MultipartFile file) {
@@ -49,7 +49,7 @@ public class FileUploadService {
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file.getInputStream(), objectMetadata);
             amazonS3.putObject(putObjectRequest);
             String s3Url = amazonS3.getUrl(bucketName, fileName).toString();
-            return s3Url.replace(target, replacemet);
+            return s3Url.replace(target, replacement);
             // 출력 관련 예외로, 파일이나 네트워크와 같은 입출력 작업 중에 발생할 수 있는 예외
         } catch (IOException e) {
             throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
@@ -71,7 +71,7 @@ public class FileUploadService {
     public void deleteFile(String fileUrl) {
         try {
             // CloudFront URL이 입력되면 S3 버킷 URL로 변경
-            String s3Url = fileUrl.replace(target, replacemet);
+            String s3Url = fileUrl.replace(target, replacement);
             String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
         } catch (AmazonServiceException e) {
@@ -96,7 +96,7 @@ public class FileUploadService {
         try {
             ArrayList<KeyVersion> keys = new ArrayList<>();
             for (String fileUrl : fileUrlList) {
-                String s3Url = fileUrl.replace(target, replacemet);
+                String s3Url = fileUrl.replace(target, replacement);
                 String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
                 keys.add(new KeyVersion(fileName));
             }
