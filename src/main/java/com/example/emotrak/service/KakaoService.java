@@ -54,14 +54,12 @@ public class KakaoService {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
         // HTTP Body 생성
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
         body.add("client_id", KakaoClientId);
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
         body.add("code", code);
-
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =
                 new HttpEntity<>(body, headers);
@@ -72,7 +70,6 @@ public class KakaoService {
                 kakaoTokenRequest,
                 String.class
         );
-
         // HTTP 응답 (JSON) -> 액세스 토큰 파싱
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -86,7 +83,6 @@ public class KakaoService {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
         RestTemplate rt = new RestTemplate();
@@ -96,7 +92,6 @@ public class KakaoService {
                 kakaoUserInfoRequest,
                 String.class
         );
-
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
@@ -105,7 +100,6 @@ public class KakaoService {
                 .get("nickname").asText();
         String email = jsonNode.get("kakao_account")
                 .get("email").asText();
-
         return new OauthUserInfoDto(String.valueOf(id), email, nickname);
     }
 
@@ -125,19 +119,14 @@ public class KakaoService {
                 kakaoUser = kakaoUser.kakaoIdUpdate(kakaoId);
             } else {
                 // 신규 회원가입
-                // password: random UUID
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
-
-                // email: kakao email
                 String email = oauthUserInfo.getEmail();
-
                 String nickname = oauthUserInfo.getNickname().replace("_", "");
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
-
                 kakaoUser = new User(encodedPassword, email, nickname, kakaoId, null, null, UserRoleEnum.USER);
             }
             userRepository.save(kakaoUser);
@@ -145,6 +134,7 @@ public class KakaoService {
         return kakaoUser;
     }
 
+    // 카카오 연동해제
     public void unlinkKakao(User user) {
         // 연동해제를 위한 카카오 API 호출
         boolean isUnlinked = unlinkKakaoAccountApi(user);

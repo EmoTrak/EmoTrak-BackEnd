@@ -133,15 +133,12 @@ public class GoogleService {
             } else {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
-
                 String email = oauthUserInfo.getEmail();
-
                 String nickname = oauthUserInfo.getNickname().replace("_", "");
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
-
                 googleUser = new User(encodedPassword, email, nickname, null, null, googleId, UserRoleEnum.USER);
             }
             userRepository.save(googleUser);
@@ -149,6 +146,7 @@ public class GoogleService {
         return googleUser;
     }
 
+    //구글 연동해제
     public void unlinkGoogle(User user) {
         // DB에서 사용자의 리프레시 토큰 가져오기
         String refreshToken = user.getGoogleRefresh();
@@ -160,7 +158,6 @@ public class GoogleService {
         // 연동해제를 위한 구글 API 호출
         unlinkGoogleAccountApi(accessToken);
     }
-
 
     private void unlinkGoogleAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -179,7 +176,6 @@ public class GoogleService {
             }
         }
     }
-
 
     // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
