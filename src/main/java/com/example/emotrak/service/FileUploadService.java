@@ -103,12 +103,12 @@ public class FileUploadService {
             }
 
             DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
+                    .withKeys(keys)
                     /* quiet 모드가 활성화되면 (즉, withQuiet(true)로 설정되면),
                      * S3는 삭제 작업의 결과로 삭제된 객체에 대한 세부 정보를 반환하지 않습니다.
                      * 수많은 객체를 삭제할 때 결과에 대한 정보를 받지 않으면 처리 속도가 향상되기 때문에
                      * 대량 삭제 작업 시에 유용할 수 있습니다
                      */
-                    .withKeys(keys)
                     .withQuiet(true);
 
             amazonS3.deleteObjects(multiObjectDeleteRequest);
