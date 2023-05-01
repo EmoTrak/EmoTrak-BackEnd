@@ -60,8 +60,8 @@ class FileUploadServiceTest {
         @DisplayName("파일 업로드 성공 테스트")
         void uploadFile_success() {
             // given
-            String originalFilename = "testFile.txt";
-            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes());
+            String originalFilename = "testFile.jpg";
+            MockMultipartFile file = new MockMultipartFile("file", originalFilename, "image/jpg", "This is a test file".getBytes());
 
             when(amazonS3.putObject(any(PutObjectRequest.class))).thenReturn(null);
             when(amazonS3.getUrl(eq(bucketName), anyString())).thenAnswer(invocation -> {
@@ -77,14 +77,14 @@ class FileUploadServiceTest {
             verify(amazonS3, times(1)).getUrl(eq(bucketName), stringArgumentCaptor.capture());
 
             String generatedFilename = stringArgumentCaptor.getValue();
-            assertTrue(generatedFilename.matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_testFile.txt$"));
+            assertTrue(generatedFilename.matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_testFile.jpg$"));
 
             assertEquals("http://" + replacement + "/" + bucketName + "/" + generatedFilename, uploadedUrl);
         }
 
         @Test
         @DisplayName("파일 업로드 실패 - IOException 테스트")
-        void uploadFile_failure_ioException() throws IOException {
+        void uploadFile_failure_ioException() {
             // given
             String originalFilename = "testFile.txt";
             MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes()) {
@@ -103,7 +103,7 @@ class FileUploadServiceTest {
 
         @Test
         @DisplayName("파일 업로드 실패 - AmazonServiceException 테스트")
-        void uploadFile_failure_amazonServiceException() throws IOException {
+        void uploadFile_failure_amazonServiceException() {
             // given
             String originalFilename = "testFile.txt";
             MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes());
@@ -120,7 +120,7 @@ class FileUploadServiceTest {
 
         @Test
         @DisplayName("파일 업로드 실패 - AmazonClientException 테스트")
-        void uploadFile_failure_amazonClientException() throws IOException {
+        void uploadFile_failure_amazonClientException() {
             // given
             String originalFilename = "testFile.txt";
             MockMultipartFile file = new MockMultipartFile("file", originalFilename, "text/plain", "This is a test file".getBytes());
