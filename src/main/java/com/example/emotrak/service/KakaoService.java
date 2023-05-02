@@ -12,7 +12,6 @@ import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +23,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class KakaoService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
@@ -36,6 +34,13 @@ public class KakaoService {
 
     @Value("${kakao_admin_key}")
     private String KakaoAdminKey;
+
+    public KakaoService(PasswordEncoder passwordEncoder, UserRepository userRepository, TokenProvider tokenProvider, Validation validation) {
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.tokenProvider = tokenProvider;
+        this.validation = validation;
+    }
 
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
