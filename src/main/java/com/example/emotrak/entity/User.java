@@ -1,7 +1,6 @@
 package com.example.emotrak.entity;
 
 import lombok.*;
-
 import javax.persistence.*;
 
 @Getter
@@ -83,15 +82,6 @@ public class User {
     public User passwordUpdate(String password) {
         this.password = password;
         return this;
-    }
-    public User updateHasSocial(boolean hasSocial) {
-        this.hasSocial = hasSocial;
-        return this;
-    }
-
-    public boolean hasAdmin() {
-        // 관리자 권한을 확인하는 로직을 작성합니다.
-        return this.role == UserRoleEnum.ADMIN;
     }
 
     public void updateNaverRefresh(String refreshToken) {

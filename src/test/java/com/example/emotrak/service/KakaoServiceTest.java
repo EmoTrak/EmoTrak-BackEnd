@@ -67,51 +67,11 @@ class KakaoServiceTest {
     class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
-        public void getTokenTest() throws JsonProcessingException {
-//            // 테스트 데이터를 설정합니다.
-//            String code = "testCode";
-//
-//            // 인가 코드로 받은 액세스 토큰과 사용자 정보를 미리 설정합니다.
-//            String accessToken = "testAccessToken";
-//            OauthUserInfoDto userInfo = new OauthUserInfoDto("12345", "testEmail", "testNickname");
-//
-//            // UserRepository가 중복된 사용자가 없는 경우를 가정합니다.
-//            User newUser = new User("encodedPassword", "testEmail", "testNickname", 12345L, null, null, UserRoleEnum.USER);
-//            when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
-//            when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-//            when(userRepository.existsByNickname(anyString())).thenReturn(false);
-//            when(userRepository.getUniqueNameSuffix(anyString())).thenReturn(0L);
-//
-//            // HttpServletResponse 객체를 생성합니다.
-//            HttpServletResponse httpServletResponse = mock(HttpServletResponse.class);
-//
-//            // HttpServletRequest 객체를 생성합니다.
-//            HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-//            when(httpServletRequest.getParameter("code")).thenReturn(code);
-//
-//            // 카카오 API 호출에 대한 Mock을 설정합니다.
-//            HttpHeaders expectedHeaders = new HttpHeaders();
-//            expectedHeaders.setBearerAuth(accessToken);
-//            expectedHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-//            String expectedResponseBody = "{\"id\":12345,\"properties\":{\"nickname\":\"testNickname\"},\"kakao_account\":{\"email\":\"testEmail\"}}";
-//            when(restTemplate.exchange(eq("https://kapi.kakao.com/v2/user/me"), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
-//                    .thenReturn(new ResponseEntity<>(expectedResponseBody, HttpStatus.OK));
-//
-//            // 카카오 로그인을 시도합니다.
-//            kakaoService.kakaoLogin(code, httpServletResponse);
-//
-//
-//            // 요청과 응답에 대한 Mock 검증을 수행합니다.
-//            verify(restTemplate, times(1)).exchange(eq("https://kauth.kakao.com/oauth/token"), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
-//            verify(restTemplate, times(1)).exchange(eq("https://kapi.kakao.com/v2/user/me"), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
-//            verify(userRepository, times(1)).findByKakaoId(anyLong());
-//            verify(userRepository, times(1)).findByEmail(anyString());
-//            verify(userRepository, times(1)).save(newUser);
-//            verify(validation, times(1)).tokenToHeaders(any(TokenDto.class), eq(httpServletResponse));
+        public void testKakaoLogin() {
+
         }
 
-
-    @Test
+        @Test
         @DisplayName("카카오 API 호출 실패")
         public void testKakaoApiFailure() {
 
@@ -140,7 +100,6 @@ class KakaoServiceTest {
         public void testDuplicateEmailAndNickname() {
 
         }
-
 
         @Test
         @DisplayName("액세스 토큰을 받지 못한 경우")
