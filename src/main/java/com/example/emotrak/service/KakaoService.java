@@ -51,7 +51,7 @@ public class KakaoService {
         User kakaoUser = registerKakaoUserIfNeeded(oauthUserInfo);
         // 4. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(kakaoUser, kakaoUser.getRole());
-        validation.tokenToHeaders(tokenDto,response);
+        validation.tokenToHeaders(tokenDto, response);
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -139,16 +139,8 @@ public class KakaoService {
         return kakaoUser;
     }
 
-    // 카카오 연동해제
+    // 카카오 연동해제를 위한 카카오 API 호출 (AdminKey 를 이용한 연동해제 적용)
     public void unlinkKakao(User user) {
-        // 연동해제를 위한 카카오 API 호출
-        boolean isUnlinked = unlinkKakaoAccountApi(user);
-        if (!isUnlinked) {
-            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
-        }
-    }
-
-    private boolean unlinkKakaoAccountApi(User user) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", KakaoAdminKey); // 여기를 수정
@@ -165,7 +157,9 @@ public class KakaoService {
                 requestEntity,
                 String.class
         );
-        return response.getStatusCode() == HttpStatus.OK;
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new CustomException(CustomErrorCode.OAUTH_UNLINK_FAILED);
+        }
     }
 
 }
