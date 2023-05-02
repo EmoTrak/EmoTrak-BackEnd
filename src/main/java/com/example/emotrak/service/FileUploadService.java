@@ -2,10 +2,8 @@ package com.example.emotrak.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion;
@@ -110,7 +108,6 @@ public class FileUploadService {
                      * 대량 삭제 작업 시에 유용할 수 있습니다
                      */
                     .withQuiet(true);
-
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
             throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
