@@ -2,7 +2,6 @@ package com.example.emotrak.service;
 
 import com.example.emotrak.dto.report.ReportHistoryDto;
 import com.example.emotrak.dto.report.ReportResponseDto;
-
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.Report;
 import com.example.emotrak.exception.CustomErrorCode;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,6 @@ import java.util.List;
 public class AdminService {
     private final AdminRepository adminRepository;
     private final BoardRepository boardRepository;
-
     private final LikesRepository likesRepository;
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;

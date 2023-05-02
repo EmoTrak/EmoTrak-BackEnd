@@ -17,11 +17,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
 @Service
@@ -85,43 +83,37 @@ public class BoardService {
         if (daily.getImgUrl() != null) {
             fileUploadService.deleteFile(daily.getImgUrl());
         }
-
         // 댓글 좋아요 날리기
         likesRepository.deleteCommentLike(daily.getId());
-
         // 댓글 신고 날리기
         reportRepository.deleteCommentByDaily(daily.getId());
-
         // 댓글 날리기
         commentRepository.deleteByDaily(daily.getId());
-
         // 게시글 좋아요 날리기
         likesRepository.deleteBoardLike(daily.getId());
-
         // 게시글 신고 날리기
         reportRepository.deleteAllByDaily(daily);
-
         // 데이터베이스에서 Daily 객체 삭제
         boardRepository.delete(daily);
     }
 
-    //예외처리
+    // 예외처리 1
     public void validateImage(MultipartFile image) {
         if (!allowedImageContentTypes.contains(image.getContentType())) {
             throw new CustomException(CustomErrorCode.INVALID_FILE_TYPE);
         }
     }
-
+    // 예외처리 2
     private Daily findDailyById(Long dailyId) {
         return boardRepository.findById(dailyId)
                 .orElseThrow(() -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND));
     }
-
+    // 예외처리 3
     private Emotion findEmotionById(Long emotionId) {
         return emotionRepository.findById(emotionId)
                 .orElseThrow(() -> new CustomException(CustomErrorCode.CONTENT_NOT_FOUND));
     }
-
+    // 이미지처리 메소드
     private String handleImage(MultipartFile image, String currentImageUrl, boolean deleteImg) {
         String newImageUrl = currentImageUrl;
         //deleteImg 가 true(이미지삭제요청)인 경우 기존 이미지 삭제
