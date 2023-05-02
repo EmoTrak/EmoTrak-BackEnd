@@ -19,14 +19,14 @@ import java.util.List;
 public class DailyService {
     private final DailyRepository dailyRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public DailyResponseDto getDailyMonth(int year, int month, User user) {
         List<DailyMonthResponseDto> dailyMonthResponseDtoList
                 = dailyRepository.getDailyMonth(year, month, user.getId());
         return new DailyResponseDto(year, month, dailyMonthResponseDtoList);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public DailyResponseDto getDailyDetail(Long dailyId, User user) {
         Daily daily = getDaily(dailyId);
         if (!daily.getUser().getId().equals(user.getId())) {
