@@ -4,7 +4,6 @@ import com.example.emotrak.dto.comment.CommentRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import javax.persistence.*;
 
 @Setter
