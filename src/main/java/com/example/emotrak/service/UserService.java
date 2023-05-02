@@ -5,20 +5,16 @@ import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.repository.RefreshTokenRepository;
 import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.repository.*;
-
 import com.example.emotrak.entity.RefreshToken;
 import com.example.emotrak.jwt.Validation;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
