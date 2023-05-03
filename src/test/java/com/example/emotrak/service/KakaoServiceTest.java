@@ -1,6 +1,7 @@
 package com.example.emotrak.service;
 
 import com.example.emotrak.dto.user.OauthUserInfoDto;
+import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.jwt.TokenProvider;
@@ -15,8 +16,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class KakaoServiceTest {
@@ -55,74 +67,46 @@ class KakaoServiceTest {
     class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
-        public void getTokenTest() throws JsonProcessingException {
+        public void testKakaoLogin() {
 
         }
 
         @Test
-        public void getKakaoUserInfoTest() throws JsonProcessingException {
+        @DisplayName("카카오 API 호출 실패")
+        public void testKakaoApiFailure() {
 
         }
 
         @Test
-        public void registerKakaoUserIfNeededTest_newUser() {
-//        // Given
-//        OauthUserInfoDto oauthUserInfo = new OauthUserInfoDto("12345", "email@example.com", "nickname");
-//
-//        when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
-//        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-//        when(passwordEncoder.encode(anyString())).thenReturn("encoded_password");
-//        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0, User.class));
-//
-//        // When
-//        User result = kakaoService.registerKakaoUserIfNeeded(oauthUserInfo);
-//
-//        // Then
-//        assertNotNull(result);
-//        assertEquals(oauthUserInfo.getEmail(), result.getEmail());
-//        assertEquals(Long.valueOf(oauthUserInfo.getId()), result.getKakaoId());
+        @DisplayName("중복된 Kakao Id를 가진 사용자가 존재하는 경우")
+        public void testExistingUserWithSameKakaoId() {
+
         }
 
         @Test
-        public void registerKakaoUserIfNeededTest_existingUserWithoutKakaoId() {
-//        // Given
-//        OauthUserInfoDto oauthUserInfo = new OauthUserInfoDto("12345", "email@example.com", "nickname");
-//        User existingUser = new User("password", "email@example.com", "nickname", null, null, null, UserRoleEnum.USER);
-//
-//        when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
-//        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(existingUser));
-//        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0, User.class));
-//
-//        // When
-//        User result = kakaoService.registerKakaoUserIfNeeded(oauthUserInfo);
-//
-//        // Then
-//        assertNotNull(result);
-//        assertEquals(oauthUserInfo.getEmail(), result.getEmail());
-//        assertEquals(Long.valueOf(oauthUserInfo.getId()), result.getKakaoId());
+        @DisplayName("유효하지 않은 인가 코드")
+        public void testInvalidCode() {
+
         }
 
         @Test
-        public void registerKakaoUserIfNeededTest_existingUserWithKakaoId() {
-//        // Given
-//        OauthUserInfoDto oauthUserInfo = new OauthUserInfoDto("12345", "email@example.com", "nickname");
-//        User existingUser = new User("password", "email@example.com", "nickname", 12345L, null, null, UserRoleEnum.USER);
-//
-//        when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.of(existingUser));
-//
-//        // When
-//        User result = kakaoService.registerKakaoUserIfNeeded(oauthUserInfo);
-//
-//        // Then
-//        assertNotNull(result);
-//        assertEquals(oauthUserInfo.getEmail(), result.getEmail());
-//        assertEquals(Long.valueOf(oauthUserInfo.getId()), result.getKakaoId());
+        @DisplayName("이메일이 없는 경우")
+        public void testNoEmail() {
+
         }
 
         @Test
-        public void kakaoLoginTest() throws JsonProcessingException {
+        @DisplayName("중복된 이메일 또는 닉네임이 이미 존재하는 경우")
+        public void testDuplicateEmailAndNickname() {
 
         }
 
+        @Test
+        @DisplayName("액세스 토큰을 받지 못한 경우")
+        public void testNoAccessToken() {
+
+        }
     }
+
+
 }

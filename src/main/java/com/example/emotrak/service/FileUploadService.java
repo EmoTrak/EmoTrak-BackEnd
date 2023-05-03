@@ -2,20 +2,16 @@ package com.example.emotrak.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +19,6 @@ import java.util.UUID;
 
 //AWS S3를 사용하여 파일 업로드, 수정, 삭제를 수행하는 service Class
 @Service
-@RequiredArgsConstructor
 public class FileUploadService {
 
     private final AmazonS3 amazonS3;
@@ -36,6 +31,8 @@ public class FileUploadService {
 
     @Value("${cloud.aws.cloudfront.replacement}")
     private String replacement;
+
+    public FileUploadService(AmazonS3 amazonS3) {this.amazonS3 = amazonS3;}
 
     //AWS SDK 를 사용하여 AWS S3에 파일을 업로드
     public String uploadFile(MultipartFile file) {
@@ -110,7 +107,6 @@ public class FileUploadService {
                      * 대량 삭제 작업 시에 유용할 수 있습니다
                      */
                     .withQuiet(true);
-
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
             throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);
