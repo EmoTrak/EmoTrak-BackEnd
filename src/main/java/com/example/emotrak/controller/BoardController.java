@@ -66,8 +66,10 @@ public class BoardController {
     public ResponseEntity<?> getBoardImages(@RequestParam(value = "page", defaultValue = "1") int page
                                           , @RequestParam(value = "size", defaultValue = "10") int size
                                           , @RequestParam(value = "emo", defaultValue = "1,2,3,4,5,6") String emo
-                                          , @RequestParam(value = "sort", defaultValue = "recent") String sort) {
-        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo, sort));
+                                          , @RequestParam(value = "sort", defaultValue = "recent") String sort
+                                          , @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        User user = (userDetails != null) ? userDetails.getUser() : null;
+        return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", boardService.getBoardImages(page, size, emo, sort, user));
     }
 
     @Tag(name = "Board")

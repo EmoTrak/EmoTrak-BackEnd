@@ -318,9 +318,9 @@ class BoardServiceTest {
         void GetDailyRecent() {
             // given
             List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl"));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl"));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl"));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
 
             Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
 
@@ -333,7 +333,7 @@ class BoardServiceTest {
             Mockito.when(boardRepository.getBoardImagesRecent(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
 
             // when
-            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent");
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent", user);
 
             assertEquals(boardImgPageRequestDto.isLastPage(), true);
             assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
@@ -344,9 +344,9 @@ class BoardServiceTest {
         void GetDailyPopular() {
             // given
             List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl"));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl"));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl"));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
 
             Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
 
@@ -359,7 +359,7 @@ class BoardServiceTest {
             Mockito.when(boardRepository.getBoardImagesPopular(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
 
             // when
-            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular");
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular", user);
 
             assertEquals(boardImgPageRequestDto.isLastPage(), true);
             assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);

@@ -56,18 +56,24 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             , nativeQuery = true)
     void deleteAllByUser(@Param("userId") Long userId);
 
-    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl)"
+    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl, d.user.nickname, d.emotion.id)"
             + "   FROM Daily d"
             + "  WHERE d.emotion.id in (:emo)"
             + "    AND d.share = true "
             + "  ORDER BY d.createdAt desc ")
     Page<BoardImgRequestDto> getBoardImagesRecent(@Param("emo") List<Long> emoList, Pageable pageable);
 
-    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl)"
+    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl, d.user.nickname, d.emotion.id)"
             + "   FROM Daily d left join Likes l on d.id = l.daily.id"
             + "  WHERE d.emotion.id in (:emo)"
             + "    AND d.share = true "
             + "  GROUP BY d.id, d.imgUrl"
             + "  ORDER BY count(l.daily.id)  desc, d.createdAt desc")
     Page<BoardImgRequestDto> getBoardImagesPopular(@Param("emo") List<Long> emoList, Pageable pageable);
+
+    @Query(value = " SELECT new com.example.emotrak.dto.board.BoardImgRequestDto(d.id, d.imgUrl, d.user.nickname, d.emotion.id)"
+            + "   FROM Daily d"
+            + "  WHERE d.user.id = :userId"
+            + "  ORDER BY d.createdAt desc")
+    Page<BoardImgRequestDto> getBoardImagesMine(Long userId, Pageable pageable);
 }
