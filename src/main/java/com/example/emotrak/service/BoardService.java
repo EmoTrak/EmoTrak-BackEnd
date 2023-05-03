@@ -148,15 +148,26 @@ public class BoardService {
 
     // 공유게시판 전체조회(이미지)
     @Transactional(readOnly = true)
-    public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort) {
+    public BoardImgPageRequestDto getBoardImages(int page, int size, String emo, String sort, User user) {
         Stream<String> stringStream = Arrays.stream(emo.split(","));
         List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
         Pageable pageable = PageRequest.of(page-1, size);
 
         Page<BoardImgRequestDto> boardImgRequestDtoList;
-        if (sort.equals("recent")) boardImgRequestDtoList = boardRepository.getBoardImagesRecent(emoList, pageable);
-        else boardImgRequestDtoList = boardRepository.getBoardImagesPopular(emoList, pageable);
+        switch (sort)
+        {
+            case "recent":
+                boardImgRequestDtoList = boardRepository.getBoardImagesRecent(emoList, pageable);
+                break;
+            case "popular":
+                boardImgRequestDtoList = boardRepository.getBoardImagesPopular(emoList, pageable);
+                break;
+            default:
+                Long userId = (user == null ? 0L : user.getId());
+                boardImgRequestDtoList = boardRepository.getBoardImagesMine(userId, pageable);
+                break;
+        }
 
         return new BoardImgPageRequestDto(boardImgRequestDtoList);
     }

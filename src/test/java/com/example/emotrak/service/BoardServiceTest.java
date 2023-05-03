@@ -1,5 +1,7 @@
 package com.example.emotrak.service;
 
+import com.example.emotrak.dto.board.BoardImgPageRequestDto;
+import com.example.emotrak.dto.board.BoardImgRequestDto;
 import com.example.emotrak.dto.board.BoardRequestDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
@@ -15,10 +17,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -301,6 +310,61 @@ class BoardServiceTest {
 
     }
 
+    @Nested
+    @DisplayName("공유게시판 전체 조회")
+    class getBoardImages {
+        @Test
+        @DisplayName("최신순 조회")
+        void GetDailyRecent() {
+            // given
+            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+            String emo = "1,2,3,4,5,6";
+            Stream<String> stringStream = Arrays.stream(emo.split(","));
+            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+
+            // Mocking repository
+            Pageable pageable = PageRequest.of(0, 20);
+            Mockito.when(boardRepository.getBoardImagesRecent(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+
+            // when
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent", user);
+
+            assertEquals(boardImgPageRequestDto.isLastPage(), true);
+            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+        }
+
+        @Test
+        @DisplayName("인기순 조회")
+        void GetDailyPopular() {
+            // given
+            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+            String emo = "1,2,3,4,5,6";
+            Stream<String> stringStream = Arrays.stream(emo.split(","));
+            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+
+            // Mocking repository
+            Pageable pageable = PageRequest.of(0, 20);
+            Mockito.when(boardRepository.getBoardImagesPopular(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+
+            // when
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular", user);
+
+            assertEquals(boardImgPageRequestDto.isLastPage(), true);
+            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+        }
+    }
 
 //    @Nested
 //    @DisplayName("공유게시판 조회")
