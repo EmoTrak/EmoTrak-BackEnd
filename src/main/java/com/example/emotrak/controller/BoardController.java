@@ -64,7 +64,7 @@ public class BoardController {
     @Operation(summary = "공유게시판 전체 조회", description = "이미지")
     @GetMapping("/boards")
     public ResponseEntity<?> getBoardImages(@RequestParam(value = "page", defaultValue = "1") int page
-                                          , @RequestParam(value = "size", defaultValue = "10") int size
+                                          , @RequestParam(value = "size", defaultValue = "24") int size
                                           , @RequestParam(value = "emo", defaultValue = "1,2,3,4,5,6") String emo
                                           , @RequestParam(value = "sort", defaultValue = "recent") String sort
                                           , @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {

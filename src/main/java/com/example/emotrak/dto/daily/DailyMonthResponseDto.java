@@ -15,5 +15,6 @@ public class DailyMonthResponseDto {
     private int day;
     private Long emoId;
     private String detail;
+    private String imgUrl;
 
 }
