@@ -20,6 +20,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.util.UUID;
 
 @Service
@@ -42,6 +43,7 @@ public class KakaoService {
         this.validation = validation;
     }
 
+    @Transactional
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code);

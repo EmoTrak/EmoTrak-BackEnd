@@ -20,6 +20,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -44,6 +45,7 @@ public class NaverService {
         this.validation = validation;
     }
 
+    @Transactional
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
         Map<String, String> tokens = getToken(code, state);
