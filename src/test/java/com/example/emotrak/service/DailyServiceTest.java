@@ -63,12 +63,12 @@ class DailyServiceTest {
         public void a_getDailyMonth() {
             // given
             List<DailyMonthResponseDto> dailyMonthResponseDtoList = new ArrayList<>();
-            DailyMonthResponseDto daily1 = new DailyMonthResponseDto(1L, 1, 1L, "내용입니다.");
-            DailyMonthResponseDto daily2 = new DailyMonthResponseDto(2L, 1, 2L, "내용입니다.");
-            DailyMonthResponseDto daily3 = new DailyMonthResponseDto(3L, 2, 3L, "내용입니다.");
-            DailyMonthResponseDto daily4 = new DailyMonthResponseDto(4L, 2, 4L, "내용입니다.");
-            DailyMonthResponseDto daily5 = new DailyMonthResponseDto(5L, 3, 5L, "내용입니다.");
-            DailyMonthResponseDto daily6 = new DailyMonthResponseDto(6L, 3, 6L, "내용입니다.");
+            DailyMonthResponseDto daily1 = new DailyMonthResponseDto(1L, 1, 1L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily2 = new DailyMonthResponseDto(2L, 1, 2L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily3 = new DailyMonthResponseDto(3L, 2, 3L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily4 = new DailyMonthResponseDto(4L, 2, 4L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily5 = new DailyMonthResponseDto(5L, 3, 5L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily6 = new DailyMonthResponseDto(6L, 3, 6L, "내용입니다.", "imgUrl");
             dailyMonthResponseDtoList.add(daily1);
             dailyMonthResponseDtoList.add(daily2);
             dailyMonthResponseDtoList.add(daily3);
