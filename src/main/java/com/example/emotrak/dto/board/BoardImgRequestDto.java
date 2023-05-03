@@ -12,5 +12,7 @@ import lombok.Setter;
 public class BoardImgRequestDto {
     private Long Id;
     private String imgUrl;
+    private String nickname;
+    private Long emoId;
 
 }

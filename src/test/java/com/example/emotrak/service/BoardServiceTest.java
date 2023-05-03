@@ -1,5 +1,7 @@
 package com.example.emotrak.service;
 
+import com.example.emotrak.dto.board.BoardImgPageRequestDto;
+import com.example.emotrak.dto.board.BoardImgRequestDto;
 import com.example.emotrak.dto.board.BoardRequestDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
@@ -15,11 +17,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -57,20 +65,7 @@ class BoardServiceTest {
         boardRequestDto = new BoardRequestDto(false, 2023, 4, 22, 1L, 5, "저는 테스트입니다.", true, false);
         emotion = new Emotion(1L, "기쁨", 1);
         emotion.setId(1L);
-        daily = Daily.builder()
-                .id(1L)
-                .user(user)
-                .emotion(emotion)
-                .dailyYear(2023)
-                .dailyMonth(4)
-                .dailyDay(22)
-                .detail("저는 테스트입니다.")
-                .star(5)
-                .imgUrl("imgUrl")
-                .share(true)
-                .hasRestrict(false)
-                .draw(false)
-                .build();
+        daily = new Daily("imgUrl", boardRequestDto, user, emotion);
         daily.setId(1L);
         reportRequestDto = new ReportRequestDto("신고합니다.");
         List<String> allowedImageContentTypes = Arrays.asList("image/jpeg", "image/png", "image/gif");
@@ -175,20 +170,12 @@ class BoardServiceTest {
         @DisplayName("감정글이 제한 상태이고 공유 상태인 경우 수정 불가")
         void updateRestrictedAndSharedPost() {
             // given
-            Daily restrictedSharedDaily = Daily.builder()
-                    .id(1L)
-                    .user(user)
-                    .emotion(emotion)
-                    .dailyYear(2023)
-                    .dailyMonth(4)
-                    .dailyDay(22)
-                    .detail("저는 테스트입니다.")
-                    .star(5)
-                    .imgUrl("imgUrl")
-                    .share(true)
-                    .hasRestrict(true)
-                    .draw(false)
-                    .build();
+            Long id = 1L;
+            BoardRequestDto boardRequestDtoWithRestrictions = new BoardRequestDto(false, 2023, 4, 22, 1L, 5, "저는 테스트입니다.", true, false);
+            Daily restrictedSharedDaily = new Daily("imgUrl", boardRequestDtoWithRestrictions, user, emotion);
+            restrictedSharedDaily.setId(1L);
+            restrictedSharedDaily.setShare(true);
+            restrictedSharedDaily.setHasRestrict(true);
             when(boardRepository.findById(anyLong())).thenReturn(Optional.of(restrictedSharedDaily));
             // when, then
             assertThrows(CustomException.class, () -> boardService.updateDaily(restrictedSharedDaily.getId(), boardRequestDto, user, validImage));
@@ -323,6 +310,61 @@ class BoardServiceTest {
 
     }
 
+    @Nested
+    @DisplayName("공유게시판 전체 조회")
+    class getBoardImages {
+        @Test
+        @DisplayName("최신순 조회")
+        void GetDailyRecent() {
+            // given
+            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+            String emo = "1,2,3,4,5,6";
+            Stream<String> stringStream = Arrays.stream(emo.split(","));
+            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+
+            // Mocking repository
+            Pageable pageable = PageRequest.of(0, 20);
+            Mockito.when(boardRepository.getBoardImagesRecent(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+
+            // when
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent", user);
+
+            assertEquals(boardImgPageRequestDto.isLastPage(), true);
+            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+        }
+
+        @Test
+        @DisplayName("인기순 조회")
+        void GetDailyPopular() {
+            // given
+            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+            String emo = "1,2,3,4,5,6";
+            Stream<String> stringStream = Arrays.stream(emo.split(","));
+            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+
+            // Mocking repository
+            Pageable pageable = PageRequest.of(0, 20);
+            Mockito.when(boardRepository.getBoardImagesPopular(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+
+            // when
+            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular", user);
+
+            assertEquals(boardImgPageRequestDto.isLastPage(), true);
+            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+        }
+    }
 
 //    @Nested
 //    @DisplayName("공유게시판 조회")
@@ -564,20 +606,9 @@ class BoardServiceTest {
         void createReport() {
             // given
             Long id = 1L;
-            Daily sharedDaily = Daily.builder()
-                    .id(id)
-                    .user(user)
-                    .emotion(emotion)
-                    .dailyYear(2023)
-                    .dailyMonth(4)
-                    .dailyDay(22)
-                    .detail("저는 테스트입니다.")
-                    .star(5)
-                    .imgUrl("imgUrl")
-                    .share(true)
-                    .hasRestrict(false)
-                    .draw(false)
-                    .build();
+            Daily sharedDaily = new Daily("imgUrl",
+                    new BoardRequestDto(false, 2023, 4, 22, 1L, 5, "저는 테스트입니다.", true, false),
+                    user, emotion);
             sharedDaily.setId(id);
             ReportRequestDto reportRequestDto = new ReportRequestDto("신고 사유");
             when(boardRepository.findById(daily.getId())).thenReturn(Optional.of(daily));

@@ -28,106 +28,104 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class DailyServiceTest {
-    @Nested     // 테스트 코드를 작성하고 확인을 했을 때 눈에 잘 보일 수 있게 계층구조로 보여줌
-    @DisplayName("달력 조회")  // 설정대로 보임
-    class getDaily {
-        @InjectMocks
-        private DailyService dailyService;
-        @Mock
-        private DailyRepository dailyRepository;
+    @InjectMocks
+    private DailyService dailyService;
+    @Mock
+    private DailyRepository dailyRepository;
 
-        private int year;
-        private int month;
-        private User user = new User();
-        private Long dailyId;
-        private Emotion emotion = new Emotion();
-        private BoardRequestDto boardRequestDto;
-        private Daily daily;
+    private int year;
+    private int month;
+    private User user = new User();
+    private Long dailyId;
+    private Emotion emotion = new Emotion();
+    private BoardRequestDto boardRequestDto;
+    private Daily daily;
 
-        @BeforeEach
-        void setup() {
-            year = 2022;
-            month = 3;
-            user.setId(1L);
-            emotion.setId(1L);
-            boardRequestDto = new BoardRequestDto(
-                    true, year, month, 1,
-                    1L, 5, "오늘은 기분이 좋았어요!",
-                    true, false
-            );
-            daily = new Daily("", boardRequestDto, user, emotion);
-        }
+    @BeforeEach
+    void setup() {
+        year = 2022;
+        month = 3;
+        user.setId(1L);
+        emotion.setId(1L);
+        boardRequestDto = new BoardRequestDto(
+                true, year, month, 1,
+                1L, 5, "오늘은 기분이 좋았어요!",
+                true, false
+        );
+        daily = new Daily("", boardRequestDto, user, emotion);
+    }
 
-        @Nested
+    @Nested
+    @DisplayName("월별 내역 조회")
+    class getDailyMonth {
+        @Test
         @DisplayName("성공 케이스")
-        class a_getDailySuccess {
-            @Test
-            @DisplayName("월별 내역 조회")
-            public void getDailyMonth() {
-                // given
-                List<DailyMonthResponseDto> dailyMonthResponseDtoList = new ArrayList<>();
-                DailyMonthResponseDto daily1 = new DailyMonthResponseDto(1L, 1, 1L, "내용입니다.");
-                DailyMonthResponseDto daily2 = new DailyMonthResponseDto(2L, 1, 2L, "내용입니다.");
-                DailyMonthResponseDto daily3 = new DailyMonthResponseDto(3L, 2, 3L, "내용입니다.");
-                DailyMonthResponseDto daily4 = new DailyMonthResponseDto(4L, 2, 4L, "내용입니다.");
-                DailyMonthResponseDto daily5 = new DailyMonthResponseDto(5L, 3, 5L, "내용입니다.");
-                DailyMonthResponseDto daily6 = new DailyMonthResponseDto(6L, 3, 6L, "내용입니다.");
-                dailyMonthResponseDtoList.add(daily1);
-                dailyMonthResponseDtoList.add(daily2);
-                dailyMonthResponseDtoList.add(daily3);
-                dailyMonthResponseDtoList.add(daily4);
-                dailyMonthResponseDtoList.add(daily5);
-                dailyMonthResponseDtoList.add(daily6);
+        public void a_getDailyMonth() {
+            // given
+            List<DailyMonthResponseDto> dailyMonthResponseDtoList = new ArrayList<>();
+            DailyMonthResponseDto daily1 = new DailyMonthResponseDto(1L, 1, 1L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily2 = new DailyMonthResponseDto(2L, 1, 2L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily3 = new DailyMonthResponseDto(3L, 2, 3L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily4 = new DailyMonthResponseDto(4L, 2, 4L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily5 = new DailyMonthResponseDto(5L, 3, 5L, "내용입니다.", "imgUrl");
+            DailyMonthResponseDto daily6 = new DailyMonthResponseDto(6L, 3, 6L, "내용입니다.", "imgUrl");
+            dailyMonthResponseDtoList.add(daily1);
+            dailyMonthResponseDtoList.add(daily2);
+            dailyMonthResponseDtoList.add(daily3);
+            dailyMonthResponseDtoList.add(daily4);
+            dailyMonthResponseDtoList.add(daily5);
+            dailyMonthResponseDtoList.add(daily6);
 
-                // Mocking repository
-                Mockito.when(dailyRepository.getDailyMonth(year, month, user.getId())).thenReturn(dailyMonthResponseDtoList);
+            // Mocking repository
+            Mockito.when(dailyRepository.getDailyMonth(year, month, user.getId())).thenReturn(dailyMonthResponseDtoList);
 
-                // when
-                DailyResponseDto dailyResponseDto = dailyService.getDailyMonth(year, month, user);
+            // when
+            DailyResponseDto dailyResponseDto = dailyService.getDailyMonth(year, month, user);
 
-                // then
-                assertEquals(dailyResponseDto.getYear(), year);
-                assertEquals(dailyResponseDto.getMonth(), month);
-                assertEquals(dailyResponseDto.getContents(), dailyMonthResponseDtoList);
-            }
-
-            @Test
-            @DisplayName("일별 내역 조회")
-            public void b_getDailyDetail() {
-                // given
-                List<DailyDetailResponseDto> dailyDetailResponseDtoList = new ArrayList<>();
-                DailyDetailResponseDto daily1 = new DailyDetailResponseDto(1L, 1, 1L, 1, "내용입니다.", "", true, false, false);
-                DailyDetailResponseDto daily2 = new DailyDetailResponseDto(2L, 1, 2L, 2, "내용입니다.", "", true, false, false);
-                DailyDetailResponseDto daily3 = new DailyDetailResponseDto(3L, 1, 3L, 3, "내용입니다.", "", true, false, false);
-                DailyDetailResponseDto daily4 = new DailyDetailResponseDto(4L, 1, 4L, 4, "내용입니다.", "", true, false, false);
-                DailyDetailResponseDto daily5 = new DailyDetailResponseDto(5L, 1, 5L, 5, "내용입니다.", "", true, false, false);
-                DailyDetailResponseDto daily6 = new DailyDetailResponseDto(6L, 1, 6L, 1, "내용입니다.", "", true, false, false);
-                dailyDetailResponseDtoList.add(daily1);
-                dailyDetailResponseDtoList.add(daily2);
-                dailyDetailResponseDtoList.add(daily3);
-                dailyDetailResponseDtoList.add(daily4);
-                dailyDetailResponseDtoList.add(daily5);
-                dailyDetailResponseDtoList.add(daily6);
-
-                // Mocking repository
-                Mockito.when(dailyRepository.findById(dailyId)).thenReturn(Optional.of(daily));
-                Mockito.when(dailyRepository.getDailyDetail(dailyId)).thenReturn(dailyDetailResponseDtoList);
-
-                // when
-                DailyResponseDto dailyResponseDto = dailyService.getDailyDetail(dailyId, user);
-
-                // then
-                assertEquals(dailyResponseDto.getYear(), year);
-                assertEquals(dailyResponseDto.getMonth(), month);
-                assertEquals(dailyResponseDto.getContents(), dailyDetailResponseDtoList);
-            }
+            // then
+            assertEquals(dailyResponseDto.getYear(), year);
+            assertEquals(dailyResponseDto.getMonth(), month);
+            assertEquals(dailyResponseDto.getContents(), dailyMonthResponseDtoList);
         }
+    }
+    @Nested
+    @DisplayName("일별 내역 조회")
+    class getDailyDetail {
+        @Test
+        @DisplayName("성공 케이스")
+        public void b_getDailyDetail() {
+            // given
+            List<DailyDetailResponseDto> dailyDetailResponseDtoList = new ArrayList<>();
+            DailyDetailResponseDto daily1 = new DailyDetailResponseDto(1L, 1, 1L, 1, "내용입니다.", "", true, false, false);
+            DailyDetailResponseDto daily2 = new DailyDetailResponseDto(2L, 1, 2L, 2, "내용입니다.", "", true, false, false);
+            DailyDetailResponseDto daily3 = new DailyDetailResponseDto(3L, 1, 3L, 3, "내용입니다.", "", true, false, false);
+            DailyDetailResponseDto daily4 = new DailyDetailResponseDto(4L, 1, 4L, 4, "내용입니다.", "", true, false, false);
+            DailyDetailResponseDto daily5 = new DailyDetailResponseDto(5L, 1, 5L, 5, "내용입니다.", "", true, false, false);
+            DailyDetailResponseDto daily6 = new DailyDetailResponseDto(6L, 1, 6L, 1, "내용입니다.", "", true, false, false);
+            dailyDetailResponseDtoList.add(daily1);
+            dailyDetailResponseDtoList.add(daily2);
+            dailyDetailResponseDtoList.add(daily3);
+            dailyDetailResponseDtoList.add(daily4);
+            dailyDetailResponseDtoList.add(daily5);
+            dailyDetailResponseDtoList.add(daily6);
 
+            // Mocking repository
+            Mockito.when(dailyRepository.findById(dailyId)).thenReturn(Optional.of(daily));
+            Mockito.when(dailyRepository.getDailyDetail(dailyId)).thenReturn(dailyDetailResponseDtoList);
+
+            // when
+            DailyResponseDto dailyResponseDto = dailyService.getDailyDetail(dailyId, user);
+
+            // then
+            assertEquals(dailyResponseDto.getYear(), year);
+            assertEquals(dailyResponseDto.getMonth(), month);
+            assertEquals(dailyResponseDto.getContents(), dailyDetailResponseDtoList);
+        }
         @Nested
         @DisplayName("실패 케이스")
         class getDailyFail {
             @Test
-            @DisplayName("일별 내역 조회 - 실패 케이스 (게시물을 찾을 수 없음)")
+            @DisplayName("게시물을 찾을 수 없음")
             public void c_getDailyDetailFail1() {
                 // given
                 dailyId = 2L;
@@ -142,7 +140,7 @@ class DailyServiceTest {
             }
 
             @Test
-            @DisplayName("일별 내역 조회 - 실패 케이스 (권한이 없음)")
+            @DisplayName("권한이 없음")
             public void d_getDailyDetailFail2() {
                 // given
                 User user2 = new User();

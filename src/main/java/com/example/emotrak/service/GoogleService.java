@@ -12,8 +12,6 @@ import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,9 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class GoogleService {
 
     private final UserRepository userRepository;
@@ -44,8 +40,15 @@ public class GoogleService {
     @Value("${google_client_secret}")
     private String clientSecret;
 
+    public GoogleService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider, Validation validation) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenProvider = tokenProvider;
+        this.validation = validation;
+    }
+
     public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
-        // 1. "인가 코드"로 "액세스 토큰" 요청
+        // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
         Map<String, String> tokens = getToken(code, scope);
         String accessToken = tokens.get("access_token");
         String refreshToken = tokens.get("refresh_token");
@@ -53,7 +56,7 @@ public class GoogleService {
         OauthUserInfoDto oauthUserInfo = getGoogleUserInfo(accessToken);
         // 3. 필요시에 회원가입
         User googleUser = registerGoogleUserIfNeeded(oauthUserInfo);
-        // 4. 사용자 엔티티에 리프레시 토큰 저장
+        // 4. 사용자 엔티티에 리프레시 토큰 저장 (연동해제를 위해 DB 저장, 구글은 최초 1회 리프레시 토큰 발급)
         if (refreshToken != null) {
             googleUser.updateGoogleRefresh(refreshToken);
         }
@@ -62,7 +65,7 @@ public class GoogleService {
         validation.tokenToHeaders(tokenDto, response);
     }
 
-    // 1. "인가 코드"로 "액세스 토큰" 요청
+    // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
     private Map<String, String> getToken(String code, String scope) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
@@ -85,7 +88,7 @@ public class GoogleService {
                 tokenRequest,
                 String.class
         );
-        // HTTP 응답 (JSON) -> 액세스 토큰 파싱
+        // HTTP 응답 (JSON) -> 액세스 토큰 & 리프레시 토큰 파싱
         String responseBody = response.getBody();
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
@@ -123,6 +126,7 @@ public class GoogleService {
         return new OauthUserInfoDto(id, email, nickname);
     }
 
+    // 3. 필요시에 회원가입
     private User registerGoogleUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
         String googleId = oauthUserInfo.getId();
         User googleUser = userRepository.findByGoogleId(googleId).orElse(null);
@@ -135,15 +139,12 @@ public class GoogleService {
             } else {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
-
                 String email = oauthUserInfo.getEmail();
-
                 String nickname = oauthUserInfo.getNickname().replace("_", "");
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
-
                 googleUser = new User(encodedPassword, email, nickname, null, null, googleId, UserRoleEnum.USER);
             }
             userRepository.save(googleUser);
@@ -151,8 +152,9 @@ public class GoogleService {
         return googleUser;
     }
 
+    //구글 연동해제
     public void unlinkGoogle(User user) {
-        // DB에서 사용자의 리프레시 토큰 가져오기
+        // DB 에서 사용자의 리프레시 토큰 가져오기
         String refreshToken = user.getGoogleRefresh();
         // 리프레시 토큰을 사용하여 액세스 토큰 갱신
         String accessToken = refreshAccessToken(refreshToken);
@@ -163,7 +165,7 @@ public class GoogleService {
         unlinkGoogleAccountApi(accessToken);
     }
 
-
+    // 연동해제를 위한 구글 API 호출
     private void unlinkGoogleAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         // 액세스 토큰을 통해 API 호출
@@ -182,7 +184,6 @@ public class GoogleService {
         }
     }
 
-
     // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -196,21 +197,23 @@ public class GoogleService {
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(
-                "https://oauth2.googleapis.com/token",
-                HttpMethod.POST,
-                request,
-                String.class
-        );
-
-        // 응답에서 액세스 토큰 추출
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode;
         try {
-            jsonNode = objectMapper.readTree(response.getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse JSON", e);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    "https://oauth2.googleapis.com/token",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode jsonNode = objectMapper.readTree(response.getBody());
+                return jsonNode.get("access_token").asText();
+            }
+            return null;
+        } catch (Exception e) {
+            return null;
         }
-        return jsonNode.get("access_token").asText();
     }
+
 }

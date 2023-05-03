@@ -2,15 +2,12 @@ package com.example.emotrak.entity;
 
 import com.example.emotrak.dto.board.BoardRequestDto;
 import lombok.*;
-
 import javax.persistence.*;
-import java.util.List;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @Entity
-@Builder
 @AllArgsConstructor
 public class Daily extends Timestamped {
 
@@ -52,10 +49,6 @@ public class Daily extends Timestamped {
 
     @Column(nullable = false)
     private boolean draw;
-
-    public Daily(Long id) {
-        this.id = id;
-    }
 
     //생성자
     public Daily(String imageUrl, BoardRequestDto boardRequestDto, User user, Emotion emotion) {

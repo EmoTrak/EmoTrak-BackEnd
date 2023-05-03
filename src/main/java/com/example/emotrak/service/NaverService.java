@@ -12,9 +12,7 @@ import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,9 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class NaverService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,6 +37,13 @@ public class NaverService {
     @Value("${naver_client_secret}")
     private String clientSecret;
 
+    public NaverService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider, Validation validation) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenProvider = tokenProvider;
+        this.validation = validation;
+    }
+
     public void naverLogin(String code, String state, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
         Map<String, String> tokens = getToken(code, state);
@@ -50,7 +53,7 @@ public class NaverService {
         OauthUserInfoDto oauthUserInfo = getNaverUserInfo(accessToken);
         // 3. 필요시에 회원가입
         User naverUser = registerNaverUserIfNeeded(oauthUserInfo);
-        // 4. 사용자 엔티티에 리프레시 토큰 저장
+        // 4. 사용자 엔티티에 리프레시 토큰 저장 (연동해제를 위해 DB 저장)
         naverUser.updateNaverRefresh(refreshToken);
         // 5. JWT 토큰 반환
         TokenDto tokenDto = tokenProvider.generateTokenDto(naverUser, naverUser.getRole());
@@ -69,7 +72,6 @@ public class NaverService {
         body.add("redirect_uri", "https://emotrak.vercel.app/oauth/naver");
         body.add("code", code);
         body.add("state", state);
-
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
@@ -93,6 +95,7 @@ public class NaverService {
         return tokens;
 
     }
+
     // 2. 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기
     private OauthUserInfoDto getNaverUserInfo(String accessToken) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
@@ -112,11 +115,13 @@ public class NaverService {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(responseBody);
         JsonNode responseNode = jsonNode.get("response");
-        String id = responseNode.get("id").asText(); // 변경된 부분
+        String id = responseNode.get("id").asText(); // 변경된 부분(네이버의 경우 id 가 Long 값이다)
         String email = responseNode.get("email").asText();
         String nickname = responseNode.get("nickname").asText();
         return new OauthUserInfoDto(id, email, nickname);
     }
+
+    // 3. 필요시에 회원가입
     private User registerNaverUserIfNeeded (OauthUserInfoDto oauthUserInfo) {
         String naverId = oauthUserInfo.getId();
         User naverUser = userRepository.findByNaverId(naverId).
@@ -130,15 +135,12 @@ public class NaverService {
             } else {
                 String password = UUID.randomUUID().toString();
                 String encodedPassword = passwordEncoder.encode(password);
-
                 String email = oauthUserInfo.getEmail();
-
                 String nickname = oauthUserInfo.getNickname();
                 boolean hasNickname = userRepository.existsByNickname(nickname);
                 if (hasNickname) {
                     nickname = oauthUserInfo.getNickname() + "_" + userRepository.getUniqueNameSuffix(nickname);
                 }
-
                 naverUser = new User(encodedPassword, email, nickname, null, naverId, null, UserRoleEnum.USER);
             }
             userRepository.save(naverUser);
@@ -146,10 +148,11 @@ public class NaverService {
         return naverUser;
     }
 
+    // 네이버 연동해제
     public void unlinkNaver(User user) {
-        // DB에서 사용자의 리프레시 토큰 가져오기
+        // DB 에서 사용자의 리프레시 토큰 가져오기
         String refreshToken = user.getNaverRefresh();
-        // 리프레시 토큰을 사용하여 액세스 토큰 갱신
+        // 리프레시 토큰을 사용하여 액세스 토큰 갱신 (네이버의 경우 엑세스토큰이 유효하지 않더라도 success 를 반환)
         String accessToken = refreshAccessToken(refreshToken);
         if (accessToken == null) {
             throw new CustomException(CustomErrorCode.INVALID_OAUTH_TOKEN);
@@ -161,6 +164,7 @@ public class NaverService {
         }
     }
 
+    // 연동해제를 위한 네이버 API 호출
     private boolean unlinkNaverAccountApi(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -180,14 +184,13 @@ public class NaverService {
                 requestEntity,
                 String.class
         );
-
         return response.getStatusCode() == HttpStatus.OK;
     }
 
     // 리프레시 토큰을 사용하여 액세스 토큰 갱신
     private String refreshAccessToken(String refreshToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "refresh_token");
@@ -195,24 +198,21 @@ public class NaverService {
         body.add("client_secret", clientSecret);
         body.add("refresh_token", refreshToken);
 
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
-
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        RestTemplate restTemplate = new RestTemplate();
         try {
-            ResponseEntity<String> response = rt.exchange(
+            ResponseEntity<String> response = restTemplate.exchange(
                     "https://nid.naver.com/oauth2.0/token",
                     HttpMethod.POST,
-                    requestEntity,
+                    request,
                     String.class
             );
-
             if (response.getStatusCode() == HttpStatus.OK) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNode = objectMapper.readTree(response.getBody());
                 return jsonNode.get("access_token").asText();
             }
             return null;
-
         } catch (Exception e) {
             return null;
         }

@@ -2,20 +2,16 @@ package com.example.emotrak.service;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest.KeyVersion;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +19,6 @@ import java.util.UUID;
 
 //AWS S3를 사용하여 파일 업로드, 수정, 삭제를 수행하는 service Class
 @Service
-@RequiredArgsConstructor
 public class FileUploadService {
 
     private final AmazonS3 amazonS3;
@@ -35,7 +30,9 @@ public class FileUploadService {
     private String target;
 
     @Value("${cloud.aws.cloudfront.replacement}")
-    private String replacemet;
+    private String replacement;
+
+    public FileUploadService(AmazonS3 amazonS3) {this.amazonS3 = amazonS3;}
 
     //AWS SDK 를 사용하여 AWS S3에 파일을 업로드
     public String uploadFile(MultipartFile file) {
@@ -48,8 +45,9 @@ public class FileUploadService {
             //AmazonS3 객체를 사용, putObject 메서드를 호출하여 파일을 업로드
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, fileName, file.getInputStream(), objectMetadata);
             amazonS3.putObject(putObjectRequest);
+            // S3 버킷 URL 을 문자열로 변환하여 s3Url 변수에 저장 후 CloudFront url 로 변경하여 반환
             String s3Url = amazonS3.getUrl(bucketName, fileName).toString();
-            return s3Url.replace(target, replacemet);
+            return s3Url.replace(target, replacement);
             // 출력 관련 예외로, 파일이나 네트워크와 같은 입출력 작업 중에 발생할 수 있는 예외
         } catch (IOException e) {
             throw new CustomException(CustomErrorCode.FILE_UPLOAD_ERROR);
@@ -70,8 +68,8 @@ public class FileUploadService {
     //s3파일삭제
     public void deleteFile(String fileUrl) {
         try {
-            // CloudFront URL이 입력되면 S3 버킷 URL로 변경
-            String s3Url = fileUrl.replace(target, replacemet);
+            // CloudFront URL 이 입력되면 S3 버킷 URL 로 변경
+            String s3Url = fileUrl.replace(target, replacement);
             String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
             amazonS3.deleteObject(bucketName, fileName);
         } catch (AmazonServiceException e) {
@@ -96,15 +94,19 @@ public class FileUploadService {
         try {
             ArrayList<KeyVersion> keys = new ArrayList<>();
             for (String fileUrl : fileUrlList) {
-                String s3Url = fileUrl.replace(target, replacemet);
+                String s3Url = fileUrl.replace(target, replacement);
                 String fileName = s3Url.substring(s3Url.lastIndexOf("/") + 1);
                 keys.add(new KeyVersion(fileName));
             }
 
             DeleteObjectsRequest multiObjectDeleteRequest = new DeleteObjectsRequest(bucketName)
                     .withKeys(keys)
-                    .withQuiet(false);
-
+                    /* quiet 모드가 활성화되면 (즉, withQuiet(true)로 설정되면),
+                     * S3는 삭제 작업의 결과로 삭제된 객체에 대한 세부 정보를 반환하지 않습니다.
+                     * 수많은 객체를 삭제할 때 결과에 대한 정보를 받지 않으면 처리 속도가 향상되기 때문에
+                     * 대량 삭제 작업 시에 유용할 수 있습니다
+                     */
+                    .withQuiet(true);
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         } catch (AmazonServiceException e) {
             throw new CustomException(CustomErrorCode.AWS_SERVICE_ERROR);

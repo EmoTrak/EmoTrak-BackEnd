@@ -13,9 +13,7 @@ import com.example.emotrak.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
-
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
 @Service
@@ -47,13 +45,10 @@ public class CommentService {
     public void deleteComment(Long commentId, User user) {
         Comment comment = findCommentById(commentId);
         validateComment(user, comment);
-
         // 댓글 좋아요 날리기
         likesRepository.deleteAllByComment(comment);
-
         // 댓글 신고 날리기
         reportRepository.deleteAllByComment(comment);
-
         // 댓글 날리기
         commentRepository.delete(comment);
     }
