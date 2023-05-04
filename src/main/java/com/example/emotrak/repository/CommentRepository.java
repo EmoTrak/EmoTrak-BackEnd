@@ -28,7 +28,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "ORDER BY c.createdAt ASC")
     /* 매 페이지마다 전체 결과를 정렬한 뒤에 해당 페이지에 맞는 결과를 반환하는 방식으로 동작.
      * 이는 전체 결과가 매우 큰 경우에는 매우 비효율적, 따라서 페이징과 관련하여 불필요한 정렬 작업을 피하기 위해서,
-     * createdAt 필드에 인덱스를 추가*/
+     * createdAt 필드에 인덱스를 추가
+     * */
     Page<CommentDetailResponseDto> findAllCommentDetailResponseDtoByDailyAndUser(@Param("daily") Daily daily,
                                                                                 @Param("user") User user,
                                                                                        Pageable pageable);
