@@ -112,8 +112,8 @@ public class KakaoService {
 
     // 3. 필요시에 회원가입
     private User registerKakaoUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
-        // DB 에 중복된 Kakao Id 가 있는지 확인
-        Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String을 Long으로 변환
+        // DB 에 중복된 KakaoId 가 있는지 확인
+        Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String 을 Long 으로 변환
         User kakaoUser = userRepository.findByKakaoId(kakaoId)
                 .orElse(null);
         if (kakaoUser == null) {
