@@ -29,7 +29,13 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
     @Query("select d.imgUrl from Daily d where d.user = :user")
     List<String> findImgUrlByUser(@Param("user") User user);
 
-    @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(d, u, COUNT(l), COUNT(userLikes), COUNT(r), (SELECT COUNT(c) FROM Comment c WHERE c.daily = d)) " +
+    @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(" +
+            "d, " +
+            "u, " +
+            "COUNT(l), " +
+            "COUNT(userLikes), " +
+            "COUNT(r), " +
+            "(SELECT COUNT(c) FROM Comment c WHERE c.daily = d)) " +
             "FROM Daily d " +
             "LEFT JOIN users u ON u = :user " +
             "LEFT JOIN Likes l ON l.daily = d " +
@@ -37,7 +43,8 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             "LEFT JOIN Report r ON r.daily = d AND r.user = :user " +
             "WHERE d.id = :id " +
             "GROUP BY d, u")
-    BoardDetailResponseDto findBoardDetailResponseDtoByIdAndUser(@Param("id") Long id, @Param("user") User user);
+    BoardDetailResponseDto findBoardDetailResponseDtoByIdAndUser(@Param("id") Long id,
+                                                                @Param("user") User user);
 
     @Modifying
     @Query(value = " DELETE FROM daily "
