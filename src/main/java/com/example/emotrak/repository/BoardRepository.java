@@ -26,7 +26,6 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
                                       @Param("year") int year,
                                       @Param("month") int month,
                                       @Param("day") int day);
-
     @Query("select d.imgUrl from Daily d where d.user = :user")
     List<String> findImgUrlByUser(@Param("user") User user);
 
