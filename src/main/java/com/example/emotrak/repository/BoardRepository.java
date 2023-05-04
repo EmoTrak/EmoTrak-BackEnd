@@ -39,12 +39,6 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             "GROUP BY d, u")
     BoardDetailResponseDto findBoardDetailResponseDtoByIdAndUser(@Param("id") Long id, @Param("user") User user);
 
-
-
-
-
-
-
     @Modifying
     @Query(value = " DELETE FROM daily "
             + "  WHERE user_id = :userId"

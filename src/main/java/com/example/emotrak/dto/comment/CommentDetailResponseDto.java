@@ -18,7 +18,7 @@ public class CommentDetailResponseDto {
     private Long id;
     private String comment;
     private String createdAt;
-    private boolean hasAuth;
+    private boolean hasAuth; // 로그인을 안 했을 경우에는 false, 로그인을 했을 경우 해당 글의 작성자와 로그인한 사용자가 같은 경우에는 true
     private String nickname;
     private int likesCnt;
     private boolean hasLike;
@@ -38,6 +38,5 @@ public class CommentDetailResponseDto {
         this.hasLike = userLikesCnt > 0;
         this.hasReport = reportCnt > 0;
     }
-
 
 }

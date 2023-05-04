@@ -23,7 +23,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "ORDER BY c.createdAt ASC")
     Page<CommentDetailResponseDto> findAllCommentDetailResponseDtoByDailyAndUser(@Param("daily") Daily daily, @Param("user") User user, Pageable pageable);
 
-
     @Modifying
     @Query(value = " DELETE FROM comment "
                  + "  WHERE user_id = :userId"

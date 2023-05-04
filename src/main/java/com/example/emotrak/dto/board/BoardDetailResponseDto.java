@@ -62,5 +62,4 @@ public class BoardDetailResponseDto {
         this.totalComments = (int) totalComments;
     }
 
-
 }
