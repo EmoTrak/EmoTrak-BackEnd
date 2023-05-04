@@ -1,6 +1,6 @@
 package com.example.emotrak.repository;
 
-import com.example.emotrak.dto.board.BoardGetDetailDto;
+import com.example.emotrak.dto.board.BoardDetailResponseDto;
 import com.example.emotrak.dto.board.BoardImgRequestDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.User;
@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.util.List;
-import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Daily, Long> {
 
@@ -31,24 +31,16 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
     List<String> findImgUrlByUser(@Param("user") User user);
 
 
-    @Query(value = " SELECT d.share AS share, d.user_id AS userId, d.id AS dailyId "
-                 + "      , DATE_FORMAT(d.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt "
-                 + "      , d.daily_year AS year, d.daily_month AS month, d.daily_day AS day "
-                 + "      , d.emotion_id AS emotionId, d.star AS star, d.detail AS detail, d.img_url AS imgUrl "
-                 + "      , IF(d.user_id = :userId, 'true', 'false') AS auth "
-                 + "      , u.nickname AS nickname, l.count AS likeCount, d.has_restrict AS hasRestrict "
-                 + "      , IF(l2.has_like, 'true', 'false') AS hasLike, d.draw AS draw "
-                 + "      , IF(r.has_report, 'true', 'false') AS hasReport, c.count AS commentCount  "
-                 + "   FROM daily d "
-                 + "        JOIN users u ON d.user_id = u.id "
-                 + "        JOIN (SELECT count(*) count FROM likes WHERE daily_id = :dailyId) l "
-                 + "        JOIN (SELECT count(*) count FROM comment WHERE daily_id = :dailyId) c "
-                 + "   LEFT JOIN (SELECT true has_like FROM likes WHERE daily_id = :dailyId AND user_id = :userId) l2 "
-                 + "              ON l2.has_like IS NOT NULL "
-                 + "   LEFT JOIN (SELECT true has_report FROM report WHERE daily_id = :dailyId AND user_id = :userId) r "
-                 + "              ON r.has_report IS NOT NULL "
-                 + "  WHERE d.id = :dailyId", nativeQuery = true)
-    Optional<BoardGetDetailDto> getDailyDetail (@Param("userId") Long userId, @Param("dailyId") Long dailyId);
+
+    @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(d, u, COUNT(l), COUNT(r), (SELECT COUNT(c) FROM Comment c WHERE c.daily = d)) " +
+            "FROM Daily d " +
+            "JOIN d.user u " +
+            "LEFT JOIN Likes l ON l.daily = d AND l.user = :user " +
+            "LEFT JOIN Report r ON r.daily = d AND r.user = :user " +
+            "WHERE d.id = :id " +
+            "GROUP BY d")
+    BoardDetailResponseDto findBoardDetailResponseDtoByIdAndUser(@Param("id") Long id, @Param("user") User user);
+
 
     @Modifying
     @Query(value = " DELETE FROM daily "

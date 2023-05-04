@@ -1,7 +1,7 @@
 package com.example.emotrak.service;
 
 import com.example.emotrak.dto.board.*;
-import com.example.emotrak.dto.comment.CommentDetailDto;
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -175,24 +176,24 @@ public class BoardService {
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
+        Daily daily = findDailyById(id);
+        // share 가 false 이고, 사용자와 작성자가 다를 경우 예외 처리
+        if (!daily.isShare() && (user == null || !daily.getUser().getId().equals(user.getId()))) {
+            throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
+        }
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
+        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Page<CommentDetailResponseDto> commentDetailResponseDtoList = commentRepository.findAllCommentDetailResponseDtoByDailyAndUser(daily, user, pageable);
+        boolean lastPage = commentDetailResponseDtoList.isLast();
 
-        Long userId = user == null ? 0L : user.getId();
-        Optional<BoardGetDetailDto> boardGetDetailDtoList = boardRepository.getDailyDetail(userId, id);
-        if (boardGetDetailDtoList.isEmpty()) throw new CustomException(CustomErrorCode.BOARD_NOT_FOUND);
+        BoardDetailResponseDto boardDetailResponseDto = boardRepository.findBoardDetailResponseDtoByIdAndUser(id, user);
+        boardDetailResponseDto.setLastPage(lastPage);
+        boardDetailResponseDto.setCommentDetailResponseDtoList(commentDetailResponseDtoList.getContent());
 
-        // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
-        if (!(boardGetDetailDtoList.get().getShare()) &&
-                (user == null || !boardGetDetailDtoList.get().getUserId().equals(user.getId()))) {
-            throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
-        }
-
-        Pageable pageable = PageRequest.of(page-1, 20);
-        Page<CommentDetailDto> commentDetailDtoPage = commentRepository.getCommentDetail(userId, id, pageable);
-        return new BoardDetailResponseDto(boardGetDetailDtoList.get(), commentDetailDtoPage);
+        return boardDetailResponseDto;
     }
 
 
