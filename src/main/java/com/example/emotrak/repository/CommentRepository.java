@@ -12,10 +12,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    @Query("SELECT new com.example.emotrak.dto.comment.CommentDetailResponseDto(c, u, COUNT(l), COUNT(r)) " +
+    @Query("SELECT new com.example.emotrak.dto.comment.CommentDetailResponseDto(c, u, COUNT(l), COUNT(userLikes), COUNT(r)) " +
             "FROM Comment c " +
             "JOIN c.user u " +
-            "LEFT JOIN Likes l ON l.comment = c AND l.user = :user " +
+            "LEFT JOIN Likes l ON l.comment = c " +
+            "LEFT JOIN Likes userLikes ON userLikes.comment = c AND userLikes.user = :user " +
             "LEFT JOIN Report r ON r.comment = c AND r.user = :user " +
             "WHERE c.daily = :daily " +
             "GROUP BY c " +

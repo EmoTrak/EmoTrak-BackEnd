@@ -43,7 +43,7 @@ public class BoardDetailResponseDto {
         return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, long likesCnt, long reportCnt, long totalComments) {
+    public BoardDetailResponseDto(Daily daily, User user, long likesCnt, long userLikesCnt, long reportCnt, long totalComments) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.year = daily.getDailyYear();
@@ -57,7 +57,7 @@ public class BoardDetailResponseDto {
         this.nickname = daily.getUser().getNickname();
         this.likesCnt = (int) likesCnt;
         this.restrict = daily.isHasRestrict();
-        this.hasLike = likesCnt > 0;
+        this.hasLike = userLikesCnt > 0;
         this.hasReport = reportCnt > 0;
         this.totalComments = (int) totalComments;
     }

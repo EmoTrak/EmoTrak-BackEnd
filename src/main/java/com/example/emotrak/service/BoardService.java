@@ -188,7 +188,6 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
         Page<CommentDetailResponseDto> commentDetailResponseDtoList = commentRepository.findAllCommentDetailResponseDtoByDailyAndUser(daily, user, pageable);
         boolean lastPage = commentDetailResponseDtoList.isLast();
-
         BoardDetailResponseDto boardDetailResponseDto = boardRepository.findBoardDetailResponseDtoByIdAndUser(id, user);
         boardDetailResponseDto.setLastPage(lastPage);
         boardDetailResponseDto.setCommentDetailResponseDtoList(commentDetailResponseDtoList.getContent());

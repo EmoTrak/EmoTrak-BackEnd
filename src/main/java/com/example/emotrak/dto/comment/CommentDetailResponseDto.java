@@ -28,14 +28,14 @@ public class CommentDetailResponseDto {
         return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public CommentDetailResponseDto(Comment comment, User user, long likesCnt, long reportCnt) {
+    public CommentDetailResponseDto(Comment comment, User user, long likesCnt, long userLikesCnt, long reportCnt) {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
         this.hasAuth = user != null && comment.getUser().getId().equals(user.getId());
         this.nickname = comment.getUser().getNickname();
         this.likesCnt = (int) likesCnt;
-        this.hasLike = likesCnt > 0;
+        this.hasLike = userLikesCnt > 0;
         this.hasReport = (int) reportCnt > 0;
     }
 

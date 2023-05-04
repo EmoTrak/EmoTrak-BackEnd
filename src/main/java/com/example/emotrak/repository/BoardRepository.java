@@ -32,10 +32,11 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
 
 
 
-    @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(d, u, COUNT(l), COUNT(r), (SELECT COUNT(c) FROM Comment c WHERE c.daily = d)) " +
+    @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(d, u, COUNT(l), COUNT(userLikes), COUNT(r), (SELECT COUNT(c) FROM Comment c WHERE c.daily = d)) " +
             "FROM Daily d " +
             "JOIN d.user u " +
-            "LEFT JOIN Likes l ON l.daily = d AND l.user = :user " +
+            "LEFT JOIN Likes l ON l.daily = d " +
+            "LEFT JOIN Likes userLikes ON userLikes.daily = d AND userLikes.user = :user " +
             "LEFT JOIN Report r ON r.daily = d AND r.user = :user " +
             "WHERE d.id = :id " +
             "GROUP BY d")
