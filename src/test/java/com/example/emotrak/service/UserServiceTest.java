@@ -1,5 +1,7 @@
 package com.example.emotrak.service;
 
+import com.example.emotrak.exception.CustomException;
+import com.example.emotrak.repository.*;
 import com.example.emotrak.service.UserService;
 import com.example.emotrak.dto.user.LoginRequestDto;
 import com.example.emotrak.dto.user.SignupRequestDto;
@@ -7,8 +9,6 @@ import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.jwt.Validation;
-import com.example.emotrak.repository.RefreshTokenRepository;
-import com.example.emotrak.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +22,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,9 +37,26 @@ class UserServiceTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
     @Mock
+    private LikesRepository likesRepository;
+    @Mock
+    private ReportRepository reportRepository;
+    @Mock
+    private CommentRepository commentRepository;
+    @Mock
+    private BoardRepository boardRepository;
+    @Mock
+    private KakaoService kakaoService;
+    @Mock
+    private NaverService naverService;
+    @Mock
+    private GoogleService googleService;
+    @Mock
+    private FileUploadService fileUploadService;
+    @Mock
     private TokenProvider tokenProvider;
     @Mock
     private Validation validation;
+
 
     @Spy
     private BCryptPasswordEncoder passwordEncoder;
@@ -171,4 +190,91 @@ class UserServiceTest {
 //            assertThat(newAccessToken).isNotNull();
 //
 //    }
+    @Nested
+    @DisplayName("회원 탈퇴")
+    class DeleteUser {
+        @Nested
+        @DisplayName("성공 케이스")
+        class deleteUserSuccess {
+            @Test
+            @DisplayName("일반 회원")
+            public void a_DeleteUser() {
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(userRepository, times(1)).findById(user.getId());
+                verify(kakaoService, times(0)).unlinkKakao(user);
+                verify(naverService, times(0)).unlinkNaver(user);
+                verify(googleService, times(0)).unlinkGoogle(user);
+                verify(likesRepository, times(1)).deleteAllByUser(user.getId());
+                verify(reportRepository, times(1)).deleteAllByUser(user.getId());
+                verify(likesRepository, times(1)).deleteCommentLikeByUser(user.getId());
+                verify(reportRepository, times(1)).deleteCommentLikeByUser(user.getId());
+                verify(commentRepository, times(1)).deleteAllByUser(user.getId());
+                verify(likesRepository, times(1)).deleteByUser(user.getId());
+                verify(likesRepository, times(1)).deleteByUserComment(user.getId());
+                verify(reportRepository, times(1)).deleteByUser(user.getId());
+                verify(reportRepository, times(1)).deleteByUserComment(user.getId());
+                verify(commentRepository, times(1)).deleteByUser(user.getId());
+                verify(boardRepository, times(1)).findImgUrlByUser(user);
+                verify(fileUploadService, times(0)).deleteFiles(anyList());
+                verify(boardRepository, times(1)).deleteAllByUser(user.getId());
+                verify(refreshTokenRepository, times(1)).deleteByUser(user);
+                verify(userRepository, times(1)).delete(user);
+            }
+
+            @Test
+            @DisplayName("소셜 회원")
+            public void b_DeleteSocialUser() {
+                user.setHasSocial(true);
+                user.setKakaoId(1L);
+                user.setNaverId("Naver");
+                user.setGoogleId("Google");
+
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(kakaoService, times(1)).unlinkKakao(user);
+                verify(naverService, times(1)).unlinkNaver(user);
+                verify(googleService, times(1)).unlinkGoogle(user);
+            }
+
+            @Test
+            @DisplayName("파일 등록 회원")
+            public void c_DeleteFileUser() {
+                List<String> imgList = new ArrayList<>();
+                imgList.add("img1");
+                imgList.add("img2");
+
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+                when(boardRepository.findImgUrlByUser(user)).thenReturn(imgList);
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(fileUploadService, times(1)).deleteFiles(anyList());
+            }
+        }
+        @Nested
+        @DisplayName("실패 케이스")
+        class DeleteUserFail {
+            @Test
+            @DisplayName("탈퇴 유저가 없음")
+            public void a_DeleteUserFail() {
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    userService.deleteUser(user);
+                });
+
+                assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
+            }
+        }
+    }
+
 }
