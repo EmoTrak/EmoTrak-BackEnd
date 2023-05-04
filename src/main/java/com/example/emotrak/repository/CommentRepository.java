@@ -19,9 +19,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "LEFT JOIN Likes userLikes ON userLikes.comment = c AND userLikes.user = :user " +
             "LEFT JOIN Report r ON r.comment = c AND r.user = :user " +
             "WHERE c.daily = :daily " +
-            "GROUP BY c " +
+            "GROUP BY c, u " +
             "ORDER BY c.createdAt ASC")
     Page<CommentDetailResponseDto> findAllCommentDetailResponseDtoByDailyAndUser(@Param("daily") Daily daily, @Param("user") User user, Pageable pageable);
+
 
     @Modifying
     @Query(value = " DELETE FROM comment "

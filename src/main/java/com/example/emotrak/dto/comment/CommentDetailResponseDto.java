@@ -36,7 +36,8 @@ public class CommentDetailResponseDto {
         this.nickname = comment.getUser().getNickname();
         this.likesCnt = (int) likesCnt;
         this.hasLike = userLikesCnt > 0;
-        this.hasReport = (int) reportCnt > 0;
+        this.hasReport = reportCnt > 0;
     }
+
 
 }
