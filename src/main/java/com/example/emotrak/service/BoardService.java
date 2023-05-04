@@ -13,14 +13,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import static com.example.emotrak.entity.UserRoleEnum.ADMIN;
 
 @Service
@@ -185,7 +188,7 @@ public class BoardService {
         if (page <= 0) {
             throw new CustomException(CustomErrorCode.INVALID_PAGE);
         }
-        Pageable pageable = PageRequest.of(page-1, 20, Sort.by(Sort.Direction.ASC, "createdAt"));
+        Pageable pageable = PageRequest.of(page-1, 20);
         Page<CommentDetailResponseDto> commentDetailResponseDtoList = commentRepository.findAllCommentDetailResponseDtoByDailyAndUser(daily, user, pageable);
         boolean lastPage = commentDetailResponseDtoList.isLast();
         BoardDetailResponseDto boardDetailResponseDto = boardRepository.findBoardDetailResponseDtoByIdAndUser(id, user);
