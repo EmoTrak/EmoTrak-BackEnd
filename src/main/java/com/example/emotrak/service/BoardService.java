@@ -190,7 +190,6 @@ public class BoardService {
         }
         /*  매 요청마다 댓글 전체를 조회하여 페이징을 수행
          *  댓글이 매우 많은 경우에는 성능 저하
-         *  댓글을 조회할 때도 필요한 정보만 가져오도록 변경
          */
         Pageable pageable = PageRequest.of(page-1, 20);
         Page<CommentDetailResponseDto> commentDetailResponseDtoList = commentRepository.findAllCommentDetailResponseDtoByDailyAndUser(daily, user, pageable);
