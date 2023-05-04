@@ -180,7 +180,7 @@ public class BoardService {
     @Transactional(readOnly = true)
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = findDailyById(id);
-        // share 가 false 이고, 사용자와 작성자가 다를 경우 예외 처리
+        // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
         if (!daily.isShare() && (user == null || !daily.getUser().getId().equals(user.getId()))) {
             throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
         }
