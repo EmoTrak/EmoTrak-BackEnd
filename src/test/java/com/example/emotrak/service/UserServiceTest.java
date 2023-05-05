@@ -1,6 +1,5 @@
 package com.example.emotrak.service;
 
-import com.example.emotrak.service.UserService;
 import com.example.emotrak.dto.user.LoginRequestDto;
 import com.example.emotrak.dto.user.SignupRequestDto;
 import com.example.emotrak.entity.User;
@@ -55,11 +54,7 @@ class UserServiceTest {
         @Test
         void signup() {
             //given
-            SignupRequestDto requestDto = SignupRequestDto.builder()
-                    .email(user.getEmail())
-                    .password(user.getPassword())
-                    .nickname(user.getNickname())
-                    .build();
+            SignupRequestDto requestDto = new SignupRequestDto(user.getEmail(), user.getPassword(), user.getNickname());
 
             Mockito.when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
             Mockito.when(userRepository.existsByNickname(user.getNickname())).thenReturn(false);
@@ -77,10 +72,7 @@ class UserServiceTest {
 
             User loginUser = new User("qqqqqq11111", "user12356789@naver.com", "비둘기야111", UserRoleEnum.USER);
 
-            LoginRequestDto loginRequestDto = LoginRequestDto.builder()
-                    .email(loginUser.getEmail())
-                    .password(loginUser.getPassword())
-                    .build();
+            LoginRequestDto loginRequestDto = new LoginRequestDto(loginUser.getEmail(),loginUser.getPassword());
 
             String encodePassword = user.getPassword();
             //when
