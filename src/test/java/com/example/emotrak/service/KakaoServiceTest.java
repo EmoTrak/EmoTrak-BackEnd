@@ -1,19 +1,14 @@
 //package com.example.emotrak.service;
 //
-//import static org.junit.jupiter.api.Assertions.*;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.anyLong;
-//import static org.mockito.Mockito.*;
 //import com.example.emotrak.dto.user.OauthUserInfoDto;
 //import com.example.emotrak.dto.user.TokenDto;
 //import com.example.emotrak.entity.User;
 //import com.example.emotrak.entity.UserRoleEnum;
+//import com.example.emotrak.exception.CustomException;
 //import com.example.emotrak.jwt.TokenProvider;
 //import com.example.emotrak.jwt.Validation;
 //import com.example.emotrak.repository.UserRepository;
 //import com.fasterxml.jackson.core.JsonProcessingException;
-//import java.util.Optional;
-//import javax.servlet.http.HttpServletResponse;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Nested;
@@ -22,10 +17,22 @@
 //import org.mockito.InjectMocks;
 //import org.mockito.Mock;
 //import org.mockito.junit.jupiter.MockitoExtension;
+//import org.springframework.http.HttpEntity;
+//import org.springframework.http.HttpMethod;
 //import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 //import org.springframework.web.client.HttpClientErrorException;
+//import org.springframework.web.client.RestTemplate;
+//
+//import javax.servlet.http.HttpServletResponse;
+//import java.util.Optional;
+//
+//import static org.junit.jupiter.api.Assertions.*;
+//import static org.mockito.ArgumentMatchers.any;
+//import static org.mockito.ArgumentMatchers.anyLong;
+//import static org.mockito.Mockito.*;
 //
 //@ExtendWith(MockitoExtension.class)
 //class KakaoServiceTest {
@@ -40,10 +47,16 @@
 //    private TokenProvider tokenProvider;
 //    @Mock
 //    private Validation validation;
+//    @Mock
+//    private RestTemplate restTemplate;
+//
+//    private User testUser;
 //
 //    @BeforeEach
 //    void setUp() {
 //        passwordEncoder = new BCryptPasswordEncoder();
+//        testUser = new User();
+//        testUser.setKakaoId(123456789L);
 //    }
 //
 //    // private protected 로 변경해야 해서 테스트 보류..
@@ -240,4 +253,57 @@
 //
 //    }
 //
+//    @Nested
+//    @DisplayName("KakaoUnlink")
+//    class kakaoUnlink {
+//        @Test
+//        @DisplayName("정상적인 연동해제")
+//        void testUnlinkKakao() {
+//            // Given
+//            ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.OK);
+//            when(restTemplate.exchange(
+//                    anyString(),
+//                    eq(HttpMethod.POST),
+//                    any(HttpEntity.class),
+//                    eq(String.class)
+//            )).thenReturn(response);
+//
+//            // When
+//            kakaoService.unlinkKakao(testUser);
+//
+//            // Then
+//            verify(restTemplate, times(1)).exchange(
+//                    anyString(),
+//                    eq(HttpMethod.POST),
+//                    any(HttpEntity.class),
+//                    eq(String.class)
+//            );
+//        }
+//
+//        @Test
+//        @DisplayName("카카오 연동 해제 실패")
+//        void testUnlinkKakaoFailure() {
+//            // Given
+//            ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+//            when(restTemplate.exchange(
+//                    anyString(),
+//                    eq(HttpMethod.POST),
+//                    any(HttpEntity.class),
+//                    eq(String.class)
+//            )).thenReturn(response);
+//
+//            // When & Then
+//            assertThrows(CustomException.class, () -> kakaoService.unlinkKakao(testUser));
+//
+//            verify(restTemplate, times(1)).exchange(
+//                    anyString(),
+//                    eq(HttpMethod.POST),
+//                    any(HttpEntity.class),
+//                    eq(String.class)
+//            );
+//
+//        }
+//
+//
+//    }
 //}
