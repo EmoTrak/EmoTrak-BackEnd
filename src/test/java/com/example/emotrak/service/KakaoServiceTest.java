@@ -4,7 +4,6 @@
 //import com.example.emotrak.dto.user.TokenDto;
 //import com.example.emotrak.entity.User;
 //import com.example.emotrak.entity.UserRoleEnum;
-//import com.example.emotrak.exception.CustomException;
 //import com.example.emotrak.jwt.TokenProvider;
 //import com.example.emotrak.jwt.Validation;
 //import com.example.emotrak.repository.UserRepository;
@@ -17,12 +16,12 @@
 //import org.mockito.InjectMocks;
 //import org.mockito.Mock;
 //import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.http.HttpEntity;
-//import org.springframework.http.HttpMethod;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
+//import org.springframework.http.*;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.test.util.ReflectionTestUtils;
+//import org.springframework.util.LinkedMultiValueMap;
+//import org.springframework.util.MultiValueMap;
 //import org.springframework.web.client.HttpClientErrorException;
 //import org.springframework.web.client.RestTemplate;
 //
@@ -51,12 +50,14 @@
 //    private RestTemplate restTemplate;
 //
 //    private User testUser;
+//    private String KakaoClientId = "test_client_id";
 //
 //    @BeforeEach
 //    void setUp() {
 //        passwordEncoder = new BCryptPasswordEncoder();
 //        testUser = new User();
 //        testUser.setKakaoId(123456789L);
+//        ReflectionTestUtils.setField(kakaoService, "KakaoClientId", KakaoClientId);
 //    }
 //
 //    // private protected 로 변경해야 해서 테스트 보류..
@@ -93,6 +94,37 @@
 //            verify(userRepository, times(1)).save(any(User.class));
 //            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
 //            verify(validation, times(1)).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
+//        }
+//
+//        @Test
+//        @DisplayName("getToken 메서드 테스트")
+//        void testGetToken() throws JsonProcessingException {
+//            // 테스트 데이터 준비
+//            String code = "code";
+//            String sampleResponse = "{\"access_token\":\"sample_access_token\"}";
+//
+//            // RestTemplate 모킹
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+//            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+//            body.add("grant_type", "authorization_code");
+//            body.add("client_id", KakaoClientId);
+//            body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
+//            body.add("code", code);
+//            HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(body, headers);
+//
+//            ResponseEntity<String> mockedResponse = new ResponseEntity<>(sampleResponse, HttpStatus.OK);
+//            when(restTemplate.postForEntity(
+//                    eq("https://kauth.kakao.com/oauth/token"),
+//                    eq(kakaoTokenRequest),
+//                    eq(String.class)
+//            )).thenReturn(mockedResponse);
+//
+//            // 메서드 호출
+//            String result = kakaoService.getToken(code);
+//
+//            // 검증
+//            assertEquals("sample_access_token", result);
 //        }
 //
 //        @Test
@@ -259,48 +291,13 @@
 //        @Test
 //        @DisplayName("정상적인 연동해제")
 //        void testUnlinkKakao() {
-//            // Given
-//            ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.OK);
-//            when(restTemplate.exchange(
-//                    anyString(),
-//                    eq(HttpMethod.POST),
-//                    any(HttpEntity.class),
-//                    eq(String.class)
-//            )).thenReturn(response);
 //
-//            // When
-//            kakaoService.unlinkKakao(testUser);
-//
-//            // Then
-//            verify(restTemplate, times(1)).exchange(
-//                    anyString(),
-//                    eq(HttpMethod.POST),
-//                    any(HttpEntity.class),
-//                    eq(String.class)
-//            );
 //        }
 //
 //        @Test
 //        @DisplayName("카카오 연동 해제 실패")
 //        void testUnlinkKakaoFailure() {
-//            // Given
-//            ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-//            when(restTemplate.exchange(
-//                    anyString(),
-//                    eq(HttpMethod.POST),
-//                    any(HttpEntity.class),
-//                    eq(String.class)
-//            )).thenReturn(response);
 //
-//            // When & Then
-//            assertThrows(CustomException.class, () -> kakaoService.unlinkKakao(testUser));
-//
-//            verify(restTemplate, times(1)).exchange(
-//                    anyString(),
-//                    eq(HttpMethod.POST),
-//                    any(HttpEntity.class),
-//                    eq(String.class)
-//            );
 //
 //        }
 //
