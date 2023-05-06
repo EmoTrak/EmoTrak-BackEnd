@@ -1,8 +1,8 @@
 package com.example.emotrak.service;
 
-import com.example.emotrak.dto.board.BoardImgPageRequestDto;
-import com.example.emotrak.dto.board.BoardImgRequestDto;
-import com.example.emotrak.dto.board.BoardRequestDto;
+import com.example.emotrak.dto.board.*;
+import com.example.emotrak.dto.comment.CommentDetailDto;
+import com.example.emotrak.dto.comment.CommentDetailDtoImpl;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
@@ -24,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -313,235 +315,446 @@ class BoardServiceTest {
     @Nested
     @DisplayName("공유게시판 전체 조회")
     class getBoardImages {
-        @Test
-        @DisplayName("최신순 조회")
-        void GetDailyRecent() {
-            // given
-            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+        @Nested
+        @DisplayName("성공 케이스")
+        class getBoardImagesSuccess {
+            @Test
+            @DisplayName("최신순 조회")
+            void getDailyRecent() {
+                // given
+                List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+                boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
 
-            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+                Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
 
-            String emo = "1,2,3,4,5,6";
-            Stream<String> stringStream = Arrays.stream(emo.split(","));
-            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+                String emo = "1,2,3,4,5,6";
+                Stream<String> stringStream = Arrays.stream(emo.split(","));
+                List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
-            // Mocking repository
-            Pageable pageable = PageRequest.of(0, 20);
-            Mockito.when(boardRepository.getBoardImagesRecent(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+                // Mocking repository
+                Pageable pageable = PageRequest.of(0, 20);
+                Mockito.when(boardRepository.getBoardImagesRecent(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
 
-            // when
-            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent", user);
+                // when
+                BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "recent", user);
 
-            assertEquals(boardImgPageRequestDto.isLastPage(), true);
-            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
-        }
+                assertEquals(boardImgPageRequestDto.isLastPage(), true);
+                assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+            }
 
-        @Test
-        @DisplayName("인기순 조회")
-        void GetDailyPopular() {
-            // given
-            List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
-            boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
-            boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+            @Test
+            @DisplayName("인기순 조회")
+            void getDailyPopular() {
+                // given
+                List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+                boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
 
-            Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+                Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
 
-            String emo = "1,2,3,4,5,6";
-            Stream<String> stringStream = Arrays.stream(emo.split(","));
-            List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
+                String emo = "1,2,3,4,5,6";
+                Stream<String> stringStream = Arrays.stream(emo.split(","));
+                List<Long> emoList = stringStream.parallel().mapToLong(Long::parseLong).boxed().collect(Collectors.toList());
 
-            // Mocking repository
-            Pageable pageable = PageRequest.of(0, 20);
-            Mockito.when(boardRepository.getBoardImagesPopular(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
+                // Mocking repository
+                Pageable pageable = PageRequest.of(0, 20);
+                Mockito.when(boardRepository.getBoardImagesPopular(emoList, pageable)).thenReturn(boardImgRequestDtoPage);
 
-            // when
-            BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular", user);
+                // when
+                BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "popular", user);
 
-            assertEquals(boardImgPageRequestDto.isLastPage(), true);
-            assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+                assertEquals(boardImgPageRequestDto.isLastPage(), true);
+                assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+            }
+
+            @Test
+            @DisplayName("내 글만 보기")
+            void getDailyMine() {
+                // given
+                List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+                boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+                Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+                String emo = "1,2,3,4,5,6";
+
+                // Mocking repository
+                Pageable pageable = PageRequest.of(0, 20);
+                Mockito.when(boardRepository.getBoardImagesMine(user.getId(), pageable)).thenReturn(boardImgRequestDtoPage);
+
+                // when
+                BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "mine", user);
+
+                assertEquals(boardImgPageRequestDto.isLastPage(), true);
+                assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+            }
+
+            @Test
+            @DisplayName("내 글만 보기 비회원")
+            void getDailyMineNonUser() {
+                // given
+                List<BoardImgRequestDto> boardImgRequestDtoList = new ArrayList<>();
+                boardImgRequestDtoList.add(new BoardImgRequestDto(1L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(2L, "imgUrl", "jingulee", 1L));
+                boardImgRequestDtoList.add(new BoardImgRequestDto(3L, "imgUrl", "jingulee", 1L));
+
+                Page<BoardImgRequestDto> boardImgRequestDtoPage = new PageImpl<>(boardImgRequestDtoList);
+
+                String emo = "1,2,3,4,5,6";
+
+                // Mocking repository
+                Pageable pageable = PageRequest.of(0, 20);
+                Mockito.when(boardRepository.getBoardImagesMine(0L, pageable)).thenReturn(boardImgRequestDtoPage);
+
+                // when
+                BoardImgPageRequestDto boardImgPageRequestDto = boardService.getBoardImages(1, 20, emo, "mine", null);
+
+                assertEquals(boardImgPageRequestDto.isLastPage(), true);
+                assertEquals(boardImgPageRequestDto.getBoardImgRequestDtoList().size(), 3);
+                verify(boardRepository, times(1)).getBoardImagesMine(0L, pageable);
+            }
         }
     }
 
-//    @Nested
-//    @DisplayName("공유게시판 조회")
-//    class DetailDaily {
-//        @Test
-//        @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 같은 경우")
-//        void getBoardDetail_authorAndUserSame() {
-//            // given
-//            BigInteger zero = new BigInteger("0");
-//            BigInteger one = new BigInteger("1");
-//            BigInteger userId = new BigInteger(user.getId().toString());
-//
-//             /*
-//             [0]:share, [1]:userId, [2]:id, [3]:date, [4]:emoId
-//             [5]:star, [6]:detail, [7]:imgUrl, [8]:hasAuth, [9]:nickname, [10]:likesCnt, [11]:restrict
-//             [12]:hasLike, [13]:draw, [14]:hasReport, [15]:totalComments
-//             */
-//            Object[] objectDaily = { daily.isShare(), userId, one, daily.getCreatedAt(), new BigInteger(emotion.getId().toString())
-//                    , daily.getStar(), daily.getDetail(), daily.getImgUrl(), one, user.getNickname(), zero, daily.isHasRestrict()
-//                    , zero, daily.isDraw(), zero, zero};
-//
-//            List<CommentDetailResponseDto> commentList = new ArrayList<>();
-//            BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(objectDaily, commentList, true);
-//            when(boardRepository.getDailyDetail(user.getId(), ((BigInteger)objectDaily[2]).longValue())).thenReturn(Collections.singletonList(objectDaily));
-//
-//            int page = 1;
-//            int size = 20;
-//            Pageable pageable = PageRequest.of(page-1, size+1);
-//            when(commentRepository.getCommentDetail(user.getId(), ((BigInteger)objectDaily[2]).longValue(), pageable)).thenReturn(new ArrayList<>()); // 댓글이 없는 경우
-//
-//            // when
-//            BoardDetailResponseDto actualResponse = boardService.getBoardDetail(((BigInteger)objectDaily[2]).longValue(), user, page);
-//
-//            // then
-//            assertEquals(expectedResponse.getId(), actualResponse.getId());
-//            assertEquals(expectedResponse.getDate(), actualResponse.getDate());
-//            assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
-//            assertEquals(expectedResponse.getStar(), actualResponse.getStar());
-//            assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
-//            assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
-//            assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
-//            assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
-//            assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
-//            assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
-//            assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
-//            assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
-//            assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
-//            assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
-//            assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
-//            assertEquals(expectedResponse.getCommentDetailResponseDtoList(), actualResponse.getCommentDetailResponseDtoList());
-//
-//            verify(boardRepository, times(1)).getDailyDetail(user.getId(), ((BigInteger)objectDaily[2]).longValue());
-//        }
-//
-//        @Test
-//        @DisplayName("공유된 글 조회 - 게시글 작성자와 사용자 다른 경우")
-//        void getBoardDetail_authorAndUserDifferent() {
-//            // given
-//            User otherUser = new User("5678", "otherUser@gmail.com", "otherUser", UserRoleEnum.USER);
-//            otherUser.setId(2L);
-//            BigInteger zero = new BigInteger("0");
-//            BigInteger one = new BigInteger("1");
-//            BigInteger userId = new BigInteger(otherUser.getId().toString());
-//
-//             /*
-//             [0]:share, [1]:userId, [2]:id, [3]:date, [4]:emoId
-//             [5]:star, [6]:detail, [7]:imgUrl, [8]:hasAuth, [9]:nickname, [10]:likesCnt, [11]:restrict
-//             [12]:hasLike, [13]:draw, [14]:hasReport, [15]:totalComments
-//             */
-//            Object[] otherUserDaily = { daily.isShare(), userId, one, daily.getCreatedAt(), new BigInteger(emotion.getId().toString())
-//                    , daily.getStar(), daily.getDetail(), daily.getImgUrl(), one, otherUser.getNickname(), zero, daily.isHasRestrict()
-//                    , zero, daily.isDraw(), zero, zero};
-//
-//            List<CommentDetailResponseDto> commentList = new ArrayList<>();
-//            BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(otherUserDaily, commentList, true);
-//            when(boardRepository.getDailyDetail(user.getId(), ((BigInteger)otherUserDaily[2]).longValue())).thenReturn(Collections.singletonList(otherUserDaily));
-//            int page = 1;
-//            int size = 20;
-//            Pageable pageable = PageRequest.of(page-1, size+1);
-//            when(commentRepository.getCommentDetail(user.getId(), ((BigInteger)otherUserDaily[2]).longValue(), pageable)).thenReturn(new ArrayList<>()); // 댓글이 없는 경우
-//
-//            // when
-//            BoardDetailResponseDto actualResponse = boardService.getBoardDetail(((BigInteger)otherUserDaily[2]).longValue(), user, page);
-//
-//            // then
-//            assertEquals(expectedResponse.getId(), actualResponse.getId());
-//            assertEquals(expectedResponse.getDate(), actualResponse.getDate());
-//            assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
-//            assertEquals(expectedResponse.getStar(), actualResponse.getStar());
-//            assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
-//            assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
-//            assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
-//            assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
-//            assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
-//            assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
-//            assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
-//            assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
-//            assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
-//            assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
-//            assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
-//            assertEquals(expectedResponse.getCommentDetailResponseDtoList(), actualResponse.getCommentDetailResponseDtoList());
-//
-//            verify(boardRepository, times(1)).getDailyDetail(user.getId(), ((BigInteger)otherUserDaily[2]).longValue());
-//        }
+    @Nested
+    @DisplayName("공유게시판 조회")
+    class DetailDaily {
+        @Nested
+        @DisplayName("성공 케이스")
+        class detailDailySuccess {
+            @Test
+            @DisplayName("공유된 글 조회")
+            void getBoardDetail() {
+                List<CommentDetailDto> commentDetailDtoList = new ArrayList<>();
 
-        @Test
-        @DisplayName("공유된 글 조회 - 유효하지 않은 페이지 번호")
-        void getBoardDetail_invalidPage() {
-            // given
-            Long id = 1L;
-            int invalidPage = -1;
+                CommentDetailDto commentDetailDto = new CommentDetailDtoImpl();
+                commentDetailDto.setId(1L);
+                commentDetailDto.setComment("댓글");
+                commentDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                commentDetailDto.setHasAuth(false);
+                commentDetailDto.setNickname("jingulee2");
+                commentDetailDto.setLikesCnt(0);
+                commentDetailDto.setHasLike(false);
+                commentDetailDto.setHasReport(false);
+                commentDetailDtoList.add(commentDetailDto);
 
-            // when
-            CustomException customException = assertThrows(CustomException.class, () -> {
-                boardService.getBoardDetail(id, user, invalidPage);
-            });
+                commentDetailDto.setId(2L);
+                commentDetailDtoList.add(commentDetailDto);
+                Page<CommentDetailDto> commentDetailDtoPage = new PageImpl<>(commentDetailDtoList);
 
-            // then
-            assertEquals("페이지는 1부터 시작합니다.", customException.getErrorCode().getMessage());
+                BoardGetDetailDto boardGetDetailDto = new BoardGetDetailDtoImpl();
+                boardGetDetailDto.setShare(daily.isShare());
+                boardGetDetailDto.setUserId(user.getId());
+                boardGetDetailDto.setDailyId(daily.getId());
+                boardGetDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                boardGetDetailDto.setYear(daily.getDailyYear());
+                boardGetDetailDto.setMonth(daily.getDailyMonth());
+                boardGetDetailDto.setDay(daily.getDailyDay());
+                boardGetDetailDto.setEmotionId(daily.getEmotion().getId());
+                boardGetDetailDto.setStar(daily.getStar());
+                boardGetDetailDto.setDetail(daily.getDetail());
+                boardGetDetailDto.setImgUrl(daily.getImgUrl());
+                boardGetDetailDto.setAuth(true);
+                boardGetDetailDto.setNickname(user.getNickname());
+                boardGetDetailDto.setLikeCount(0);
+                boardGetDetailDto.setHasRestrict(daily.isHasRestrict());
+                boardGetDetailDto.setHasLike(false);
+                boardGetDetailDto.setDraw(daily.isDraw());
+                boardGetDetailDto.setHasReport(false);
+                boardGetDetailDto.setCommentCount(2);
 
-            verify(boardRepository, times(0)).getDailyDetail(user.getId(), id);
+                // given
+                Pageable pageable = PageRequest.of(0, 20);
+                BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(boardGetDetailDto, commentDetailDtoPage);
+                when(boardRepository.getDailyDetail(user.getId(), daily.getId())).thenReturn(Optional.of(boardGetDetailDto));
+                when(commentRepository.getCommentDetail(user.getId(), daily.getId(), pageable)).thenReturn(commentDetailDtoPage);
+
+                // when
+                BoardDetailResponseDto actualResponse = boardService.getBoardDetail(daily.getId(), user, 1);
+
+                // then
+                assertEquals(expectedResponse.getId(), actualResponse.getId());
+                assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
+                assertEquals(expectedResponse.getStar(), actualResponse.getStar());
+                assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
+                assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
+                assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
+                assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
+                assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
+                assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
+                assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
+                assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
+                assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
+                assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
+                assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
+                assertEquals(expectedResponse.getCommentDetailDtoList(), actualResponse.getCommentDetailDtoList());
+                assertEquals(expectedResponse.getCommentDetailDtoList().size(), 2);
+
+                verify(boardRepository, times(1)).getDailyDetail(user.getId(), daily.getId());
+            }
+
+            @Test
+            @DisplayName("공유된 글 조회 비회원")
+            void getBoardDetailNonUser() {
+                List<CommentDetailDto> commentDetailDtoList = new ArrayList<>();
+
+                CommentDetailDto commentDetailDto = new CommentDetailDtoImpl();
+                commentDetailDto.setId(1L);
+                commentDetailDto.setComment("댓글");
+                commentDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                commentDetailDto.setHasAuth(false);
+                commentDetailDto.setNickname("jingulee2");
+                commentDetailDto.setLikesCnt(0);
+                commentDetailDto.setHasLike(false);
+                commentDetailDto.setHasReport(false);
+                commentDetailDtoList.add(commentDetailDto);
+
+                commentDetailDto.setId(2L);
+                commentDetailDtoList.add(commentDetailDto);
+                Page<CommentDetailDto> commentDetailDtoPage = new PageImpl<>(commentDetailDtoList);
+
+                BoardGetDetailDto boardGetDetailDto = new BoardGetDetailDtoImpl();
+                boardGetDetailDto.setShare(daily.isShare());
+                boardGetDetailDto.setUserId(user.getId());
+                boardGetDetailDto.setDailyId(daily.getId());
+                boardGetDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                boardGetDetailDto.setYear(daily.getDailyYear());
+                boardGetDetailDto.setMonth(daily.getDailyMonth());
+                boardGetDetailDto.setDay(daily.getDailyDay());
+                boardGetDetailDto.setEmotionId(daily.getEmotion().getId());
+                boardGetDetailDto.setStar(daily.getStar());
+                boardGetDetailDto.setDetail(daily.getDetail());
+                boardGetDetailDto.setImgUrl(daily.getImgUrl());
+                boardGetDetailDto.setAuth(true);
+                boardGetDetailDto.setNickname(user.getNickname());
+                boardGetDetailDto.setLikeCount(0);
+                boardGetDetailDto.setHasRestrict(daily.isHasRestrict());
+                boardGetDetailDto.setHasLike(false);
+                boardGetDetailDto.setDraw(daily.isDraw());
+                boardGetDetailDto.setHasReport(false);
+                boardGetDetailDto.setCommentCount(2);
+
+                // given
+                Pageable pageable = PageRequest.of(0, 20);
+                BoardDetailResponseDto expectedResponse = new BoardDetailResponseDto(boardGetDetailDto, commentDetailDtoPage);
+                when(boardRepository.getDailyDetail(0L, daily.getId())).thenReturn(Optional.of(boardGetDetailDto));
+                when(commentRepository.getCommentDetail(0L, daily.getId(), pageable)).thenReturn(commentDetailDtoPage);
+
+                // when
+                BoardDetailResponseDto actualResponse = boardService.getBoardDetail(daily.getId(), null, 1);
+
+                // then
+                assertEquals(expectedResponse.getId(), actualResponse.getId());
+                assertEquals(expectedResponse.getEmoId(), actualResponse.getEmoId());
+                assertEquals(expectedResponse.getStar(), actualResponse.getStar());
+                assertEquals(expectedResponse.getDetail(), actualResponse.getDetail());
+                assertEquals(expectedResponse.getImgUrl(), actualResponse.getImgUrl());
+                assertEquals(expectedResponse.isHasAuth(), actualResponse.isHasAuth());
+                assertEquals(expectedResponse.getNickname(), actualResponse.getNickname());
+                assertEquals(expectedResponse.getLikesCnt(), actualResponse.getLikesCnt());
+                assertEquals(expectedResponse.isRestrict(), actualResponse.isRestrict());
+                assertEquals(expectedResponse.isHasLike(), actualResponse.isHasLike());
+                assertEquals(expectedResponse.isLastPage(), actualResponse.isLastPage());
+                assertEquals(expectedResponse.isDraw(), actualResponse.isDraw());
+                assertEquals(expectedResponse.isHasReport(), actualResponse.isHasReport());
+                assertEquals(expectedResponse.getTotalComments(), actualResponse.getTotalComments());
+                assertEquals(expectedResponse.getCommentDetailDtoList(), actualResponse.getCommentDetailDtoList());
+                assertEquals(expectedResponse.getCommentDetailDtoList().size(), 2);
+
+                verify(boardRepository, times(1)).getDailyDetail(0L, daily.getId());
+                verify(commentRepository, times(1)).getCommentDetail(0L, daily.getId(), pageable);
+            }
+
+            @Test
+            @DisplayName("공유되지 않은 나의 글 조회")
+            void getBoardDetail_Unauthorized() {
+                // given
+                int page = 1;
+
+                List<CommentDetailDto> commentDetailDtoList = new ArrayList<>();
+
+                CommentDetailDto commentDetailDto = new CommentDetailDtoImpl();
+                commentDetailDto.setId(1L);
+                commentDetailDto.setComment("댓글");
+                commentDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                commentDetailDto.setHasAuth(false);
+                commentDetailDto.setNickname("jingulee2");
+                commentDetailDto.setLikesCnt(0);
+                commentDetailDto.setHasLike(false);
+                commentDetailDto.setHasReport(false);
+                commentDetailDtoList.add(commentDetailDto);
+
+                commentDetailDto.setId(2L);
+                commentDetailDtoList.add(commentDetailDto);
+                Page<CommentDetailDto> commentDetailDtoPage = new PageImpl<>(commentDetailDtoList);
+
+                BoardGetDetailDto boardGetDetailDto = new BoardGetDetailDtoImpl();
+                boardGetDetailDto.setShare(false);
+                boardGetDetailDto.setUserId(user.getId());
+                boardGetDetailDto.setDailyId(daily.getId());
+                boardGetDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                boardGetDetailDto.setYear(daily.getDailyYear());
+                boardGetDetailDto.setMonth(daily.getDailyMonth());
+                boardGetDetailDto.setDay(daily.getDailyDay());
+                boardGetDetailDto.setEmotionId(daily.getEmotion().getId());
+                boardGetDetailDto.setStar(daily.getStar());
+                boardGetDetailDto.setDetail(daily.getDetail());
+                boardGetDetailDto.setImgUrl(daily.getImgUrl());
+                boardGetDetailDto.setAuth(false);
+                boardGetDetailDto.setNickname(user.getNickname());
+                boardGetDetailDto.setLikeCount(0);
+                boardGetDetailDto.setHasRestrict(daily.isHasRestrict());
+                boardGetDetailDto.setHasLike(false);
+                boardGetDetailDto.setDraw(daily.isDraw());
+                boardGetDetailDto.setHasReport(false);
+                boardGetDetailDto.setCommentCount(2);
+
+                Pageable pageable = PageRequest.of(0, 20);
+                when(boardRepository.getDailyDetail(user.getId(), daily.getId())).thenReturn(Optional.of(boardGetDetailDto));
+                when(commentRepository.getCommentDetail(user.getId(), daily.getId(), pageable)).thenReturn(commentDetailDtoPage);
+
+                boardService.getBoardDetail(daily.getId(), user, page);
+
+                verify(boardRepository, times(1)).getDailyDetail(user.getId(), daily.getId());
+                verify(commentRepository, times(1)).getCommentDetail(user.getId(), daily.getId(), pageable);
+            }
         }
 
 
-//        @Test
-//        @DisplayName("공유되지 않은 글 조회")
-//        void getBoardDetail_Unauthorized() {
-//            // given
-//            Long id = 1L;
-//            int page = 1;
-//            User otherUser = new User("5678", "otherUser@gmail.com", "otherUser", UserRoleEnum.USER);
-//            otherUser.setId(2L);
-//            BigInteger zero = new BigInteger("0");
-//            BigInteger one = new BigInteger("1");
-//            BigInteger userId = new BigInteger(otherUser.getId().toString());
-//
-//             /*
-//             [0]:share, [1]:userId, [2]:id, [3]:date, [4]:emoId
-//             [5]:star, [6]:detail, [7]:imgUrl, [8]:hasAuth, [9]:nickname, [10]:likesCnt, [11]:restrict
-//             [12]:hasLike, [13]:draw, [14]:hasReport, [15]:totalComments
-//             */
-//            Object[] otherUserDaily = { false, userId, one, daily.getCreatedAt(), new BigInteger(emotion.getId().toString())
-//                    , daily.getStar(), daily.getDetail(), daily.getImgUrl(), one, otherUser.getNickname(), zero, daily.isHasRestrict()
-//                    , zero, daily.isDraw(), zero, zero};
-//            when(boardRepository.getDailyDetail(user.getId(), ((BigInteger)otherUserDaily[2]).longValue())).thenReturn(Collections.singletonList(otherUserDaily));
-//
-//            // when
-//            CustomException customException = assertThrows(CustomException.class, () -> {
-//                boardService.getBoardDetail(id, user, page);
-//            });
-//
-//            // then
-//            assertEquals("권한이 없습니다.", customException.getErrorCode().getMessage());
-//
-//            verify(boardRepository, times(1)).getDailyDetail(user.getId(), id);
-//        }
+        @Nested
+        @DisplayName("실패 케이스")
+        class detailDailyFail {
+            @Test
+            @DisplayName("유효하지 않은 페이지 번호")
+            void getBoardDetail_invalidPage() {
+                // given
+                Long id = 1L;
+                int invalidPage = -1;
 
-//        @Test
-//        @DisplayName("존재하지 않는 글 조회")
-//        void getBoardDetail_DailyNotFound() {
-//            // given
-//            Long id = 1L;
-//            int page = 1;
-//            when(boardRepository.getDailyDetail(user.getId(), id)).thenReturn(BoardGetDetailDto);
-//
-//            // when
-//            CustomException customException = assertThrows(CustomException.class, () -> {
-//                boardService.getBoardDetail(id, user, page);
-//            });
-//
-//            // then
-//            assertEquals("선택한 게시물을 찾을 수 없습니다.", customException.getErrorCode().getMessage());
-//
-//            verify(boardRepository, times(1)).getDailyDetail(user.getId(), id);
-//        }
-//
-//    }
+                // when
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    boardService.getBoardDetail(id, user, invalidPage);
+                });
+
+                // then
+                assertEquals("페이지는 1부터 시작합니다.", customException.getErrorCode().getMessage());
+
+                verify(boardRepository, times(0)).getDailyDetail(user.getId(), id);
+            }
+
+            @Test
+            @DisplayName("공유되지 않은 다른 유저글 조회")
+            void getBoardDetail_Unauthorized_OtherUser() {
+                // given
+                int page = 1;
+                User otherUser = new User("5678", "otherUser@gmail.com", "otherUser", UserRoleEnum.USER);
+                otherUser.setId(2L);
+
+                BoardGetDetailDto boardGetDetailDto = new BoardGetDetailDtoImpl();
+                boardGetDetailDto.setShare(false);
+                boardGetDetailDto.setUserId(user.getId());
+                boardGetDetailDto.setDailyId(daily.getId());
+                boardGetDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                boardGetDetailDto.setYear(daily.getDailyYear());
+                boardGetDetailDto.setMonth(daily.getDailyMonth());
+                boardGetDetailDto.setDay(daily.getDailyDay());
+                boardGetDetailDto.setEmotionId(daily.getEmotion().getId());
+                boardGetDetailDto.setStar(daily.getStar());
+                boardGetDetailDto.setDetail(daily.getDetail());
+                boardGetDetailDto.setImgUrl(daily.getImgUrl());
+                boardGetDetailDto.setAuth(false);
+                boardGetDetailDto.setNickname(user.getNickname());
+                boardGetDetailDto.setLikeCount(0);
+                boardGetDetailDto.setHasRestrict(daily.isHasRestrict());
+                boardGetDetailDto.setHasLike(false);
+                boardGetDetailDto.setDraw(daily.isDraw());
+                boardGetDetailDto.setHasReport(false);
+                boardGetDetailDto.setCommentCount(2);
+
+                // given
+                Pageable pageable = PageRequest.of(0, 20);
+                when(boardRepository.getDailyDetail(otherUser.getId(), daily.getId())).thenReturn(Optional.of(boardGetDetailDto));
+
+                // when
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    boardService.getBoardDetail(daily.getId(), otherUser, page);
+                });
+
+                // then
+                assertEquals("공유 중지된 글입니다.", customException.getErrorCode().getMessage());
+
+                verify(boardRepository, times(1)).getDailyDetail(otherUser.getId(), daily.getId());
+                verify(commentRepository, times(0)).getCommentDetail(otherUser.getId(), daily.getId(), pageable);
+            }
+
+            @Test
+            @DisplayName("공유되지 않은 글 조회 비회원")
+            void getBoardDetail_Unauthorized_NonUser() {
+                // given
+                int page = 1;
+
+                BoardGetDetailDto boardGetDetailDto = new BoardGetDetailDtoImpl();
+                boardGetDetailDto.setShare(false);
+                boardGetDetailDto.setUserId(user.getId());
+                boardGetDetailDto.setDailyId(daily.getId());
+                boardGetDetailDto.setCreatedAt(LocalDateTime.now().toString());
+                boardGetDetailDto.setYear(daily.getDailyYear());
+                boardGetDetailDto.setMonth(daily.getDailyMonth());
+                boardGetDetailDto.setDay(daily.getDailyDay());
+                boardGetDetailDto.setEmotionId(daily.getEmotion().getId());
+                boardGetDetailDto.setStar(daily.getStar());
+                boardGetDetailDto.setDetail(daily.getDetail());
+                boardGetDetailDto.setImgUrl(daily.getImgUrl());
+                boardGetDetailDto.setAuth(false);
+                boardGetDetailDto.setNickname(user.getNickname());
+                boardGetDetailDto.setLikeCount(0);
+                boardGetDetailDto.setHasRestrict(daily.isHasRestrict());
+                boardGetDetailDto.setHasLike(false);
+                boardGetDetailDto.setDraw(daily.isDraw());
+                boardGetDetailDto.setHasReport(false);
+                boardGetDetailDto.setCommentCount(2);
+
+                // given
+                Pageable pageable = PageRequest.of(0, 20);
+                when(boardRepository.getDailyDetail(0L, daily.getId())).thenReturn(Optional.of(boardGetDetailDto));
+
+                // when
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    boardService.getBoardDetail(daily.getId(), null, page);
+                });
+
+                // then
+                assertEquals("공유 중지된 글입니다.", customException.getErrorCode().getMessage());
+
+                verify(boardRepository, times(1)).getDailyDetail(0L, daily.getId());
+                verify(commentRepository, times(0)).getCommentDetail(0L, daily.getId(), pageable);
+            }
+
+            @Test
+            @DisplayName("존재하지 않는 글 조회")
+            void getBoardDetail_DailyNotFound() {
+                // given
+                Long id = 1L;
+                int page = 1;
+
+                // when
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    boardService.getBoardDetail(id, user, page);
+                });
+
+                // then
+                assertEquals("선택한 게시물을 찾을 수 없습니다.", customException.getErrorCode().getMessage());
+
+                verify(boardRepository, times(1)).getDailyDetail(user.getId(), id);
+            }
+
+        }
+    }
 
 
     @Nested
