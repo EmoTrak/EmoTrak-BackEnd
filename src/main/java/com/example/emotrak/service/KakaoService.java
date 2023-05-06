@@ -57,7 +57,7 @@ public class KakaoService {
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
-    protected String getToken(String code) throws JsonProcessingException {
+    private String getToken(String code) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -85,7 +85,7 @@ public class KakaoService {
     }
 
     // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
-    protected OauthUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
