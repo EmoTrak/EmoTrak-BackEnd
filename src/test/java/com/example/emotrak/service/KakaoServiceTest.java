@@ -15,15 +15,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-@SpringBootTest
 @ExtendWith(MockitoExtension.class)
-@TestPropertySource(locations = "classpath:application-mysql.properties")
 class KakaoServiceTest {
     @InjectMocks
     private KakaoService kakaoService;
