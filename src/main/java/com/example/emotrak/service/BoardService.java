@@ -10,6 +10,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -178,6 +179,7 @@ public class BoardService {
 
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
+    @Cacheable(value = "boardDetail", key = "#id + ( #user != null ? #user.id : '') + #page")
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = findDailyById(id);
         // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류

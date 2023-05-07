@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -14,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDetailResponseDto {
+public class CommentDetailResponseDto implements Serializable {
     private Long id;
     private String comment;
     private String createdAt;
