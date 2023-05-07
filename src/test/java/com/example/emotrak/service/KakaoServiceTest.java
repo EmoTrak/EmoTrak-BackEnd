@@ -12,12 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class KakaoServiceTest {
@@ -32,8 +30,6 @@ class KakaoServiceTest {
     private TokenProvider tokenProvider;
     @Mock
     private Validation validation;
-    @Mock
-    private RestTemplate restTemplate;
 
     private User testUser;
 
@@ -48,43 +44,37 @@ class KakaoServiceTest {
         testUser = new User();
         testUser.setKakaoId(123456789L);
         ReflectionTestUtils.setField(kakaoService, "KakaoClientId", KakaoClientId);
-        MockitoAnnotations.openMocks(this);
     }
 
-    // private protected 로 변경해야 해서 테스트 보류..
     @Nested
     @DisplayName("KakaoLogin")
     class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
         void testKakaoLogin() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//            String accessToken = "test_access_token";
-//            OauthUserInfoDto oauthUserInfoDto = new OauthUserInfoDto("12345", "test@example.com", "test_nickname");
+//             RestTemplate rt = new RestTemplate();
+//            MockRestServiceServer mockServer = MockRestServiceServer.bindTo(rt).build();
 //
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doReturn(accessToken).when(kakaoServiceSpy).getToken(code);
-//            doReturn(oauthUserInfoDto).when(kakaoServiceSpy).getKakaoUserInfo(accessToken);
+//            // 토큰 발급 요청에 대한 모킹 응답을 설정합니다.
+//            String tokenResponse = "{\"access_token\":\"test-access-token\",\"token_type\":\"bearer\",\"refresh_token\":\"test-refresh-token\",\"expires_in\":43199,\"scope\":\"account_email\",\"refresh_token_expires_in\":25184000}";
+//            mockServer.expect(requestTo("https://kauth.kakao.com/oauth/token"))
+//                    .andExpect(method(HttpMethod.POST))
+//                    .andRespond(withSuccess(tokenResponse, MediaType.APPLICATION_JSON));
 //
-//            when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
-//            when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-//            when(userRepository.save(any(User.class))).thenReturn(new User());
-//            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(new TokenDto());
-//            doNothing().when(validation).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
+//            // 사용자 정보 요청에 대한 모킹 응답을 설정합니다.
+//            String userInfoResponse = "{\"id\":123456789,\"connected_at\":\"2021-05-01T12:00:00Z\",\"properties\":{\"nickname\":\"홍길동\"},\"kakao_account\":{\"email\":\"test@example.com\"}}";
+//            mockServer.expect(requestTo("https://kapi.kakao.com/v2/user/me"))
+//                    .andExpect(method(HttpMethod.POST))
+//                    .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
+//
+//            String code = "sample_code";
+//            HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 //
 //            // When
-//            kakaoServiceSpy.kakaoLogin(code, response);
+//            kakaoService.kakaoLogin(code, response);
 //
 //            // Then
-//            verify(kakaoServiceSpy, times(1)).getToken(code);
-//            verify(kakaoServiceSpy, times(1)).getKakaoUserInfo(accessToken);
-//            verify(userRepository, times(1)).findByKakaoId(anyLong());
-//            verify(userRepository, times(1)).findByEmail(anyString());
-//            verify(userRepository, times(1)).save(any(User.class));
-//            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
-//            verify(validation, times(1)).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
+//            verify(validation).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
         }
 
         @Test
