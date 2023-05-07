@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -57,7 +58,7 @@ public class KakaoService {
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
-    protected String getToken(String code) throws JsonProcessingException {
+    private String getToken(String code) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
@@ -71,6 +72,7 @@ public class KakaoService {
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =
                 new HttpEntity<>(body, headers);
         RestTemplate rt = new RestTemplate();
+        rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         ResponseEntity<String> response = rt.exchange(
                 "https://kauth.kakao.com/oauth/token",
                 HttpMethod.POST,
@@ -85,7 +87,7 @@ public class KakaoService {
     }
 
     // 2. 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기
-    protected OauthUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
+    private OauthUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
@@ -111,7 +113,7 @@ public class KakaoService {
     }
 
     // 3. 필요시에 회원가입
-    protected User registerKakaoUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
+    private User registerKakaoUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
         // DB 에 중복된 KakaoId 가 있는지 확인
         Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String 을 Long 으로 변환
         User kakaoUser = userRepository.findByKakaoId(kakaoId)
