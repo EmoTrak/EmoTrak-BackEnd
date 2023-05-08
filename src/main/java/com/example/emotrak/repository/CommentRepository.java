@@ -16,11 +16,12 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "c, " +
             "u.id, " +
             "COUNT(l), " +
-            "SUM(CASE WHEN l.user = :user THEN 1 ELSE 0 END), " +
+            "COUNT(userLikes), " +
             "COUNT(r)) " +
             "FROM Comment c " +
             "LEFT JOIN users u ON u = :user " +
             "LEFT JOIN Likes l ON l.comment = c " +
+            "LEFT JOIN Likes userLikes ON userLikes.comment = c AND userLikes.user = :user " +
             "LEFT JOIN Report r ON r.comment = c AND r.user = :user " +
             "WHERE c.daily = :daily " +
             "GROUP BY c " +
