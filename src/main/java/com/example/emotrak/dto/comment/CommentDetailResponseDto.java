@@ -1,7 +1,6 @@
 package com.example.emotrak.dto.comment;
 
 import com.example.emotrak.entity.Comment;
-import com.example.emotrak.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +9,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -29,11 +29,12 @@ public class CommentDetailResponseDto implements Serializable {
         return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public CommentDetailResponseDto(Comment comment, User user, long likesCnt, long userLikesCnt, long reportCnt) {
+    public CommentDetailResponseDto(Comment comment, Long userId, long likesCnt, long userLikesCnt, long reportCnt) {
         this.id = comment.getId();
         this.comment = comment.getComment();
         this.createdAt = formatCreatedAt(comment.getCreatedAt());
-        this.hasAuth = user != null && comment.getUser().getId().equals(user.getId());
+//        this.hasAuth = userId != null && comment.getUser().getId().equals(userId);
+        this.hasAuth = Objects.equals(comment.getUser().getId(), userId);
         this.nickname = comment.getUser().getNickname();
         this.likesCnt = (int) likesCnt;
         this.hasLike = userLikesCnt > 0;

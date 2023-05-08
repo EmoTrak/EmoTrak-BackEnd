@@ -31,7 +31,7 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
 
     @Query("SELECT new com.example.emotrak.dto.board.BoardDetailResponseDto(" +
             "d, " +
-            "u, " +
+            "u.id, " +
             "COUNT(l), " +
             "COUNT(userLikes), " +
             "COUNT(r), " +

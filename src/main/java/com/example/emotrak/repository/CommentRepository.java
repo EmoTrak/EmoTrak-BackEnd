@@ -14,7 +14,7 @@ import org.springframework.data.repository.query.Param;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT new com.example.emotrak.dto.comment.CommentDetailResponseDto(" +
             "c, " +
-            "u, " +
+            "u.id, " +
             "COUNT(l), " +
             "COUNT(userLikes), " +
             "COUNT(r)) " +

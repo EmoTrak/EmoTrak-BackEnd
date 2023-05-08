@@ -2,7 +2,6 @@ package com.example.emotrak.dto.board;
 
 import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.entity.Daily;
-import com.example.emotrak.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +12,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -44,7 +44,7 @@ public class BoardDetailResponseDto implements Serializable {
         return createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
-    public BoardDetailResponseDto(Daily daily, User user, long likesCnt, long userLikesCnt, long reportCnt, long totalComments) {
+    public BoardDetailResponseDto(Daily daily, Long userId, long likesCnt, long userLikesCnt, long reportCnt, long totalComments) {
         this.id = daily.getId();
         this.date = formatCreatedAt(daily.getCreatedAt());
         this.year = daily.getDailyYear();
@@ -54,7 +54,7 @@ public class BoardDetailResponseDto implements Serializable {
         this.star = daily.getStar();
         this.detail = daily.getDetail();
         this.imgUrl = daily.getImgUrl();
-        this.hasAuth = user != null && daily.getUser().getId().equals(user.getId());
+        this.hasAuth = Objects.equals(daily.getUser().getId(), userId);
         this.nickname = daily.getUser().getNickname();
         this.likesCnt = (int) likesCnt;
         this.restrict = daily.isHasRestrict();
