@@ -42,7 +42,7 @@ public interface BoardRepository extends JpaRepository<Daily, Long> {
             "LEFT JOIN Likes userLikes ON userLikes.daily = d AND userLikes.user = :user " +
             "LEFT JOIN Report r ON r.daily = d AND r.user = :user " +
             "WHERE d.id = :id " +
-            "GROUP BY d, u")
+            "GROUP BY d ")
     BoardDetailResponseDto findBoardDetailResponseDtoByIdAndUser(@Param("id") Long id,
                                                                 @Param("user") User user);
 
