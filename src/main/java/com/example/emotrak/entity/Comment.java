@@ -10,6 +10,7 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor
 @Entity
+//@Table(name = "comment", indexes = {@Index(name = "idx_created_at", columnList = "createdAt")})
 public class Comment extends Timestamped {
 
     @Id
