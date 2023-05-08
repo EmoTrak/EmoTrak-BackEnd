@@ -21,6 +21,23 @@ public class CacheConfig {
                 .build();
     }
 
+//    @Bean
+//    public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
+//        // 직렬화 설정
+//        RedisSerializationContext.SerializationPair<Object> jsonSerializer =
+//                RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer());
+//
+//        // RedisCacheConfiguration에 직렬화 설정 적용
+//        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+//                .entryTtl(Duration.ofSeconds(60))
+//                .serializeValuesWith(jsonSerializer);
+//
+//        // RedisCacheManager에 설정 적용
+//        return RedisCacheManager.builder(redisConnectionFactory)
+//                .cacheDefaults(redisCacheConfiguration)
+//                .build();
+//    }
+
     /* RedisCacheManager는 캐시된 데이터를 관리하는 데 사용
      * redisCacheManager 메소드를 사용하여 RedisCacheManager를 생성
      * RedisConnectionFactory를 인자로 받아 RedisCacheConfiguration을 설정하며, entryTtl을 통해 TTL을 설정
