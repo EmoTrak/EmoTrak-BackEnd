@@ -179,7 +179,9 @@ public class BoardService {
 
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
-    @Cacheable(value = "boardDetail", key = "#id + ( #user != null ? #user.id : '') + #page")
+//    @Cacheable(value = "boardDetail", key = "#id + ( #user != null ? #user.id : '') + #page")
+    @Cacheable(value = "boardDetail", key = "#id + '_' + ( #user != null ? #user.id : '') + '_' + #page")
+    // 구분자를 사용하여 캐시충돌 가능성을 낮춰준다 , 사용자마다 다른 결과를 캐싱하기 위해서 user.id
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         Daily daily = findDailyById(id);
         // 공유되지 않은 내역을 해당 유저 이외의 사람이 조회할 때 오류
