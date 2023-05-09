@@ -12,6 +12,7 @@ import com.example.emotrak.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,24 +26,19 @@ import javax.transaction.Transactional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class KakaoService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final RestTemplate rt;
 
     @Value("${kakao_client_id}")
     private String KakaoClientId;
 
     @Value("${kakao_admin_key}")
     private String KakaoAdminKey;
-
-    public KakaoService(PasswordEncoder passwordEncoder, UserRepository userRepository, TokenProvider tokenProvider, Validation validation) {
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.tokenProvider = tokenProvider;
-        this.validation = validation;
-    }
 
     @Transactional
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
@@ -71,7 +67,7 @@ public class KakaoService {
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =
                 new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
 //        rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         ResponseEntity<String> response = rt.exchange(
                 "https://kauth.kakao.com/oauth/token",
@@ -94,7 +90,7 @@ public class KakaoService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
 //        rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         ResponseEntity<String> response = rt.exchange(
                 "https://kapi.kakao.com/v2/user/me",

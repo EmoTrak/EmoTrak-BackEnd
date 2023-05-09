@@ -12,6 +12,7 @@ import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class GoogleService {
 
     private final UserRepository userRepository;
@@ -40,13 +42,6 @@ public class GoogleService {
 
     @Value("${google_client_secret}")
     private String clientSecret;
-
-    public GoogleService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider, Validation validation) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenProvider = tokenProvider;
-        this.validation = validation;
-    }
 
     @Transactional
     public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {

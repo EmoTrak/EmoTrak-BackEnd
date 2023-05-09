@@ -1,232 +1,194 @@
 package com.example.emotrak.service;
 
+import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
+import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.jwt.TokenProvider;
-import com.example.emotrak.jwt.Validation;
 import com.example.emotrak.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
-@ExtendWith(MockitoExtension.class)
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
 class KakaoServiceTest {
-    @InjectMocks
+    @Autowired
     private KakaoService kakaoService;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
-    @Mock
+    @MockBean
+    private RestTemplate rt;
+    @MockBean
     private UserRepository userRepository;
-    @Mock
+    @MockBean
     private TokenProvider tokenProvider;
-    @Mock
-    private Validation validation;
 
-    private User testUser;
-
-    @Value("${kakao_client_id}")
-    private String KakaoClientId;
-
-    @Value("${kakao_admin_key}")
-    private String KakaoAdminKey;
-
-    @BeforeEach
-    void setUp() {
-        testUser = new User();
-        testUser.setKakaoId(123456789L);
-        ReflectionTestUtils.setField(kakaoService, "KakaoClientId", KakaoClientId);
-    }
 
     @Nested
     @DisplayName("KakaoLogin")
     class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
-        void testKakaoLogin() throws JsonProcessingException {
-//             RestTemplate rt = new RestTemplate();
-//            MockRestServiceServer mockServer = MockRestServiceServer.bindTo(rt).build();
-//
-//            // 토큰 발급 요청에 대한 모킹 응답을 설정합니다.
-//            String tokenResponse = "{\"access_token\":\"test-access-token\",\"token_type\":\"bearer\",\"refresh_token\":\"test-refresh-token\",\"expires_in\":43199,\"scope\":\"account_email\",\"refresh_token_expires_in\":25184000}";
-//            mockServer.expect(requestTo("https://kauth.kakao.com/oauth/token"))
-//                    .andExpect(method(HttpMethod.POST))
-//                    .andRespond(withSuccess(tokenResponse, MediaType.APPLICATION_JSON));
-//
-//            // 사용자 정보 요청에 대한 모킹 응답을 설정합니다.
-//            String userInfoResponse = "{\"id\":123456789,\"connected_at\":\"2021-05-01T12:00:00Z\",\"properties\":{\"nickname\":\"홍길동\"},\"kakao_account\":{\"email\":\"test@example.com\"}}";
-//            mockServer.expect(requestTo("https://kapi.kakao.com/v2/user/me"))
-//                    .andExpect(method(HttpMethod.POST))
-//                    .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
-//
-//            String code = "sample_code";
-//            HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-//
-//            // When
-//            kakaoService.kakaoLogin(code, response);
-//
-//            // Then
-//            verify(validation).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
+        void testKakaoLoginTest() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    HttpStatus.OK
+            );
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+
+            // TokenProvider Mocking
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+
+            // 테스트 수행
+            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+
+            // Then
+            verify(rt, times(1)).exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
         }
 
         @Test
-        @DisplayName("getToken 메서드 테스트")
-        void testGetToken() throws JsonProcessingException {
-//            // 테스트 데이터 준비
-//            String code = "code";
-//            String sampleResponse = "{\"access_token\":\"sample_access_token\"}";
-//
-//            // RestTemplate 모킹
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-//            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-//            body.add("grant_type", "authorization_code");
-//            body.add("client_id", KakaoClientId);
-//            body.add("redirect_uri", "https://emotrak.vercel.app/oauth/kakao");
-//            body.add("code", code);
-//            HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(body, headers);
-//
-//            ResponseEntity<String> mockedResponse = new ResponseEntity<>(sampleResponse, HttpStatus.OK);
-//            when(restTemplate.postForEntity(
-//                    eq("https://kauth.kakao.com/oauth/token"),
-//                    eq(kakaoTokenRequest),
-//                    eq(String.class)
-//            )).thenReturn(mockedResponse);
-//
-//            // 메서드 호출
-//            String result = kakaoService.getToken(code);
-//
-//            // 검증
-//            assertEquals("sample_access_token", result);
+        @DisplayName("User 객체가 null인 경우")
+        void kakaoLoginTest_ExistingUserWithSameEmail() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", 1234L, null, null, UserRoleEnum.USER);
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // UserRepository Mocking
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+
+            // TokenProvider Mocking
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+
+            // 테스트 수행
+            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.findByEmail 호출 검증
+            verify(userRepository, times(1)).findByEmail("mock@email.com");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(1)).save(any(User.class));
+
+            // verify tokenProvider.generateTokenDto 호출 검증
+            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
         }
 
         @Test
-        @DisplayName("카카오 API 호출 실패")
+        @DisplayName("User 객체가 null이 아닌 경우")
         void testKakaoApiFailure() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST))
-//                    .when(kakaoServiceSpy).getToken(code);
-//
-//            // When
-//            assertThrows(HttpClientErrorException.class, () -> {kakaoServiceSpy.kakaoLogin(code, response);});
-//
-//            // Then
-//            verify(kakaoServiceSpy, times(1)).getToken(code);
-//            verify(kakaoServiceSpy, times(0)).getKakaoUserInfo(anyString());
         }
 
         @Test
-        @DisplayName("사용자 정보를 얻지 못하는 경우")
-        void testKakaoUserInfoFailure() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doReturn("test_access_token").when(kakaoServiceSpy).getToken(code);
-//            doThrow(new RuntimeException("사용자 정보 얻지 못함"))
-//                    .when(kakaoServiceSpy).getKakaoUserInfo("test_access_token");
-//
-//            assertThrows(RuntimeException.class, () -> kakaoServiceSpy.kakaoLogin(code, response));
+        @DisplayName("중복된 닉게임이 존재할 경우")
+        void testNicknameSuffixWhenHasNickname() {
+
         }
 
         @Test
-        @DisplayName("유효하지 않은 인가 코드")
-        void testInvalidCode() throws JsonProcessingException {
-//            // Given
-//            String invalidCode = "invalid_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED))
-//                    .when(kakaoServiceSpy).getToken(invalidCode);
-//
-//            // When
-//            assertThrows(HttpClientErrorException.class, () -> {kakaoServiceSpy.kakaoLogin(invalidCode, response);});
-//
-//            // Then
-//            verify(kakaoServiceSpy, times(1)).getToken(invalidCode);
-//            verify(kakaoServiceSpy, times(0)).getKakaoUserInfo(anyString());
-        }
+        @DisplayName("중복된 닉네임이 존재하지 않을 경우")
+        void testNicknameSuffixWhenNoNickname() {
 
-        @Test
-        @DisplayName("액세스 토큰을 받지 못한 경우")
-        void testNoAccessToken() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doThrow(new RuntimeException("엑세스토큰을 받지 못함"))
-//                    .when(kakaoServiceSpy).getToken(code);
-//
-//            // Expect an exception to be thrown
-//            assertThrows(RuntimeException.class, () -> kakaoServiceSpy.kakaoLogin(code, response));
-        }
-
-        @Test
-        @DisplayName("사용자 저장 과정에서 실패")
-        void testSaveUserFailure() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doReturn("test_access_token").when(kakaoServiceSpy).getToken(code);
-//            doReturn(new OauthUserInfoDto("12345", "test@example.com", "test_nickname"))
-//                    .when(kakaoServiceSpy).getKakaoUserInfo("test_access_token");
-//
-//            when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("사용자 저장 실패"));
-//
-//            assertThrows(RuntimeException.class, () -> kakaoServiceSpy.kakaoLogin(code, response));
-//
-//            // Then
-//            verify(kakaoServiceSpy, times(1)).getToken(code);
-//            verify(kakaoServiceSpy, times(1)).getKakaoUserInfo("test_access_token");
-//            verify(userRepository, times(1)).save(any(User.class));
-        }
-
-        @Test
-        @DisplayName("토큰 생성 과정에서 실패")
-        void testTokenGenerationFailure() throws JsonProcessingException {
-//            // Given
-//            String code = "test_auth_code";
-//            HttpServletResponse response = mock(HttpServletResponse.class);
-//
-//            // Mock
-//            KakaoService kakaoServiceSpy = spy(kakaoService);
-//            doReturn("test_access_token").when(kakaoServiceSpy).getToken(code);
-//            doReturn(new OauthUserInfoDto("12345", "test@example.com", "test_nickname"))
-//                    .when(kakaoServiceSpy).getKakaoUserInfo("test_access_token");
-//
-//            when(userRepository.findByKakaoId(anyLong())).thenReturn(Optional.empty());
-//            when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-//            when(userRepository.save(any(User.class))).thenReturn(new User());
-//            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenThrow(new RuntimeException("토큰 생성 실패"));
-//
-//            assertThrows(RuntimeException.class, () -> kakaoServiceSpy.kakaoLogin(code, response));
-//
-//            verify(kakaoServiceSpy, times(1)).getToken(code);
-//            verify(kakaoServiceSpy, times(1)).getKakaoUserInfo("test_access_token");
-//            verify(userRepository, times(1)).save(any(User.class));
-//            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
         }
 
     }
@@ -236,17 +198,16 @@ class KakaoServiceTest {
     class kakaoUnlink {
         @Test
         @DisplayName("정상적인 연동해제")
-        void testUnlinkKakao() {
+        void UnlinkKakaoTest() {
 
         }
 
         @Test
         @DisplayName("카카오 연동 해제 실패")
-        void testUnlinkKakaoFailure() {
+        void UnlinkKakaoFailureTest() {
 
 
         }
-
-
     }
+
 }
