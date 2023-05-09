@@ -11,6 +11,7 @@ import com.example.emotrak.repository.CommentRepository;
 import com.example.emotrak.repository.LikesRepository;
 import com.example.emotrak.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
@@ -26,7 +27,8 @@ public class CommentService {
     private final LikesRepository likesRepository;
 
     //댓글작성
-    public void createComment(Long id, CommentRequestDto commentRequestDto, User user) {
+    @CacheEvict(value = "boardDetail", key = "#id + #user.id + #page")
+    public void createComment(Long id, CommentRequestDto commentRequestDto, User user, int page) {
         Daily daily = boardRepository.findById(id).orElseThrow(
                 () -> new CustomException(CustomErrorCode.BOARD_NOT_FOUND)
         );

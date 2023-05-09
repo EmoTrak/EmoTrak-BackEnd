@@ -31,7 +31,7 @@ public class CommentController {
     public ResponseEntity<?> createComment(@PathVariable Long boardId,
                                            @RequestBody CommentRequestDto commentRequestDto,
                                            @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        commentService.createComment(boardId, commentRequestDto, userDetails.getUser());
+        commentService.createComment(boardId, commentRequestDto, userDetails.getUser(), 1);
         return ResponseMessage.successResponse(HttpStatus.CREATED, "댓글 작성 성공", null);
     }
 
