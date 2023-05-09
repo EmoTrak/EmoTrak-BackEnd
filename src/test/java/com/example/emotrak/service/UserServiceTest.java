@@ -7,8 +7,7 @@ import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.jwt.Validation;
-import com.example.emotrak.repository.RefreshTokenRepository;
-import com.example.emotrak.repository.UserRepository;
+import com.example.emotrak.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,11 +39,23 @@ class UserServiceTest {
     private SignupRequestDto signupRequestDto;
     private LoginRequestDto loginRequestDto;
     private CheckNicknameRequestDto checkNicknameRequestDto;
-
     private PasswordRequestDto passwordRequestDto;
     private HttpServletResponse response;
+    private HttpServletRequest request;
+
+    private RefreshToken refreshToken;
+
+    private TokenDto tokenDto;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private LikesRepository likesRepository;
+    @Mock
+    private ReportRepository reportRepository;
+    @Mock
+    private BoardRepository boardRepository;
+    @Mock
+    private CommentRepository commentRepository;
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
     @Mock
@@ -64,12 +75,13 @@ class UserServiceTest {
         nicknameRequestDto = new NicknameRequestDto("비둘비둘");
         signupRequestDto = new SignupRequestDto(user.getEmail(), user.getPassword(), user.getNickname());
         response = mock(HttpServletResponse.class);
+        request = mock(HttpServletRequest.class);
         loginRequestDto = new LoginRequestDto(loginUser.getEmail(), loginUser.getPassword());
 
         checkNicknameRequestDto = new CheckNicknameRequestDto("비둘기야13");
         passwordRequestDto = new PasswordRequestDto("qwer1234");
-        RefreshToken refreshToken = new RefreshToken(54L,user2,"eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2ODIwNzQ0MjV9.U2DSWcYpGnVvjU8RSZFLG23168bV0qjLAkKxCHtYEF0",new Date());
-
+        refreshToken = new RefreshToken(54L,user2,"eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2ODIwNzQ0MjV9.U2DSWcYpGnVvjU8RSZFLG23168bV0qjLAkKxCHtYEF0",new Date(999999999));
+        tokenDto = new TokenDto("BEARER_PREFIX","2354235","eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE2ODIwNzQ0MjV9.U2DSWcYpGnVvjU8RSZFLG23168bV0qjLAkKxCHtYEF0",99999999999L);
     }
 
     @Nested
@@ -157,34 +169,32 @@ class UserServiceTest {
             //then
             verify(userRepository, times(1)).save(Mockito.any(User.class));
         }
-//        @DisplayName("유저 회원탈퇴")
-//        @Test
-//        public void deleteUser() {
-//
-//        }
-//
+        @DisplayName("유저 회원탈퇴")
+        @Test
+        public void deleteUser() {
+            //when
+            when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
+            userService.deleteUser(user2);
+
+        }
+
 //        @DisplayName("토큰 재발급")
 //        @Test
-//        public void refreshToken() {
-//            HttpServletRequest request = mock(HttpServletRequest.class);
-//            HttpServletResponse response = mock(HttpServletResponse.class);
+//        public void refreshTokenAccess() {
+//            request = mock(HttpServletRequest.class);
+//            response = mock(HttpServletResponse.class);
+//            //when
+//            response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
+//            response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
+//            response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
 //
-//            TokenDto tokenDto = tokenProvider.generateTokenDto(user2,UserRoleEnum.USER);
-//
-//            String refreshTokenValue = request.getHeader("Refresh-Token");
+//            when(tokenProvider.generateTokenDto(user2,UserRoleEnum.USER)).thenReturn(tokenDto);
+//            when(refreshTokenRepository.findByValue(tokenDto.getRefreshToken())).thenReturn(Optional.ofNullable(refreshToken));
+//            when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
 //            //then
+//            userService.refreshToken(request,response);
 //            verify(refreshTokenRepository,times(1)).save(Mockito.any(RefreshToken.class));
 //
-//            tokenProvider.validateToken(refreshTokenValue);
-//
-//            RefreshToken refreshToken = refreshTokenRepository.findByValue(refreshTokenValue).orElse(null);
-//            //when
-//            when(refreshTokenRepository.findByValue(refreshTokenValue)).thenReturn(Optional.ofNullable(refreshToken));
-//            when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
-//
-//
-//
-//            userService.refreshToken(request,response);
 //        }
     }
     @Nested
@@ -549,6 +559,19 @@ class UserServiceTest {
             });
             //then
             assertEquals("비밀번호 조건을 확인해주세요.", customException.getErrorCode().getMessage());
+        }
+
+        @DisplayName("회원탈퇴 유저정보 없음")
+        @Test
+        void deleteUserFailUserNotFound() {
+            //given
+            user2.setId(9999L);
+            //when
+            CustomException customException = assertThrows(CustomException.class, () -> {
+                userService.deleteUser(user2);
+            });
+            //then
+            assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
         }
 
     }
