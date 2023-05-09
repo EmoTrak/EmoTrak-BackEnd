@@ -91,19 +91,12 @@ class UserServiceTest {
         @DisplayName("일반 회원 가입")
         @Test
         void signup() {
-            //given
-            assertEquals(user.getEmail().equals(""), false);
-            assertEquals(user.getPassword().equals(""), false);
-            assertEquals(user.getNickname().equals(""), false);
-
+            //when
             when(userRepository.existsByEmail(user.getEmail())).thenReturn(false);
             when(userRepository.existsByNickname(user.getNickname())).thenReturn(false);
 
-            //when
-            userService.signup(signupRequestDto);
-            //assertThrows(CustomException.class, () -> userService.signup(signupRequestDto));
-
             //then
+            userService.signup(signupRequestDto);
             verify(userRepository, times(1)).saveAndFlush(Mockito.any(User.class));
         }
 
@@ -111,40 +104,35 @@ class UserServiceTest {
         @Test
         void login() {
             //given
-            HttpServletResponse response = mock(HttpServletResponse.class);
-
             String encodePassword = user.getPassword();
+
             //when
             when(userRepository.findByEmail(loginRequestDto.getEmail())).thenReturn(Optional.ofNullable(user));
-            //when
             when(!passwordEncoder.matches(loginRequestDto.getPassword(), encodePassword)).thenReturn(true);
+
             //then
             userService.login(loginRequestDto, response);
         }
         @DisplayName("가입시 닉네임 체크")
         @Test
         void signupNicknameCheck() {
-
+            //given
             CheckNicknameRequestDto checkNicknameRequestDto = new CheckNicknameRequestDto("비둘비둘");
 
-//            boolean usercheck = user != null;
-//            assertEquals("유저있음", usercheck);
-//            boolean checknick = checkNicknameRequestDto.getNickname().equals(user.getNickname());
-//            assertEquals("false", checknick);
-
+            //when
             when(userRepository.existsByNickname(checkNicknameRequestDto.getNickname())).thenReturn(false);
-            //when(userRepository.findById(user.getId())).thenReturn(Optional.ofNullable(user));
 
+            //then
             userService.signupNicknameCheck(checkNicknameRequestDto, user);
         }
 
         @DisplayName("마이페이지 입장")
         @Test
         void userMypage() {
-
             //when
             when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user));
 
+            //then
             userService.userMypage(user2);
         }
         @DisplayName("닉네임 변경")
@@ -154,14 +142,16 @@ class UserServiceTest {
             when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             when(userRepository.existsByNickname(nicknameRequestDto.getNickname())).thenReturn(false);
 
-            userService.nicknameUpdate(nicknameRequestDto,user2);
             //then
+            userService.nicknameUpdate(nicknameRequestDto,user2);
             verify(userRepository, times(1)).save(Mockito.any(User.class));
         }
         @DisplayName("비밀번호 변경")
         @Test
         public void passwordUpdate() {
+            //given
             PasswordRequestDto passwordRequestDto = new PasswordRequestDto("qwerasdf12");
+
             //when
             when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             userService.passwordUpdate(passwordRequestDto,user2);
@@ -174,6 +164,8 @@ class UserServiceTest {
         public void deleteUser() {
             //when
             when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
+
+            //then
             userService.deleteUser(user2);
 
         }
@@ -205,10 +197,12 @@ class UserServiceTest {
         public void emailEmptyCheck() {
             //give
             signupRequestDto.setEmail("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("이메일을 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -218,10 +212,12 @@ class UserServiceTest {
         public void passwordEmptyCheck() {
             //give
             signupRequestDto.setPassword("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("비밀번호를 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -231,10 +227,12 @@ class UserServiceTest {
         public void nicknameEmptyCheck() {
             //give
             signupRequestDto.setNickname("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("닉네임을 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -244,11 +242,13 @@ class UserServiceTest {
         public void emailCheck() {
             //give
             signupRequestDto.setEmail("user123567@naver.com");
+
             //when
             Mockito.when(userRepository.existsByEmail(signupRequestDto.getEmail())).thenReturn(true);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("중복된 이메일이 존재합니다.", customException.getErrorCode().getMessage());
         }
@@ -258,11 +258,13 @@ class UserServiceTest {
         public void nicknameCheck() {
             //give
             signupRequestDto.setNickname("비둘기야밥먹자");
+
             //when
             Mockito.when(userRepository.existsByNickname(signupRequestDto.getNickname())).thenReturn(true);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("중복된 닉네임이 존재합니다.", customException.getErrorCode().getMessage());
         }
@@ -272,10 +274,12 @@ class UserServiceTest {
         public void emailPatternCheck() {
             //give
             signupRequestDto.setEmail("qwer1234");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("올바른 이메일 형식이 아닙니다.", customException.getErrorCode().getMessage());
         }
@@ -285,10 +289,12 @@ class UserServiceTest {
         public void nicknamePatternCheck() {
             //give
             signupRequestDto.setNickname("qwer_1234");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("닉네임 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
@@ -298,10 +304,12 @@ class UserServiceTest {
         public void passwordPatternCheck() {
             //give
             signupRequestDto.setPassword("1234");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signup(signupRequestDto);
             });
+
             // then
             assertEquals("비밀번호 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
@@ -311,10 +319,12 @@ class UserServiceTest {
         void loginFailEmailBlank() {
             //given
             loginRequestDto.setEmail("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.login(loginRequestDto,response);
             });
+
             //then
             assertEquals("이메일을 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -324,10 +334,12 @@ class UserServiceTest {
         void loginFailPasswordBlank() {
             //given
             loginRequestDto.setPassword("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.login(loginRequestDto,response);
             });
+
             //then
             assertEquals("비밀번호를 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -338,11 +350,12 @@ class UserServiceTest {
             //given
             loginRequestDto.setEmail("qwerqq32@naver.com");
             loginRequestDto.setPassword("qwer1234");
+
             //when
-            //Mockito.when(userRepository.findByEmail("qwerqq32@naver.com")).thenReturn(null);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.login(loginRequestDto,response);
             });
+
             //then
             assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
         }
@@ -353,12 +366,14 @@ class UserServiceTest {
             //given
             loginRequestDto.setEmail(user2.getEmail());
             loginRequestDto.setPassword("qwer1234");
+
             //when
             Mockito.when(userRepository.findByEmail(user2.getEmail())).thenReturn(Optional.ofNullable(user2));
             Mockito.when(!passwordEncoder.matches(loginRequestDto.getPassword(),user2.getPassword())).thenReturn(false);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.login(loginRequestDto,response);
             });
+
             //then
             assertEquals("비밀번호가 일치하지 않습니다.", customException.getErrorCode().getMessage());
         }
@@ -368,10 +383,12 @@ class UserServiceTest {
         void signupNicknameCheckFail() {
             //given
             checkNicknameRequestDto.setNickname("");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signupNicknameCheck(checkNicknameRequestDto,user);
             });
+
             //then
             assertEquals("닉네임을 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -381,10 +398,12 @@ class UserServiceTest {
         void signupNicknameCheckFailNicknameSame() {
             //given
             checkNicknameRequestDto.setNickname(user.getNickname());
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signupNicknameCheck(checkNicknameRequestDto,user);
             });
+
             //then
             assertEquals("닉네임이 동일합니다.", customException.getErrorCode().getMessage());
         }
@@ -394,11 +413,13 @@ class UserServiceTest {
         void signupNicknameCheckFailNicknameDuple() {
             //given
             checkNicknameRequestDto.setNickname("비둘기야밥먹자");
+
             //when
             Mockito.when(userRepository.existsByNickname(checkNicknameRequestDto.getNickname())).thenReturn(true);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signupNicknameCheck(checkNicknameRequestDto,user);
             });
+
             //then
             assertEquals("중복된 닉네임이 존재합니다.", customException.getErrorCode().getMessage());
         }
@@ -408,10 +429,12 @@ class UserServiceTest {
         void signupNicknameCheckFailNicknameNotPattern() {
             //given
             checkNicknameRequestDto.setNickname("qwer_1234");
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.signupNicknameCheck(checkNicknameRequestDto,user);
             });
+
             //then
             assertEquals("닉네임 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
@@ -421,11 +444,12 @@ class UserServiceTest {
         void myPageFailUserNotFound() {
             //given
             user.setId(9999L);
+
             //when
-            //Mockito.when(userRepository.findById(user.getId())).thenReturn(null);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.userMypage(user);
             });
+
             //then
             assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
         }
@@ -434,13 +458,13 @@ class UserServiceTest {
         @Test
         void nicknameUpdateFailUserNotFound() {
             //given
-            user.setId(999L);
+            user.setId(9999L);
+
             //when
-            //Mockito.when(userRepository.findByEmail(user2.getEmail())).thenReturn(Optional.ofNullable(user2));
-            //Mockito.when(!passwordEncoder.matches(loginRequestDto.getPassword(),user2.getPassword())).thenReturn(false);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.nicknameUpdate(nicknameRequestDto,user2);
             });
+
             //then
             assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
         }
@@ -450,11 +474,13 @@ class UserServiceTest {
         void nicknameUpdateFailNicknameBlank() {
             //given
             nicknameRequestDto.setNickname("");
+
             //when
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.nicknameUpdate(nicknameRequestDto,user2);
             });
+
             //then
             assertEquals("닉네임을 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -464,11 +490,13 @@ class UserServiceTest {
         void nicknameUpdateFailNicknameSame() {
             //given
             nicknameRequestDto.setNickname(user2.getNickname());
+
             //when
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.nicknameUpdate(nicknameRequestDto,user2);
             });
+
             //then
             assertEquals("닉네임이 동일합니다.", customException.getErrorCode().getMessage());
         }
@@ -478,12 +506,14 @@ class UserServiceTest {
         void nicknameUpdateFailNicknameDuple() {
             //given
             nicknameRequestDto.setNickname("비둘기야밥먹자");
+
             //when
             Mockito.when(userRepository.existsByNickname(nicknameRequestDto.getNickname())).thenReturn(true);
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.nicknameUpdate(nicknameRequestDto,user2);
             });
+
             //then
             assertEquals("중복된 닉네임이 존재합니다.", customException.getErrorCode().getMessage());
         }
@@ -493,12 +523,13 @@ class UserServiceTest {
         void nicknameUpdateFailNicknameNotPattern() {
             //given
             nicknameRequestDto.setNickname("qwer_1234");
+
             //when
-            //Mockito.when(userRepository.existsByNickname(nicknameRequestDto.getNickname())).thenReturn(true);
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.nicknameUpdate(nicknameRequestDto,user2);
             });
+
             //then
             assertEquals("닉네임 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
@@ -507,12 +538,13 @@ class UserServiceTest {
         @Test
         void passwordUpdateFailUserNotFound() {
             //given
-            //passwordRequestDto.setPassword();
             user2.setId(9999L);
+
             //when
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.passwordUpdate(passwordRequestDto,user2);
             });
+
             //then
             assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
         }
@@ -522,11 +554,13 @@ class UserServiceTest {
         void passwordUpdateFailPasswordBlank() {
             //given
             passwordRequestDto.setPassword("");
+
             //when
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.passwordUpdate(passwordRequestDto,user2);
             });
+
             //then
             assertEquals("비밀번호를 입력해주세요.", customException.getErrorCode().getMessage());
         }
@@ -536,12 +570,14 @@ class UserServiceTest {
         void passwordUpdateFailPasswordSame() {
             //given
             passwordRequestDto.setPassword(user2.getPassword());
+
             //when
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             Mockito.when(!passwordEncoder.matches(passwordRequestDto.getPassword(),user2.getPassword())).thenReturn(true);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.passwordUpdate(passwordRequestDto,user2);
             });
+
             //then
             assertEquals("패스워드가 동일합니다.", customException.getErrorCode().getMessage());
         }
@@ -551,12 +587,14 @@ class UserServiceTest {
         void passwordUpdateFailPasswordNotPattern() {
             //given
             passwordRequestDto.setPassword("qwer");
+
             //when
             Mockito.when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
             //Mockito.when(!passwordEncoder.matches(passwordRequestDto.getPassword(),user2.getPassword())).thenReturn(true);
             CustomException customException = assertThrows(CustomException.class, () -> {
                 userService.passwordUpdate(passwordRequestDto,user2);
             });
+
             //then
             assertEquals("비밀번호 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
