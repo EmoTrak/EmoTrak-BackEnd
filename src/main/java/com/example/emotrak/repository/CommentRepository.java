@@ -39,7 +39,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                        + "  WHERE c.daily_id = :dailyId"
                        + "  ORDER BY c.created_at"
                  , nativeQuery = true)
-    Page<CommentDetailDto> getCommentDetail(@Param("userId") Long userId, @Param("dailyId") Long dailyId, Pageable pageable);
+//    Page<CommentDetailDto> getCommentDetail(@Param("userId") Long userId, @Param("dailyId") Long dailyId, Pageable pageable);
+    Page<Object[]> getCommentDetail(@Param("userId") Long userId, @Param("dailyId") Long dailyId, Pageable pageable);
 
     @Modifying
     @Query(value = " DELETE FROM comment "

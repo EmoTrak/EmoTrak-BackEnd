@@ -9,6 +9,7 @@ import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.DailyRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
 public class DailyService {
     private final DailyRepository dailyRepository;
 
+    @Cacheable(value = "dailyMonth", key = "#year + #month + #user.id")
     public DailyResponseDto getDailyMonth(int year, int month, User user) {
         List<DailyMonthResponseDto> dailyMonthResponseDtoList
                 = dailyRepository.getDailyMonth(year, month, user.getId());

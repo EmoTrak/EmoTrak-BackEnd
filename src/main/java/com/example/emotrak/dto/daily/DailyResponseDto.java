@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DailyResponseDto<T> {
+public class DailyResponseDto<T> implements Serializable {
 
     private int year;
     private int month;

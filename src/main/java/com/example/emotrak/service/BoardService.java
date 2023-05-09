@@ -1,7 +1,7 @@
 package com.example.emotrak.service;
 
 import com.example.emotrak.dto.board.*;
-import com.example.emotrak.dto.comment.CommentDetailDto;
+import com.example.emotrak.dto.comment.CommentDetailResponseDto;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
@@ -10,6 +10,7 @@ import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -174,6 +176,7 @@ public class BoardService {
 
     // 공유게시판 상세페이지
     @Transactional(readOnly = true)
+    @Cacheable(value = "boardDetail", key = "#id + ( #user != null ? #user.id : '') + #page")
     public BoardDetailResponseDto getBoardDetail(Long id, User user, int page) {
         // 페이지네이션을 적용하여 댓글 목록 가져오기
         if (page <= 0) {
@@ -191,8 +194,16 @@ public class BoardService {
         }
 
         Pageable pageable = PageRequest.of(page-1, 20);
-        Page<CommentDetailDto> commentDetailDtoPage = commentRepository.getCommentDetail(userId, id, pageable);
-        return new BoardDetailResponseDto(boardGetDetailDtoList.get(), commentDetailDtoPage);
+//        Page<CommentDetailDto> commentDetailDtoPage = commentRepository.getCommentDetail(userId, id, pageable);
+//        return new BoardDetailResponseDto(boardGetDetailDtoList.get(), commentDetailDtoPage);
+
+        Page<Object[]> objectList = commentRepository.getCommentDetail(userId, id, pageable);
+        List<CommentDetailResponseDto> commentDetailResponseDtoList = new ArrayList<>();
+        for (int i = 0; i < objectList.getContent().size(); i++){
+            CommentDetailResponseDto commentDetailResponseDto = new CommentDetailResponseDto(objectList.getContent().get(i));
+            commentDetailResponseDtoList.add(commentDetailResponseDto);
+        }
+        return new BoardDetailResponseDto(boardGetDetailDtoList.get(), commentDetailResponseDtoList, objectList.hasNext());
     }
 
 
