@@ -1,57 +1,44 @@
-//package com.example.emotrak.service;
-//
-//import com.example.emotrak.dto.user.OauthUserInfoDto;
-//import com.example.emotrak.dto.user.TokenDto;
-//import com.example.emotrak.entity.User;
-//import com.example.emotrak.entity.UserRoleEnum;
-//import com.example.emotrak.jwt.TokenProvider;
-//import com.example.emotrak.jwt.Validation;
-//import com.example.emotrak.repository.UserRepository;
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Nested;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//
-//import javax.servlet.http.HttpServletResponse;
-//import java.util.HashMap;
-//import java.util.Map;
-//import java.util.Optional;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.anyString;
-//import static org.mockito.Mockito.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class GoogleServiceTest {
-//    @InjectMocks
-//    private GoogleService googleService;
-//
-//    @Mock
-//    private UserRepository userRepository;
-//    @Mock
-//    private PasswordEncoder passwordEncoder;
-//    @Mock
-//    private TokenProvider tokenProvider;
-//    @Mock
-//    private Validation validation;
-//
-//    @BeforeEach
-//    public void setUp() {
-//
-//    }
-//
-//    @Nested
-//    @DisplayName("GoogleLogin")
-//    class googleLogin {
-//        @Test
-//        @DisplayName("정상적인 로그인")
-//        public void testGoogleLogin() throws JsonProcessingException {
+package com.example.emotrak.service;
+
+import com.example.emotrak.jwt.TokenProvider;
+import com.example.emotrak.jwt.Validation;
+import com.example.emotrak.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@ExtendWith(MockitoExtension.class)
+class GoogleServiceTest {
+    @InjectMocks
+    private GoogleService googleService;
+
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+    @Mock
+    private TokenProvider tokenProvider;
+    @Mock
+    private Validation validation;
+
+    @BeforeEach
+    public void setUp() {
+
+    }
+
+    @Nested
+    @DisplayName("GoogleLogin")
+    class googleLogin {
+        @Test
+        @DisplayName("정상적인 로그인")
+        void testGoogleLogin() throws JsonProcessingException {
 //            // Given
 //            String code = "test_auth_code";
 //            String scope = "test_auth_scope";
@@ -81,11 +68,11 @@
 //            verify(userRepository, times(1)).save(any(User.class));
 //            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
 //            verify(validation, times(1)).tokenToHeaders(any(TokenDto.class), any(HttpServletResponse.class));
-//        }
-//
-//
-//    }
-//
-//
-//
-//}
+        }
+
+
+    }
+
+
+
+}
