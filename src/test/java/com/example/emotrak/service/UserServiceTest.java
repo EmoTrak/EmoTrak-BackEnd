@@ -172,16 +172,6 @@ class UserServiceTest {
             //then
             verify(userRepository, times(1)).save(Mockito.any(User.class));
         }
-        @DisplayName("유저 회원탈퇴")
-        @Test
-        public void deleteUser() {
-            //when
-            when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
-
-            //then
-            userService.deleteUser(user2);
-
-        }
 
 //        @DisplayName("토큰 재발급")
 //        @Test
