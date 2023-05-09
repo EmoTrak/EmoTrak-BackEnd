@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
+@Tag(name = "Users", description = "일반 로그인 관련")
 public class AccountController {
 
     private final EmailSendService emailSendService;

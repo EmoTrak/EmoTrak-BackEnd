@@ -10,7 +10,6 @@ import java.util.Date;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Component
 public class RefreshToken extends Timestamped {
 
