@@ -36,6 +36,7 @@ public class GoogleService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final RestTemplate rt;
 
     @Value("${google_client_id}")
     private String clientId;
@@ -78,7 +79,7 @@ public class GoogleService {
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://oauth2.googleapis.com/token",
                 HttpMethod.POST,
@@ -106,7 +107,7 @@ public class GoogleService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         HttpEntity<MultiValueMap<String, String>> googleUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://www.googleapis.com/oauth2/v3/userinfo",
                 HttpMethod.POST,
@@ -170,7 +171,7 @@ public class GoogleService {
                 .fromHttpUrl("https://accounts.google.com/o/oauth2/revoke")
                 .queryParam("token", accessToken);
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         try {
             rt.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, String.class);
         } catch (HttpClientErrorException ex) {
@@ -193,9 +194,9 @@ public class GoogleService {
         body.add("refresh_token", refreshToken);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
+//        RestTemplate restTemplate = new RestTemplate();
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
+            ResponseEntity<String> response = rt.exchange(
                     "https://oauth2.googleapis.com/token",
                     HttpMethod.POST,
                     request,

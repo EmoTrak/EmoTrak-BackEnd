@@ -151,7 +151,7 @@ public class KakaoService {
         body.add("target_id", Long.toString(user.getKakaoId()));
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://kapi.kakao.com/v1/user/unlink",
                 HttpMethod.POST,

@@ -33,6 +33,7 @@ public class NaverService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final RestTemplate rt;
 
     @Value("${naver_client_id}")
     private String clientId;
@@ -72,7 +73,7 @@ public class NaverService {
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://nid.naver.com/oauth2.0/token",
                 HttpMethod.POST,
@@ -100,7 +101,7 @@ public class NaverService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         HttpEntity<MultiValueMap<String, String>> naverUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://openapi.naver.com/v1/nid/me",
                 HttpMethod.POST,
@@ -174,7 +175,7 @@ public class NaverService {
         body.add("service_provider", "NAVER");
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://nid.naver.com/oauth2.0/token",
                 HttpMethod.POST,
@@ -196,9 +197,9 @@ public class NaverService {
         body.add("refresh_token", refreshToken);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
+//        RestTemplate restTemplate = new RestTemplate();
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
+            ResponseEntity<String> response = rt.exchange(
                     "https://nid.naver.com/oauth2.0/token",
                     HttpMethod.POST,
                     request,
