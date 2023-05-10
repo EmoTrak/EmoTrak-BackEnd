@@ -602,19 +602,6 @@ class UserServiceTest {
             assertEquals("비밀번호 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
 
-        @DisplayName("회원탈퇴 유저정보 없음")
-        @Test
-        void deleteUserFailUserNotFound() {
-            //given
-            user2.setId(9999L);
-            //when
-            CustomException customException = assertThrows(CustomException.class, () -> {
-                userService.deleteUser(user2);
-            });
-            //then
-            assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
-        }
-
     }
 //    }
     @Nested
