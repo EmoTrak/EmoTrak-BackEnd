@@ -49,7 +49,6 @@ class KakaoServiceTest {
     @MockBean
     private RestTemplate rt;
 
-
     @Nested
     @DisplayName("KakaoLogin")
     class kakaoLogin {
@@ -261,7 +260,6 @@ class KakaoServiceTest {
             // verify tokenProvider.generateTokenDto 호출 검증
             verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
         }
-
 
         @Test
         @DisplayName("중복된 닉네임이 존재할 경우")
