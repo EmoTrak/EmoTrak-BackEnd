@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -25,6 +26,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -110,6 +113,366 @@ class GoogleServiceTest {
         @Test
         @DisplayName("구글유저가 존재하는 경우")
         void ExistingUser() throws JsonProcessingException {
+            // Mock Responses
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
+                    HttpStatus.OK
+            );
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"sub\":\"1234\", \"email\":\"mock@email.com\", \"name\":\"mocknickname\"}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User(passwordEncoder.encode("randomPassword"), "mock@email.com", "mocknickname", null, null, "1234", UserRoleEnum.USER);
+
+            // Mocking
+            when(rt.exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            when(rt.exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            when(userRepository.findByGoogleId("1234")).thenReturn(Optional.of(mockUser));
+
+            TokenDto mockTokenDto = new TokenDto("Bearer", "mock_access_token", "mock_refresh_token", 123L);
+
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            googleService.googleLogin("mock_code", "mock_scope", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.findByGoogleId 호출 검증
+            verify(userRepository, times(1)).findByGoogleId("1234");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(0)).save(any(User.class)); // User should not be saved again as it already exists
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 있는 경우")
+        void ExistingUserWithSameEmail() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"sub\":\"mock_id\", \"email\":\"mock@email.com\", \"name\":\"mock_nickname\"}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User(passwordEncoder.encode("randomPassword"), "mock@email.com", "mock_nickname", null, null, "mock_id", UserRoleEnum.USER);
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 Google API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // UserRepository Mocking
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.of(mockUser));
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+
+            // TokenProvider Mocking
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            googleService.googleLogin("mock_auth_code", "mock_scope", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.findByEmail 호출 검증
+            verify(userRepository, times(1)).findByEmail("mock@email.com");
+
+            // verify userRepository.findByGoogleId 호출 검증
+            verify(userRepository, times(1)).findByGoogleId("mock_id");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(1)).save(any(User.class));
+
+            // verify tokenProvider.generateTokenDto 호출 검증
+            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 없는 경우")
+        void NoExistingUserWithSameEmail() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"sub\":\"mock_id\", \"email\":\"mock@email.com\", \"name\":\"mock_nickname\"}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User(passwordEncoder.encode("randomPassword"), "mock@email.com", "mock_nickname", null, null, "mock_id", UserRoleEnum.USER);
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 Google API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // UserRepository Mocking
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+
+            // TokenProvider Mocking
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            googleService.googleLogin("mock_auth_code", "mock_scope", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.findByEmail 호출 검증
+            verify(userRepository, times(1)).findByEmail("mock@email.com");
+
+            // verify userRepository.findByGoogleId 호출 검증
+            verify(userRepository, times(1)).findByGoogleId("mock_id");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(1)).save(any(User.class));
+
+            // verify tokenProvider.generateTokenDto 호출 검증
+            verify(tokenProvider, times(1)).generateTokenDto(any(User.class), any(UserRoleEnum.class));
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재할 경우")
+        void testHasNickname() throws JsonProcessingException  {
+            // Mock Responses
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
+                    HttpStatus.OK
+            );
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"sub\":\"1234\", \"email\":\"mock@email.com\", \"name\":\"mocknickname\"}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User(passwordEncoder.encode("randomPassword"), "mock@email.com", "mocknickname", null, null, "1234", UserRoleEnum.USER);
+
+            // Mocking
+            when(rt.exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            when(rt.exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            when(userRepository.findByGoogleId("1234")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
+            when(userRepository.existsByNickname("mocknickname")).thenReturn(true);
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+
+            TokenDto mockTokenDto = new TokenDto("Bearer", "mock_access_token", "mock_refresh_token", 123L);
+
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            googleService.googleLogin("mock_code", "mock_state", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.getUniqueNameSuffix 호출 검증
+            verify(userRepository, times(1)).getUniqueNameSuffix("mocknickname");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(1)).save(any(User.class));
+
+            // ArgumentCaptor를 이용해 userRepository.save()에 전달되는 User 객체 캡쳐
+            ArgumentCaptor<User> argument = ArgumentCaptor.forClass(User.class);
+            verify(userRepository).save(argument.capture());
+            // 캡쳐된 User 객체의 닉네임 접미사 검증
+            assertEquals("mocknickname_0", argument.getValue().getNickname());
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재하지 않을 경우")
+        void testNoNickname() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"sub\":\"1234\", \"email\":\"mock@email.com\", \"name\":\"mocknickname\"}",
+                    HttpStatus.OK
+            );
+
+            // Mock User
+            User mockUser = new User("encodedPassword", "mock@email.com", "mocknickname", null, null, "1234", UserRoleEnum.USER);
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 구글 API 호출 : "액세스 토큰"으로 "구글 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // UserRepository Mocking
+            when(userRepository.findByGoogleId("1234")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
+            when(userRepository.existsByNickname("mocknickname")).thenReturn(false);
+            when(userRepository.save(any(User.class))).thenReturn(mockUser);
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+
+            // TokenProvider Mocking
+            when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            googleService.googleLogin("mock_auth_code", "mock_state", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://oauth2.googleapis.com/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://www.googleapis.com/oauth2/v3/userinfo"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.getUniqueNameSuffix 호출 검증
+            verify(userRepository, times(0)).getUniqueNameSuffix("mocknickname");
+
+            // verify userRepository.save 호출 검증
+            verify(userRepository, times(1)).save(any(User.class));
+
+            // ArgumentCaptor를 이용해 userRepository.save()에 전달되는 User 객체 캡쳐
+            ArgumentCaptor<User> argument = ArgumentCaptor.forClass(User.class);
+            verify(userRepository).save(argument.capture());
+
+            // 캡쳐된 User 객체의 닉네임 검증
+            assertEquals("mocknickname", argument.getValue().getNickname());
+        }
+        @Test
+        @DisplayName("닉네임이 null 인경우")
+        void testNullNickname() throws JsonProcessingException {
 
         }
 
@@ -118,31 +481,6 @@ class GoogleServiceTest {
         void testNoRefreshToken() throws JsonProcessingException {
 
         }
-
-        @Test
-        @DisplayName("중복된 이메일을 가진 사용자가 있는 경우")
-        void ExistingUserWithSameEmail() throws JsonProcessingException {
-
-        }
-
-        @Test
-        @DisplayName("중복된 이메일을 가진 사용자가 없는 경우")
-        void NoExistingUserWithSameEmail() throws JsonProcessingException {
-
-        }
-
-        @Test
-        @DisplayName("중복된 닉네임이 존재할 경우")
-        void testHasNickname() throws JsonProcessingException  {
-
-        }
-
-        @Test
-        @DisplayName("중복된 닉네임이 존재하지 않을 경우")
-        void testNoNickname() throws JsonProcessingException {
-
-        }
-
     }
 
         @Nested
