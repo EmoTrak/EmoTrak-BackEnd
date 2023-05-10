@@ -6,6 +6,7 @@ import com.example.emotrak.dto.comment.CommentDetailDtoImpl;
 import com.example.emotrak.dto.like.LikeResponseDto;
 import com.example.emotrak.dto.report.ReportRequestDto;
 import com.example.emotrak.entity.*;
+import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,12 +27,16 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -850,20 +855,13 @@ class BoardServiceTest {
         void reportDailyDuplicate() {
             // given
             Long dailyId = 1L;
-            when(boardRepository.findById(dailyId)).thenReturn(Optional.empty());
-            // when
-            assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId),
-                    "게시물이 존재하지 않는 경우에는 CustomException 이 발생해야 합니다.");
-            // then
-            verify(reportRepository, Mockito.never()).save(Mockito.any());
-//            // given
-//            when(boardRepository.findById(dailyId)).thenReturn(Optional.of(daily));
-//            when(reportRepository.findByUserAndDailyId(user, dailyId)).thenReturn(Optional.of(new Report(reportRequestDto, user, daily)));
-//
-//            // when & then
-//            CustomException exception = assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId));
-//            assertThat(exception.getErrorCode()).isEqualTo(CustomErrorCode.DUPLICATE_REPORT);
-//            verify(reportRepository, never()).save(any(Report.class));
+            when(boardRepository.findById(dailyId)).thenReturn(Optional.of(daily));
+            when(reportRepository.findByUserAndDailyId(user, dailyId)).thenReturn(Optional.of(new Report(reportRequestDto, user, daily)));
+
+            // when & then
+            CustomException exception = assertThrows(CustomException.class, () -> boardService.createReport(reportRequestDto, user, dailyId));
+            assertThat(exception.getErrorCode()).isEqualTo(CustomErrorCode.DUPLICATE_REPORT);
+            verify(reportRepository, never()).save(any(Report.class));
         }
     }
 
