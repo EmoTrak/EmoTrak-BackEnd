@@ -3,6 +3,7 @@ package com.example.emotrak.service;
 import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.jwt.Validation;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,9 +24,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,12 +109,35 @@ class NaverServiceTest {
             );
         }
 
-//        @Test
-//        @DisplayName("")
-//        void ㄹ() {
-//
-//        }
+        @Test
+        @DisplayName("네이버유저가 존재하는 경우")
+        void ExistingUser() throws JsonProcessingException {
 
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 있는 경우")
+        void ExistingUserWithSameEmail() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 없는 경우")
+        void NoExistingUserWithSameEmail() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재할 경우")
+        void testHasNickname() throws JsonProcessingException  {
+
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재하지 않을 경우")
+        void testNoNickname() throws JsonProcessingException {
+
+        }
 
     }
 
@@ -174,7 +201,7 @@ class NaverServiceTest {
             // 네이버 OAuth2 리프레시 토큰 응답을 Mocking
             ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
                     "{\"refresh_token\":\"mock_refresh\"}",
-                    HttpStatus.OK
+                    HttpStatus.UNAUTHORIZED
             );
 
             // 리프레시 토큰 요청을 Mocking
@@ -190,7 +217,7 @@ class NaverServiceTest {
         }
 
         @Test
-        @DisplayName("네이버 연동 해제 실패-액세스 토큰이 유효하지 않아 연동 해제가 실패하는 경우")
+        @DisplayName("네이버 연동 해제 실패-연동 해제가 실패하는 경우")
        void UnlinkFailed() {
             // Mock User
             User mockUser = new User();
@@ -199,7 +226,7 @@ class NaverServiceTest {
             // 네이버 OAuth2 리프레시 토큰 응답을 Mocking
             ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
                     "{\"result\":\"fail\"}",
-                    HttpStatus.OK
+                    HttpStatus.NOT_FOUND
             );
 
             // 네이버 OAuth2 연동 해제 응답을 Mocking
@@ -224,6 +251,56 @@ class NaverServiceTest {
             // CustomException 이 던져졌는지 검증
             assertThrows(CustomException.class, () -> naverService.unlinkNaver(mockUser));
         }
+
+        @Test
+        @DisplayName("네이버 연동 해제 실패-연동 해제가 실패하는 경우2(OAUTH_UNLINK_FAILED)")
+        void UnlinkFailed2() {
+            // Mock User
+            User mockUser = new User();
+            mockUser.setNaverRefresh("mock_refresh");
+
+            // Mock refresh token response
+            ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                    "{\"refresh_token\":\"mock_refresh\", \"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    argThat(new RequestEntityMatcher("refresh_token")),
+                    eq(String.class)
+            )).thenReturn(mockRefreshTokenResponse);
+
+            // Mock failed unlink response
+            ResponseEntity<String> mockUnlinkResponse = new ResponseEntity<>(
+                    "Unauthorized",
+                    HttpStatus.UNAUTHORIZED
+            );
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    argThat(new RequestEntityMatcher("delete")),
+                    eq(String.class)
+            )).thenReturn(mockUnlinkResponse);
+
+            // CustomException 이 던져졌는지 검증
+            CustomException exception = assertThrows(CustomException.class, () -> naverService.unlinkNaver(mockUser));
+            assertEquals(CustomErrorCode.OAUTH_UNLINK_FAILED, exception.getErrorCode());
+        }
+
+        private static class RequestEntityMatcher implements ArgumentMatcher<HttpEntity<MultiValueMap<String, String>>> {
+            private final String grantType;
+
+            RequestEntityMatcher(String grantType) {
+                this.grantType = grantType;
+            }
+
+            @Override
+            public boolean matches(HttpEntity<MultiValueMap<String, String>> argument) {
+                return argument.getBody().containsKey("grant_type") && argument.getBody().getFirst("grant_type").equals(grantType);
+            }
+        }
+
     }
 
 }

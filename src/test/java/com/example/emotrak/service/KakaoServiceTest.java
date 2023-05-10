@@ -54,7 +54,7 @@ class KakaoServiceTest {
     class kakaoLogin {
         @Test
         @DisplayName("정상적인 로그인")
-        void testKakaoLoginTest() throws JsonProcessingException {
+        void KakaoLoginTest() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
                     "{\"access_token\":\"mock_token\"}",
@@ -110,8 +110,72 @@ class KakaoServiceTest {
         }
 
         @Test
+        @DisplayName("카카오유저가 존재하는 경우")
+        void ExistingUser() throws JsonProcessingException {
+            // Access Token을 반환하는 Mock Response 설정
+            ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
+                    "{\"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+
+            // User Info를 반환하는 Mock Response 설정
+            ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
+                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    HttpStatus.OK
+            );
+
+            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockTokenResponse);
+
+            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            when(rt.exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockUserInfoResponse);
+
+            // UserRepository Mocking
+            User existingUser = new User("encodedPassword", "existing_user_email", "existing_user_nickname", 1234L, null, null, UserRoleEnum.USER);
+            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.of(existingUser));
+
+            // Mock TokenDto
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+            when(tokenProvider.generateTokenDto(existingUser, existingUser.getRole())).thenReturn(mockTokenDto);
+
+            // 테스트 수행
+            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+
+            // verify restTemplate.exchange 호출 검증
+            verify(rt, times(1)).exchange(
+                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            verify(rt, times(1)).exchange(
+                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            );
+
+            // verify userRepository.findByKakaoId 호출 검증
+            verify(userRepository, times(1)).findByKakaoId(1234L);
+
+            // verify tokenProvider.generateTokenDto 호출 검증
+            verify(tokenProvider, times(1)).generateTokenDto(existingUser, existingUser.getRole());
+        }
+
+        @Test
         @DisplayName("중복된 이메일을 가진 사용자가 있는 경우")
-        void kakaoLoginTest_ExistingUserWithSameEmail() throws JsonProcessingException {
+        void ExistingUserWithSameEmail() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
                     "{\"access_token\":\"mock_token\"}",
@@ -145,7 +209,6 @@ class KakaoServiceTest {
 
             // UserRepository Mocking
             when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.of(mockUser));
-//            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.of(mockUser));
             when(userRepository.save(any(User.class))).thenReturn(mockUser);
 
             // Mock TokenDto
@@ -188,7 +251,7 @@ class KakaoServiceTest {
 
         @Test
         @DisplayName("중복된 이메일을 가진 사용자가 없는 경우")
-        void kakaoLoginTest_NoExistingUserWithSameEmail() throws JsonProcessingException {
+        void NoExistingUserWithSameEmail() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
                     "{\"access_token\":\"mock_token\"}",
@@ -263,7 +326,7 @@ class KakaoServiceTest {
 
         @Test
         @DisplayName("중복된 닉네임이 존재할 경우")
-        void testNicknameSuffixWhenHasNickname() throws JsonProcessingException  {
+        void testHasNickname() throws JsonProcessingException  {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
                     "{\"access_token\":\"mock_token\"}",
@@ -341,7 +404,7 @@ class KakaoServiceTest {
 
         @Test
         @DisplayName("중복된 닉네임이 존재하지 않을 경우")
-        void testNicknameSuffixWhenNoNickname() throws JsonProcessingException {
+        void testNoNickname() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
                     "{\"access_token\":\"mock_token\"}",

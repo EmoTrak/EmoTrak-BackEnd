@@ -3,6 +3,7 @@ package com.example.emotrak.service;
 import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.jwt.Validation;
@@ -25,6 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,11 +107,41 @@ class GoogleServiceTest {
             );
         }
 
-//        @Test
-//        @DisplayName("")
-//        void ㄹ() {
-//
-//        }
+        @Test
+        @DisplayName("구글유저가 존재하는 경우")
+        void ExistingUser() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("리프레시토큰이 null 인경우")
+        void testNoRefreshToken() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 있는 경우")
+        void ExistingUserWithSameEmail() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("중복된 이메일을 가진 사용자가 없는 경우")
+        void NoExistingUserWithSameEmail() throws JsonProcessingException {
+
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재할 경우")
+        void testHasNickname() throws JsonProcessingException  {
+
+        }
+
+        @Test
+        @DisplayName("중복된 닉네임이 존재하지 않을 경우")
+        void testNoNickname() throws JsonProcessingException {
+
+        }
 
     }
 
@@ -190,7 +222,7 @@ class GoogleServiceTest {
 
 
             @Test
-            @DisplayName("구글 연동 해제 실패-액세스 토큰이 유효하지 않아 연동 해제가 실패하는 경우")
+            @DisplayName("구글 연동 해제 실패-연동 해제가 실패하는 경우")
             void UnlinkFailed() {
                 // Mock User
                 User mockUser = new User();
@@ -223,6 +255,43 @@ class GoogleServiceTest {
 
                 // CustomException 이 던져졌는지 검증
                 assertThrows(CustomException.class, () -> googleService.unlinkGoogle(mockUser));
+            }
+
+            @Test
+            @DisplayName("구글 연동 해제 실패-연동 해제가 실패하는 경우(OAUTH_UNLINK_FAILED)")
+            void UnlinkFailed2() {
+                // Mock User
+                User mockUser = new User();
+                mockUser.setGoogleRefresh("mock_refresh");
+
+                // 구글 OAuth2 리프레시 토큰 응답을 Mocking
+                ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                        "{\"refresh_token\":\"mock_refresh\", \"access_token\":\"mock_token\"}",
+                        HttpStatus.OK
+                );
+
+                // 구글 OAuth2 연동 해제 응답을 Mocking
+                HttpClientErrorException mockException = new HttpClientErrorException(HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
+
+                // 리프레시 토큰 요청을 Mocking
+                when(rt.exchange(
+                        eq("https://oauth2.googleapis.com/token"),
+                        eq(HttpMethod.POST),
+                        any(HttpEntity.class),
+                        eq(String.class)
+                )).thenReturn(mockRefreshTokenResponse);
+
+                // 연동 해제 요청을 Mocking
+                when(rt.exchange(
+                        anyString(),
+                        eq(HttpMethod.GET),
+                        any(HttpEntity.class),
+                        eq(String.class)
+                )).thenThrow(mockException);
+
+                // CustomException 이 던져졌는지 검증
+                CustomException exception = assertThrows(CustomException.class, () -> googleService.unlinkGoogle(mockUser));
+                assertEquals(CustomErrorCode.OAUTH_UNLINK_FAILED, exception.getErrorCode());
             }
         }
 
