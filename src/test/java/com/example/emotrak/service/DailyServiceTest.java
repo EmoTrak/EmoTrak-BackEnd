@@ -60,7 +60,7 @@ class DailyServiceTest {
     class getDailyMonth {
         @Test
         @DisplayName("성공 케이스")
-        public void a_getDailyMonth() {
+        public void getDailyMonth() {
             // given
             List<DailyMonthResponseDto> dailyMonthResponseDtoList = new ArrayList<>();
             DailyMonthResponseDto daily1 = new DailyMonthResponseDto(1L, 1, 1L, "내용입니다.", "imgUrl");
@@ -93,7 +93,7 @@ class DailyServiceTest {
     class getDailyDetail {
         @Test
         @DisplayName("성공 케이스")
-        public void b_getDailyDetail() {
+        public void getDailyDetail() {
             // given
             List<DailyDetailResponseDto> dailyDetailResponseDtoList = new ArrayList<>();
             DailyDetailResponseDto daily1 = new DailyDetailResponseDto(1L, 1, 1L, 1, "내용입니다.", "", true, false, false);
@@ -126,7 +126,7 @@ class DailyServiceTest {
         class getDailyFail {
             @Test
             @DisplayName("게시물을 찾을 수 없음")
-            public void c_getDailyDetailFail1() {
+            public void getDailyDetail_NotFound() {
                 // given
                 dailyId = 2L;
 
@@ -141,7 +141,7 @@ class DailyServiceTest {
 
             @Test
             @DisplayName("권한이 없음")
-            public void d_getDailyDetailFail2() {
+            public void getDailyDetail_Unauthorized() {
                 // given
                 User user2 = new User();
                 user2.setId(2L);

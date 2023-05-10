@@ -1,5 +1,10 @@
 package com.example.emotrak.service;
 
+import com.example.emotrak.exception.CustomException;
+import com.example.emotrak.repository.*;
+import com.example.emotrak.service.UserService;
+import com.example.emotrak.dto.user.LoginRequestDto;
+import com.example.emotrak.dto.user.SignupRequestDto;
 import com.example.emotrak.dto.user.*;
 import com.example.emotrak.entity.RefreshToken;
 import com.example.emotrak.entity.User;
@@ -49,15 +54,23 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+    @Mock
     private LikesRepository likesRepository;
     @Mock
     private ReportRepository reportRepository;
     @Mock
-    private BoardRepository boardRepository;
-    @Mock
     private CommentRepository commentRepository;
     @Mock
-    private RefreshTokenRepository refreshTokenRepository;
+    private BoardRepository boardRepository;
+    @Mock
+    private KakaoService kakaoService;
+    @Mock
+    private NaverService naverService;
+    @Mock
+    private GoogleService googleService;
+    @Mock
+    private FileUploadService fileUploadService;
     @Mock
     private TokenProvider tokenProvider;
     @Mock
@@ -158,16 +171,6 @@ class UserServiceTest {
 
             //then
             verify(userRepository, times(1)).save(Mockito.any(User.class));
-        }
-        @DisplayName("유저 회원탈퇴")
-        @Test
-        public void deleteUser() {
-            //when
-            when(userRepository.findById(user2.getId())).thenReturn(Optional.ofNullable(user2));
-
-            //then
-            userService.deleteUser(user2);
-
         }
 
 //        @DisplayName("토큰 재발급")
@@ -599,18 +602,93 @@ class UserServiceTest {
             assertEquals("비밀번호 조건을 확인해주세요.", customException.getErrorCode().getMessage());
         }
 
-        @DisplayName("회원탈퇴 유저정보 없음")
-        @Test
-        void deleteUserFailUserNotFound() {
-            //given
-            user2.setId(9999L);
-            //when
-            CustomException customException = assertThrows(CustomException.class, () -> {
-                userService.deleteUser(user2);
-            });
-            //then
-            assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
-        }
-
     }
+//    }
+    @Nested
+    @DisplayName("회원 탈퇴")
+    class DeleteUser {
+        @Nested
+        @DisplayName("성공 케이스")
+        class deleteUserSuccess {
+            @Test
+            @DisplayName("일반 회원")
+            public void a_DeleteUser() {
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(userRepository, times(1)).findById(user.getId());
+                verify(kakaoService, times(0)).unlinkKakao(user);
+                verify(naverService, times(0)).unlinkNaver(user);
+                verify(googleService, times(0)).unlinkGoogle(user);
+                verify(likesRepository, times(1)).deleteAllByUser(user.getId());
+                verify(reportRepository, times(1)).deleteAllByUser(user.getId());
+                verify(likesRepository, times(1)).deleteCommentLikeByUser(user.getId());
+                verify(reportRepository, times(1)).deleteCommentLikeByUser(user.getId());
+                verify(commentRepository, times(1)).deleteAllByUser(user.getId());
+                verify(likesRepository, times(1)).deleteByUser(user.getId());
+                verify(likesRepository, times(1)).deleteByUserComment(user.getId());
+                verify(reportRepository, times(1)).deleteByUser(user.getId());
+                verify(reportRepository, times(1)).deleteByUserComment(user.getId());
+                verify(commentRepository, times(1)).deleteByUser(user.getId());
+                verify(boardRepository, times(1)).findImgUrlByUser(user);
+                verify(fileUploadService, times(0)).deleteFiles(anyList());
+                verify(boardRepository, times(1)).deleteAllByUser(user.getId());
+                verify(refreshTokenRepository, times(1)).deleteByUser(user);
+                verify(userRepository, times(1)).delete(user);
+            }
+
+            @Test
+            @DisplayName("소셜 회원")
+            public void b_DeleteSocialUser() {
+                user.setHasSocial(true);
+                user.setKakaoId(1L);
+                user.setNaverId("Naver");
+                user.setGoogleId("Google");
+
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(kakaoService, times(1)).unlinkKakao(user);
+                verify(naverService, times(1)).unlinkNaver(user);
+                verify(googleService, times(1)).unlinkGoogle(user);
+            }
+
+            @Test
+            @DisplayName("파일 등록 회원")
+            public void c_DeleteFileUser() {
+                List<String> imgList = new ArrayList<>();
+                imgList.add("img1");
+                imgList.add("img2");
+
+                when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+                when(boardRepository.findImgUrlByUser(user)).thenReturn(imgList);
+
+                // when
+                userService.deleteUser(user);
+
+                // then
+                verify(fileUploadService, times(1)).deleteFiles(anyList());
+            }
+        }
+        @Nested
+        @DisplayName("실패 케이스")
+        class DeleteUserFail {
+            @Test
+            @DisplayName("탈퇴 유저가 없음")
+            public void a_DeleteUserFail() {
+                CustomException customException = assertThrows(CustomException.class, () -> {
+                    userService.deleteUser(user);
+                });
+
+                assertEquals("등록된 사용자가 없습니다.", customException.getErrorCode().getMessage());
+            }
+        }
+    }
+
 }

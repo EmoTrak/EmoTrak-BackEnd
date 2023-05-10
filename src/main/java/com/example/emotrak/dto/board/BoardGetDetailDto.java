@@ -20,4 +20,24 @@ public interface BoardGetDetailDto {
     boolean getDraw();
     boolean getHasReport();
     int getCommentCount();
+
+    void setShare(boolean share);
+    void setUserId(Long userId);
+    void setDailyId(Long dailyId);
+    void setCreatedAt(String createdAt);
+    void setYear(int year);
+    void setMonth(int month);
+    void setDay(int day);
+    void setEmotionId(Long emotionId);
+    void setStar(int star);
+    void setDetail(String detail);
+    void setImgUrl(String imgUrl);
+    void setAuth(boolean auth);
+    void setNickname(String nickname);
+    void setLikeCount(int likeCount);
+    void setHasRestrict(boolean hasRestrict);
+    void setHasLike(boolean hasLike);
+    void setDraw(boolean draw);
+    void setHasReport(boolean hasReport);
+    void setCommentCount(int commentCount);
 }

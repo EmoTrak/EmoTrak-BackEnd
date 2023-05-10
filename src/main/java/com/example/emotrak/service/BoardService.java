@@ -64,7 +64,7 @@ public class BoardService {
     // 글 수정
     public void updateDaily(Long dailyId, BoardRequestDto boardRequestDto, User user, MultipartFile image) {
         Daily daily = findDailyById(dailyId);
-        if (daily.isHasRestrict() && daily.isShare()){
+        if (daily.isHasRestrict() && boardRequestDto.isShare()){
             throw new CustomException(CustomErrorCode.RESTRICT_ERROR);
         }
         validateUserOrAdmin(user, daily);
