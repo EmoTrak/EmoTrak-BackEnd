@@ -177,7 +177,6 @@ class BoardServiceTest {
         @DisplayName("감정글이 제한 상태이고 공유 상태인 경우 수정 불가")
         void updateRestrictedAndSharedPost() {
             // given
-            Long id = 1L;
             BoardRequestDto boardRequestDtoWithRestrictions = new BoardRequestDto(false, 2023, 4, 22, 1L, 5, "저는 테스트입니다.", true, false);
             Daily restrictedSharedDaily = new Daily("imgUrl", boardRequestDtoWithRestrictions, user, emotion);
             restrictedSharedDaily.setId(1L);
