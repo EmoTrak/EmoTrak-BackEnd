@@ -1,4 +1,4 @@
-# EmoTrak - FrontEnd
+# EmoTrak - BackEnd
 
 ## ✨ 프로젝트 소개 🔮
 
