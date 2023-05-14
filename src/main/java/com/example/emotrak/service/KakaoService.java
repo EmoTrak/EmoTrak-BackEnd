@@ -7,11 +7,12 @@ import com.example.emotrak.entity.UserRoleEnum;
 import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
-import com.example.emotrak.repository.UserRepository;
 import com.example.emotrak.jwt.Validation;
+import com.example.emotrak.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,15 +20,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class KakaoService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final RestTemplate rt;
 
     @Value("${kakao_client_id}")
     private String KakaoClientId;
@@ -35,13 +40,7 @@ public class KakaoService {
     @Value("${kakao_admin_key}")
     private String KakaoAdminKey;
 
-    public KakaoService(PasswordEncoder passwordEncoder, UserRepository userRepository, TokenProvider tokenProvider, Validation validation) {
-        this.passwordEncoder = passwordEncoder;
-        this.userRepository = userRepository;
-        this.tokenProvider = tokenProvider;
-        this.validation = validation;
-    }
-
+    @Transactional
     public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getToken(code);
@@ -68,7 +67,8 @@ public class KakaoService {
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =
                 new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
+//        rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         ResponseEntity<String> response = rt.exchange(
                 "https://kauth.kakao.com/oauth/token",
                 HttpMethod.POST,
@@ -90,7 +90,8 @@ public class KakaoService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
+//        rt.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         ResponseEntity<String> response = rt.exchange(
                 "https://kapi.kakao.com/v2/user/me",
                 HttpMethod.POST,
@@ -110,8 +111,8 @@ public class KakaoService {
 
     // 3. 필요시에 회원가입
     private User registerKakaoUserIfNeeded(OauthUserInfoDto oauthUserInfo) {
-        // DB 에 중복된 Kakao Id 가 있는지 확인
-        Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String을 Long으로 변환
+        // DB 에 중복된 KakaoId 가 있는지 확인
+        Long kakaoId = Long.parseLong(oauthUserInfo.getId()); // String 을 Long 으로 변환
         User kakaoUser = userRepository.findByKakaoId(kakaoId)
                 .orElse(null);
         if (kakaoUser == null) {
@@ -150,7 +151,7 @@ public class KakaoService {
         body.add("target_id", Long.toString(user.getKakaoId()));
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://kapi.kakao.com/v1/user/unlink",
                 HttpMethod.POST,

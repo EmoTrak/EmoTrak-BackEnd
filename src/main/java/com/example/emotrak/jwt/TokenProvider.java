@@ -51,22 +51,11 @@ public class TokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-
-        RefreshToken refreshTokenObject = RefreshToken.builder()
-                .id(user.getId())
-                .value(refreshToken)
-                .user(user)
-                .expirationDate(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
-                .build();
+        RefreshToken refreshTokenObject = new RefreshToken(user.getId(), user, refreshToken,new Date(now + REFRESH_TOKEN_EXPIRE_TIME));
 
         refreshTokenRepository.save(refreshTokenObject);
 
-        return TokenDto.builder()
-                .grantType(BEARER_PREFIX)
-                .accessToken(accessToken)
-                .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
-                .refreshToken(refreshToken)
-                .build();
+        return new TokenDto(BEARER_PREFIX,accessToken,refreshToken,accessTokenExpiresIn.getTime());
     }
 
 
@@ -108,12 +97,8 @@ public class TokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
         String refreshToken = refreshTokenRepository.findByUser(user).get().getValue();
-        return TokenDto.builder()
-                .grantType(BEARER_PREFIX)
-                .accessToken(accessToken)
-                .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
-                .refreshToken(refreshToken)
-                .build();
+
+        return  new TokenDto(BEARER_PREFIX,accessToken,refreshToken,accessTokenExpiresIn.getTime());
     }
 
 }

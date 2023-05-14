@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     annotationProcessor 'org.projectlombok:lombok'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
@@ -49,8 +50,6 @@ dependencies {
     // null 포인터 예외 방지
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
-    // 소셜 연동해제 적용 (비동기식(Asynchronous) 및 넌블로킹(Non-blocking) 웹 애플리케이션을 구축)
-//    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     // 메일 발송 기능
     implementation 'org.springframework.boot:spring-boot-starter-mail:2.7.0'
 

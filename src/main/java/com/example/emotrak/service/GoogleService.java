@@ -12,6 +12,7 @@ import com.example.emotrak.jwt.Validation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,17 +23,20 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class GoogleService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final Validation validation;
+    private final RestTemplate rt;
 
     @Value("${google_client_id}")
     private String clientId;
@@ -40,13 +44,7 @@ public class GoogleService {
     @Value("${google_client_secret}")
     private String clientSecret;
 
-    public GoogleService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenProvider tokenProvider, Validation validation) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenProvider = tokenProvider;
-        this.validation = validation;
-    }
-
+    @Transactional
     public void googleLogin(String code, String scope, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰 & 리프레시 토큰" 요청
         Map<String, String> tokens = getToken(code, scope);
@@ -81,7 +79,7 @@ public class GoogleService {
         // HTTP 요청 보내기
         HttpEntity<MultiValueMap<String, String>> tokenRequest =
                 new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://oauth2.googleapis.com/token",
                 HttpMethod.POST,
@@ -109,7 +107,7 @@ public class GoogleService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         HttpEntity<MultiValueMap<String, String>> googleUserInfoRequest = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         ResponseEntity<String> response = rt.exchange(
                 "https://www.googleapis.com/oauth2/v3/userinfo",
                 HttpMethod.POST,
@@ -173,7 +171,7 @@ public class GoogleService {
                 .fromHttpUrl("https://accounts.google.com/o/oauth2/revoke")
                 .queryParam("token", accessToken);
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        RestTemplate rt = new RestTemplate();
+//        RestTemplate rt = new RestTemplate();
         try {
             rt.exchange(builder.toUriString(), HttpMethod.GET, requestEntity, String.class);
         } catch (HttpClientErrorException ex) {
@@ -196,9 +194,9 @@ public class GoogleService {
         body.add("refresh_token", refreshToken);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        RestTemplate restTemplate = new RestTemplate();
+//        RestTemplate restTemplate = new RestTemplate();
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
+            ResponseEntity<String> response = rt.exchange(
                     "https://oauth2.googleapis.com/token",
                     HttpMethod.POST,
                     request,

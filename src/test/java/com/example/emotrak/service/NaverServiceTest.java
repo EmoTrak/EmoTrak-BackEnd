@@ -3,6 +3,7 @@ package com.example.emotrak.service;
 import com.example.emotrak.dto.user.TokenDto;
 import com.example.emotrak.entity.User;
 import com.example.emotrak.entity.UserRoleEnum;
+import com.example.emotrak.exception.CustomErrorCode;
 import com.example.emotrak.exception.CustomException;
 import com.example.emotrak.jwt.TokenProvider;
 import com.example.emotrak.jwt.Validation;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,20 +25,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
-class KakaoServiceTest {
+class NaverServiceTest {
     @Autowired
-    private KakaoService kakaoService;
+    private NaverService naverService;
 
     @MockBean
     private PasswordEncoder passwordEncoder;
@@ -50,59 +55,57 @@ class KakaoServiceTest {
     private RestTemplate rt;
 
     @Nested
-    @DisplayName("KakaoLogin")
-    class kakaoLogin {
+    @DisplayName("NaverLogin")
+    class naverLogin {
         @Test
         @DisplayName("정상적인 로그인")
-        void KakaoLoginTest() throws JsonProcessingException {
-            // Access Token을 반환하는 Mock Response 설정
+        void NaverLoginTest() throws JsonProcessingException {
+            // 네이버 OAuth2 인증 응답을 Mocking
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh\"}",
                     HttpStatus.OK
             );
 
-            // User Info를 반환하는 Mock Response 설정
+            // 사용자 정보에 대한 네이버 API 응답을 Mocking
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"1234\",\"name\":\"mock_name\",\"email\":\"mock_email\",\"nickname\":\"mock_nickname\"}}",
                     HttpStatus.OK
             );
 
-            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+
+            // 인증 코드로 액세스 토큰 요청을 Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            // 액세스 토큰으로 사용자 정보 요청을 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUserInfoResponse);
 
-            // Mock TokenDto
-            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
-
-            // TokenProvider Mocking
+            // TokenDto Mocking
+            TokenDto mockTokenDto = new TokenDto("Bearer", "mock_access_token", "mock_refresh_token", 123L);
             when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
 
+            // 로그인 메서드 호출
+            naverService.naverLogin("mock_auth_code", "mock_auth_state", new MockHttpServletResponse());
 
-            // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
-
-            // Then
+            // 액세스 토큰 요청과 사용자 정보 요청이 각각 한 번씩 호출되었음을 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -110,64 +113,64 @@ class KakaoServiceTest {
         }
 
         @Test
-        @DisplayName("카카오유저가 존재하는 경우")
+        @DisplayName("네이버유저가 존재하는 경우")
         void ExistingUser() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh\"}",
                     HttpStatus.OK
             );
 
             // User Info를 반환하는 Mock Response 설정
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"1234\", \"nickname\":\"mock_nickname\", \"email\":\"mock@email.com\"}}",
                     HttpStatus.OK
             );
 
             // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            // 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUserInfoResponse);
 
             // UserRepository Mocking
-            User existingUser = new User("encodedPassword", "existing_user_email", "existing_user_nickname", 1234L, null, null, UserRoleEnum.USER);
-            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.of(existingUser));
+            User existingUser = new User("encodedPassword", "existing_user_email", "existing_user_nickname", null, "1234", null, UserRoleEnum.USER);
+            when(userRepository.findByNaverId("1234")).thenReturn(Optional.of(existingUser));
 
             // Mock TokenDto
             TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
             when(tokenProvider.generateTokenDto(existingUser, existingUser.getRole())).thenReturn(mockTokenDto);
 
             // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+            naverService.naverLogin("mock_auth_code", "mock_state", new MockHttpServletResponse());
 
             // verify restTemplate.exchange 호출 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
-            // verify userRepository.findByKakaoId 호출 검증
-            verify(userRepository, times(1)).findByKakaoId(1234L);
+            // verify userRepository.findByNaverId 호출 검증
+            verify(userRepository, times(1)).findByNaverId("1234");
 
             // verify tokenProvider.generateTokenDto 호출 검증
             verify(tokenProvider, times(1)).generateTokenDto(existingUser, existingUser.getRole());
@@ -178,30 +181,30 @@ class KakaoServiceTest {
         void ExistingUserWithSameEmail() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
                     HttpStatus.OK
             );
 
             // User Info를 반환하는 Mock Response 설정
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"mock_id\", \"email\":\"mock@email.com\", \"nickname\":\"mock_nickname\"}}",
                     HttpStatus.OK
             );
 
             // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", 1234L, null, null, UserRoleEnum.USER);
+            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", null, "mock_id", null, UserRoleEnum.USER);
 
             // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            // 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -217,20 +220,19 @@ class KakaoServiceTest {
             // TokenProvider Mocking
             when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
 
-
             // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+            naverService.naverLogin("mock_auth_code", "mock_state", new MockHttpServletResponse());
 
             // verify restTemplate.exchange 호출 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -239,8 +241,8 @@ class KakaoServiceTest {
             // verify userRepository.findByEmail 호출 검증
             verify(userRepository, times(1)).findByEmail("mock@email.com");
 
-            // verify userRepository.findByKakaoId 호출 검증
-            verify(userRepository, times(1)).findByKakaoId(1234L);
+            // verify userRepository.findByNaverId 호출 검증
+            verify(userRepository, times(1)).findByNaverId("mock_id");
 
             // verify userRepository.save 호출 검증
             verify(userRepository, times(1)).save(any(User.class));
@@ -254,58 +256,53 @@ class KakaoServiceTest {
         void NoExistingUserWithSameEmail() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
                     HttpStatus.OK
             );
 
             // User Info를 반환하는 Mock Response 설정
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mock_nickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"1234\", \"email\":\"mock@email.com\", \"nickname\":\"mock_nickname\"}}",
                     HttpStatus.OK
             );
 
-            // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", 1234L, null, null, UserRoleEnum.USER);
-
             // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            // 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUserInfoResponse);
-            // UserRepository Mocking
-            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.empty());
-            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
-            when(userRepository.save(any(User.class))).thenReturn(mockUser);
 
-            // Mock TokenDto
-            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+            // UserRepository Mocking
+            when(userRepository.findByNaverId("1234")).thenReturn(Optional.empty());
+            when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
 
             // TokenProvider Mocking
+            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
             when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
 
             // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+            naverService.naverLogin("mock_auth_code", "mock_state", new MockHttpServletResponse());
 
             // verify restTemplate.exchange 호출 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -314,8 +311,8 @@ class KakaoServiceTest {
             // verify userRepository.findByEmail 호출 검증
             verify(userRepository, times(1)).findByEmail("mock@email.com");
 
-            // verify userRepository.findByKakaoId 호출 검증
-            verify(userRepository, times(1)).findByKakaoId(1234L);
+            // verify userRepository.findByNaverId 호출 검증
+            verify(userRepository, times(1)).findByNaverId("1234");
 
             // verify userRepository.save 호출 검증
             verify(userRepository, times(1)).save(any(User.class));
@@ -326,63 +323,57 @@ class KakaoServiceTest {
 
         @Test
         @DisplayName("중복된 닉네임이 존재할 경우")
-        void testHasNickname() throws JsonProcessingException  {
-            // Access Token을 반환하는 Mock Response 설정
+        void testHasNickname() throws JsonProcessingException {
+            // Mock Responses
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
                     HttpStatus.OK
             );
-
-            // User Info를 반환하는 Mock Response 설정
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mocknickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"1234\", \"email\":\"mock@email.com\", \"nickname\":\"mocknickname\"}}",
                     HttpStatus.OK
             );
 
             // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mocknickname", 1234L, null, null, UserRoleEnum.USER);
+            User mockUser = new User(passwordEncoder.encode("randomPassword"), "mock@email.com", "mocknickname", null, "1234", null, UserRoleEnum.USER);
 
-            // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
+            // Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUserInfoResponse);
 
-            // UserRepository Mocking
-            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.empty());
+            when(userRepository.findByNaverId("1234")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
             when(userRepository.existsByNickname("mocknickname")).thenReturn(true);
             when(userRepository.save(any(User.class))).thenReturn(mockUser);
 
-            // Mock TokenDto
-            TokenDto mockTokenDto = new TokenDto("Bearer","mock_access_token", "mock_refresh_token", 123L);
+            TokenDto mockTokenDto = new TokenDto("Bearer", "mock_access_token", "mock_refresh_token", 123L);
 
-            // TokenProvider Mocking
             when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
 
             // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+            naverService.naverLogin("mock_code", "mock_state", new MockHttpServletResponse());
 
             // verify restTemplate.exchange 호출 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -397,7 +388,6 @@ class KakaoServiceTest {
             // ArgumentCaptor를 이용해 userRepository.save()에 전달되는 User 객체 캡쳐
             ArgumentCaptor<User> argument = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(argument.capture());
-
             // 캡쳐된 User 객체의 닉네임 접미사 검증
             assertEquals("mocknickname_0", argument.getValue().getNickname());
         }
@@ -407,36 +397,37 @@ class KakaoServiceTest {
         void testNoNickname() throws JsonProcessingException {
             // Access Token을 반환하는 Mock Response 설정
             ResponseEntity<String> mockTokenResponse = new ResponseEntity<>(
-                    "{\"access_token\":\"mock_token\"}",
+                    "{\"access_token\":\"mock_token\", \"refresh_token\":\"mock_refresh_token\"}",
                     HttpStatus.OK
             );
+
             // User Info를 반환하는 Mock Response 설정
             ResponseEntity<String> mockUserInfoResponse = new ResponseEntity<>(
-                    "{\"id\":1234, \"properties\":{\"nickname\":\"mocknickname\"}, \"kakao_account\":{\"email\":\"mock@email.com\"}}",
+                    "{\"response\":{\"id\":\"1234\", \"email\":\"mock@email.com\", \"nickname\":\"mocknickname\"}}",
                     HttpStatus.OK
             );
 
             // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mocknickname", 1234L, null, null, UserRoleEnum.USER);
+            User mockUser = new User("encodedPassword", "mock@email.com", "mocknickname", null, "1234", null, UserRoleEnum.USER);
 
             // "인가 코드"로 "액세스 토큰" 요청에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockTokenResponse);
 
-            // 토큰으로 카카오 API 호출 : "액세스 토큰"으로 "카카오 사용자 정보" 가져오기에 대한 Mocking
+            // 토큰으로 네이버 API 호출 : "액세스 토큰"으로 "네이버 사용자 정보" 가져오기에 대한 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUserInfoResponse);
 
             // UserRepository Mocking
-            when(userRepository.findByKakaoId(1234L)).thenReturn(Optional.empty());
+            when(userRepository.findByNaverId("1234")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("mock@email.com")).thenReturn(Optional.empty());
             when(userRepository.existsByNickname("mocknickname")).thenReturn(false);
             when(userRepository.save(any(User.class))).thenReturn(mockUser);
@@ -448,18 +439,18 @@ class KakaoServiceTest {
             when(tokenProvider.generateTokenDto(any(User.class), any(UserRoleEnum.class))).thenReturn(mockTokenDto);
 
             // 테스트 수행
-            kakaoService.kakaoLogin("mock_auth_code", new MockHttpServletResponse());
+            naverService.naverLogin("mock_auth_code", "mock_state", new MockHttpServletResponse());
 
             // verify restTemplate.exchange 호출 검증
             verify(rt, times(1)).exchange(
-                    eq("https://kauth.kakao.com/oauth/token"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             );
 
             verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v2/user/me"),
+                    eq("https://openapi.naver.com/v1/nid/me"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -475,43 +466,56 @@ class KakaoServiceTest {
             ArgumentCaptor<User> argument = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(argument.capture());
 
-            // 캡쳐된 User 객체의 닉네임 접미사 검증
+            // 캡쳐된 User 객체의 닉네임 검증
             assertEquals("mocknickname", argument.getValue().getNickname());
         }
+
     }
 
     @Nested
-    @DisplayName("KakaoUnlink")
-    class kakaoUnlink {
+    @DisplayName("NaverUnlink")
+    class naverUnlink {
         @Test
         @DisplayName("정상적인 연동해제")
-        void UnlinkKakaoTest() {
+        void UnlinkNaverTest() {
             // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", 1234L, null, null, UserRoleEnum.USER);
+            User mockUser = new User();
+            mockUser.setNaverRefresh("mock_refresh");
 
-            // 카카오 API 연동해제 Mocking
-            ResponseEntity<String> mockUnlinkResponse = new ResponseEntity<>("{\"id\":1234}", HttpStatus.OK);
+            // 네이버 OAuth2 리프레시 토큰 응답을 Mocking
+            ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                    "{\"refresh_token\":\"mock_refresh\", \"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+
+            // 네이버 OAuth2 연동 해제 응답을 Mocking
+            ResponseEntity<String> mockUnlinkResponse = new ResponseEntity<>(
+                    "{\"result\":\"success\", \"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+
+            // 리프레시 토큰 요청을 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockRefreshTokenResponse);
+
+            // 연동 해제 요청을 Mocking
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
             )).thenReturn(mockUnlinkResponse);
 
-            // 테스트 수행
-            assertDoesNotThrow(() -> kakaoService.unlinkKakao(mockUser));
+            // unlinkNaver 메소드 호출
+            naverService.unlinkNaver(mockUser);
 
-            // verify restTemplate.exchange 호출 검증
-            verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
-                    eq(HttpMethod.POST),
-                    any(HttpEntity.class),
-                    eq(String.class)
-            );
-
-            // verify restTemplate.exchange 호출 검증
-            verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
+            // rt.exchange 두 번 호출되었는지 검증
+            verify(rt, times(2)).exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
                     eq(String.class)
@@ -519,41 +523,115 @@ class KakaoServiceTest {
         }
 
         @Test
-        @DisplayName("카카오 연동 해제 실패")
-        void UnlinkKakaoFailureTest() {
+        @DisplayName("네이버 연동 해제 실패-리프레시 토큰이 유효하지 않은 경우")
+        void InvalidRefreshToken() {
             // Mock User
-            User mockUser = new User("encodedPassword", "mock@email.com", "mock_nickname", 1234L, null, null, UserRoleEnum.USER);
+            User mockUser = new User();
+            mockUser.setNaverRefresh("mock_refresh");
 
-            // 카카오 API 연동해제 Mocking
-            ResponseEntity<String> mockUnlinkResponse = new ResponseEntity<>("{\"id\":1234}", HttpStatus.OK);
+            // 네이버 OAuth2 리프레시 토큰 응답을 Mocking
+            ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                    "{\"refresh_token\":\"mock_refresh\"}",
+                    HttpStatus.UNAUTHORIZED
+            );
+
+            // 리프레시 토큰 요청을 Mocking
             when(rt.exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
+                    eq("https://nid.naver.com/oauth2.0/token"),
                     eq(HttpMethod.POST),
                     any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockRefreshTokenResponse);
+
+            // CustomException 이 던져졌는지 검증
+            assertThrows(CustomException.class, () -> naverService.unlinkNaver(mockUser));
+        }
+
+        @Test
+        @DisplayName("네이버 연동 해제 실패-연동 해제가 실패하는 경우")
+       void UnlinkFailed() {
+            // Mock User
+            User mockUser = new User();
+            mockUser.setNaverRefresh("mock_refresh");
+
+            // 네이버 OAuth2 리프레시 토큰 응답을 Mocking
+            ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                    "{\"result\":\"fail\"}",
+                    HttpStatus.NOT_FOUND
+            );
+
+            // 네이버 OAuth2 연동 해제 응답을 Mocking
+            HttpClientErrorException mockException = new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
+
+            // 리프레시 토큰 요청을 Mocking
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenReturn(mockRefreshTokenResponse);
+
+            // 연동 해제 요청을 Mocking
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    any(HttpEntity.class),
+                    eq(String.class)
+            )).thenThrow(mockException);
+
+            // CustomException 이 던져졌는지 검증
+            assertThrows(CustomException.class, () -> naverService.unlinkNaver(mockUser));
+        }
+
+        @Test
+        @DisplayName("네이버 연동 해제 실패-연동 해제가 실패하는 경우2(OAUTH_UNLINK_FAILED)")
+        void UnlinkFailed2() {
+            // Mock User
+            User mockUser = new User();
+            mockUser.setNaverRefresh("mock_refresh");
+
+            // 리프레시 토큰 요청을 Mocking
+            ResponseEntity<String> mockRefreshTokenResponse = new ResponseEntity<>(
+                    "{\"refresh_token\":\"mock_refresh\", \"access_token\":\"mock_token\"}",
+                    HttpStatus.OK
+            );
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    argThat(new RequestEntityMatcher("refresh_token")),
+                    eq(String.class)
+            )).thenReturn(mockRefreshTokenResponse);
+
+            // 연동 해제 요청을 Mocking
+            ResponseEntity<String> mockUnlinkResponse = new ResponseEntity<>(
+                    "Unauthorized",
+                    HttpStatus.UNAUTHORIZED
+            );
+            when(rt.exchange(
+                    eq("https://nid.naver.com/oauth2.0/token"),
+                    eq(HttpMethod.POST),
+                    argThat(new RequestEntityMatcher("delete")),
                     eq(String.class)
             )).thenReturn(mockUnlinkResponse);
 
-            // 테스트 수행
-            assertDoesNotThrow(() -> kakaoService.unlinkKakao(mockUser));
-
-            // verify restTemplate.exchange 호출 검증
-            verify(rt, times(1)).exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
-                    eq(HttpMethod.POST),
-                    any(HttpEntity.class),
-                    eq(String.class)
-            );
-
-            // CustomException이 던져졌는지 검증
-            when(rt.exchange(
-                    eq("https://kapi.kakao.com/v1/user/unlink"),
-                    eq(HttpMethod.POST),
-                    any(HttpEntity.class),
-                    eq(String.class)
-            )).thenReturn(new ResponseEntity<>("{\"msg\":\"Bad Request\", \"code\":400}", HttpStatus.BAD_REQUEST));
-
-            assertThrows(CustomException.class, () -> kakaoService.unlinkKakao(mockUser));
+            // CustomException 이 던져졌는지 검증
+            CustomException exception = assertThrows(CustomException.class, () -> naverService.unlinkNaver(mockUser));
+            assertEquals(CustomErrorCode.OAUTH_UNLINK_FAILED, exception.getErrorCode());
         }
+
+        private static class RequestEntityMatcher implements ArgumentMatcher<HttpEntity<MultiValueMap<String, String>>> {
+            private final String grantType;
+
+            RequestEntityMatcher(String grantType) {
+                this.grantType = grantType;
+            }
+
+            @Override
+            public boolean matches(HttpEntity<MultiValueMap<String, String>> argument) {
+                return argument.getBody().containsKey("grant_type") && argument.getBody().getFirst("grant_type").equals(grantType);
+            }
+        }
+
     }
 
 }

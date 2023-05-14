@@ -6,7 +6,6 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Setter
 @Entity(name = "users")
 public class User {
