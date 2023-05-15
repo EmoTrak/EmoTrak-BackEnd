@@ -1,12 +1,12 @@
 package com.example.emotrak.entity;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Setter
 @Entity(name = "users")
 public class User {
 
@@ -26,8 +26,16 @@ public class User {
 
     private String naverId;
 
+    private String googleId;
+
     @Column(nullable = false)
     private boolean hasSocial;
+
+    @Column
+    private String naverRefresh;
+
+    @Column
+    private String googleRefresh;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -39,12 +47,13 @@ public class User {
         this.nickname = nickname;
         this.role = role;
     }
-    public User(String password, String email,String nickname,Long kakaoId,String naverId, UserRoleEnum role) {
+    public User(String password, String email, String nickname, Long kakaoId, String naverId, String googleId, UserRoleEnum role) {
         this.password = password;
         this.email = email;
         this.nickname = nickname;
         this.kakaoId = kakaoId;
         this.naverId = naverId;
+        this.googleId = googleId;
         this.role = role;
         this.hasSocial = true;
     }
@@ -59,6 +68,11 @@ public class User {
         return this;
     }
 
+    public User googleIdUpdate(String googleId) {
+        this.googleId = googleId;
+        return this;
+    }
+
     public User nicknameUpdate(String nickname) {
         this.nickname = nickname;
         return this;
@@ -68,13 +82,12 @@ public class User {
         this.password = password;
         return this;
     }
-    public User updateHasSocial(boolean hasSocial) {
-        this.hasSocial = hasSocial;
-        return this;
+
+    public void updateNaverRefresh(String refreshToken) {
+        this.naverRefresh = refreshToken;
     }
 
-    public boolean hasAdmin() {
-        // 관리자 권한을 확인하는 로직을 작성합니다.
-        return this.role == UserRoleEnum.ADMIN;
+    public void updateGoogleRefresh(String refreshToken) {
+        this.googleRefresh = refreshToken;
     }
 }

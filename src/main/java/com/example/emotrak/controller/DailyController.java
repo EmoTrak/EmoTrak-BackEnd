@@ -1,6 +1,6 @@
 package com.example.emotrak.controller;
 
-import com.example.emotrak.Service.DailyService;
+import com.example.emotrak.service.DailyService;
 import com.example.emotrak.exception.ResponseMessage;
 import com.example.emotrak.security.UserDetailsImpl;
 import io.swagger.annotations.ApiImplicitParam;
@@ -27,8 +27,8 @@ public class DailyController {
     @Operation(summary = "달력 전체 조회", description = "월별 달력의 감정 전체를 조회합니다.")
     @GetMapping("")
     public ResponseEntity<?> getDailyMonth(@Parameter(description = "년도", required = true) @RequestParam int year
-                                      , @Parameter(description = "월", required = true) @RequestParam int month
-                                      , @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
+                                         , @Parameter(description = "월", required = true) @RequestParam int month
+                                         , @ApiIgnore @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseMessage.successResponse(HttpStatus.OK, "조회 완료", dailyService.getDailyMonth(year, month, userDetails.getUser()));
     }
 

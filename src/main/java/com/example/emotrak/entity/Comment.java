@@ -1,11 +1,12 @@
 package com.example.emotrak.entity;
 
-import com.example.emotrak.dto.CommentRequestDto;
+import com.example.emotrak.dto.comment.CommentRequestDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import lombok.Setter;
 import javax.persistence.*;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @Entity
@@ -26,9 +27,6 @@ public class Comment extends Timestamped {
     @JoinColumn(name = "dailyId")
     private Daily daily;
 
-        @Column(nullable = false)
-        private int cmtLikesCnt;
-
     public Comment(CommentRequestDto commentRequestDto, Daily daily, User user) {
         this.comment = commentRequestDto.getComment();
         this.daily = daily;
@@ -38,15 +36,5 @@ public class Comment extends Timestamped {
     public void updateComment(CommentRequestDto commentRequestDto) {
         this.comment = commentRequestDto.getComment();
     }
-
-    //
-    public void plusLikesCount() {
-        this.cmtLikesCnt++;
-    }
-
-    public void minusLikesCount() {
-        this.cmtLikesCnt--;
-    }
-
 
 }

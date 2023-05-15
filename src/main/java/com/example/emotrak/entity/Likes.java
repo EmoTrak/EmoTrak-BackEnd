@@ -2,12 +2,15 @@ package com.example.emotrak.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import lombok.Setter;
+import lombok.ToString;
 import javax.persistence.*;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @Entity
+@ToString
 public class Likes {
 
     @Id
@@ -32,8 +35,9 @@ public class Likes {
         this.user = user;
     }
 
-       public Likes(Comment comment, User user) {
-            this.comment = comment;
-            this.user = user;
-        }
+   public Likes(Comment comment, User user) {
+        this.comment = comment;
+        this.user = user;
+   }
+
 }

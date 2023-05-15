@@ -1,18 +1,13 @@
 package com.example.emotrak.entity;
 
-import com.example.emotrak.dto.BoardRequestDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
+import com.example.emotrak.dto.board.BoardRequestDto;
+import lombok.*;
 import javax.persistence.*;
-import java.util.List;
 
+@Setter
 @Getter
 @NoArgsConstructor
 @Entity
-@Builder
 @AllArgsConstructor
 public class Daily extends Timestamped {
 
@@ -21,13 +16,13 @@ public class Daily extends Timestamped {
     private Long id;
 
     @Column(nullable = false)
-    private int year;
+    private int dailyYear;
 
     @Column(nullable = false)
-    private int month;
+    private int dailyMonth;
 
     @Column(nullable = false)
-    private int day;
+    private int dailyDay;
 
     @ManyToOne
     @JoinColumn(name = "emotionId")
@@ -37,7 +32,7 @@ public class Daily extends Timestamped {
     @JoinColumn(name = "userId")
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 3000)
     private String detail;
 
     @Column(nullable = false)
@@ -50,33 +45,31 @@ public class Daily extends Timestamped {
     private boolean share;
 
     @Column(nullable = false)
-    private int boardLikesCnt;
+    private boolean hasRestrict;
 
     @Column(nullable = false)
-    private boolean hasRestrict = false;
-
-    @OneToMany(mappedBy = "daily", cascade = CascadeType.ALL)
-    private List<Comment> comments;
+    private boolean draw;
 
     //생성자
     public Daily(String imageUrl, BoardRequestDto boardRequestDto, User user, Emotion emotion) {
         this.imgUrl = imageUrl;
         this.user = user;
-        this.year = boardRequestDto.getYear();
-        this.month = boardRequestDto.getMonth();
-        this.day = boardRequestDto.getDay();
+        this.dailyYear = boardRequestDto.getYear();
+        this.dailyMonth = boardRequestDto.getMonth();
+        this.dailyDay = boardRequestDto.getDay();
         this.emotion = emotion;
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
         this.share = boardRequestDto.isShare();
+        this.draw = boardRequestDto.isDraw();
     }
 
     //board 업데이트 메서드
     public void update(String newImageUrl, BoardRequestDto boardRequestDto, Emotion emotion) {
         this.imgUrl = newImageUrl;
-        this.year = boardRequestDto.getYear();
-        this.month = boardRequestDto.getMonth();
-        this.day = boardRequestDto.getDay();
+        this.dailyYear = boardRequestDto.getYear();
+        this.dailyMonth = boardRequestDto.getMonth();
+        this.dailyDay = boardRequestDto.getDay();
         this.emotion = emotion;
         this.star = boardRequestDto.getStar();
         this.detail = boardRequestDto.getDetail();
@@ -86,14 +79,6 @@ public class Daily extends Timestamped {
     public void restricted(){
         this.share = false;
         this.hasRestrict = true;
-    }
-
-    public void plusLikesCount() {
-        this.boardLikesCnt++;
-    }
-
-    public void minusLikesCount() {
-        this.boardLikesCnt--;
     }
 
 }

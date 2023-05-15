@@ -1,42 +1,44 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.graph.GraphQueryDto;
 import com.example.emotrak.entity.Daily;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 
 public interface GraphRepository extends JpaRepository<Daily, Long> {
-    @Query(value = " SELECT a.month"
-                 + "      , a.emotion_id"
-                 + "      , IF (COALESCE(avg(d.star), 0) = 0, 0, count(*)) count"
-                 + "      , COALESCE( ROUND( AVG(d.star) * 100 / a.sum, 2), 0) percentage"
-                 + " FROM ("
-                 + "          SELECT m.month"
-                 + "               , e.id as emotion_id"
-                 + "               , COALESCE(d.starsum, 0) as sum"
-                 + "          FROM months m"
-                 + "                   CROSS JOIN emotion e"
-                 + "                   LEFT JOIN ("
-                 + "              select month"
-                 + "                   , SUM(a.staravg) starsum"
-                 + "                from ( select d.month"
-                 + "                          , AVG(star) staravg"
-                 + "                      from daily d"
-                 + "                     where d.year = :year"
-                 + "                       and user_id = :userId"
-                 + "                     group by year, month, emotion_id"
-                 + "                   ) a"
-                 + "               group by month"
-                 + "          ) d ON m.month = d.month"
-                 + "          ORDER BY m.month"
-                 + "      ) a LEFT JOIN daily d"
-                 + "                    ON a.month = d.month"
-                 + "                        AND a.emotion_id = d.emotion_id"
-                 + "                        AND d.user_id = :userId"
-                 + " GROUP BY a.month, a.emotion_id "
-                 + " ORDER BY a.month, a.emotion_id;", nativeQuery = true)
-    List<Object[]> getGraph(@Param("year") int year,
-                            @Param("userId") Long userId);
+    @Query(value = " SELECT a.daily_month AS month,"
+                 + "        a.emotion_id AS id,"
+                 + "        ROUND(COALESCE(AVG(d.star), 0), 1)             AS count,"
+                 + "        COALESCE(ROUND(a.cocount * 100 / a.sum, 2), 0) AS percentage"
+                 + "   FROM (SELECT d.daily_year,"
+                 + "                m.daily_month,"
+                 + "                e.id                    AS emotion_id,"
+                 + "                COALESCE(d.countsum, 0) AS sum,"
+                 + "                COALESCE(d.cocount, 0)  AS cocount"
+                 + "           FROM months m"
+                 + "                CROSS JOIN emotion e"
+                 + "                 LEFT JOIN (SELECT daily_year,"
+                 + "                                   daily_month,"
+                 + "                                   emotion_id,"
+                 + "                                   COUNT(*)                                      AS cocount,"
+                 + "                                   SUM(COUNT(*)) OVER (PARTITION BY daily_month) AS countsum"
+                 + "                              FROM daily"
+                 + "                             WHERE daily_year = :year"
+                 + "                               AND user_id = :userId"
+                 + "                             GROUP BY daily_year, daily_month, emotion_id) d"
+                 + "                                ON m.daily_month = d.daily_month"
+                 + "                               AND e.id = d.emotion_id"
+                 + "                             ORDER BY m.daily_month, emotion_id"
+                 + "                          ) a"
+                 + "               LEFT JOIN daily d"
+                 + "                 ON a.daily_year = d.daily_year"
+                 + "                AND a.daily_month = d.daily_month"
+                 + "                AND a.emotion_id = d.emotion_id"
+                 + "                AND d.user_id = :userId"
+                 + "  GROUP BY a.daily_month, a.emotion_id"
+                 + "  ORDER BY a.daily_month, a.emotion_id", nativeQuery = true)
+    List<GraphQueryDto> getGraph(@Param("year") int year,
+                                 @Param("userId") Long userId);
 }

@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '2.7.5'
     id 'io.spring.dependency-management' version '1.1.0'
 }
@@ -12,6 +13,14 @@ repositories {
     mavenCentral()
 }
 
+// 어노테이션 프로세싱 기능을 활성화 및 Asciidoctor를 확장하기 위한 플러그인
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    asciidoctorExt
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -20,8 +29,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     annotationProcessor 'org.projectlombok:lombok'
     compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.h2database:h2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     implementation group: 'org.json', name: 'json', version: '20220924'
@@ -30,10 +41,18 @@ dependencies {
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
 
+    // S3 버킷(AWS 의 다양한 서비스를 사용할 수 있도록 지원해주는 라이브러리)
     implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.420'
 
     // swagger 적용
     implementation 'io.springfox:springfox-boot-starter:3.0.0'
+
+    // null 포인터 예외 방지
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // 메일 발송 기능
+    implementation 'org.springframework.boot:spring-boot-starter-mail:2.7.0'
+
 }
 
 tasks.named('test') {
@@ -42,4 +61,31 @@ tasks.named('test') {
 
 jar {
     enabled = false
+}
+
+jacocoTestReport {
+    reports {
+        html.enabled true
+        xml.enabled false
+        csv.enabled false
+
+        // 리포트의 저장 경로를 설정합니다.
+        html.destination file("jacoco/jacocoHtml")
+        xml.destination file("jacoco/jacoco.xml")
+    }
+}
+
+jacocoTestCoverageVerification {
+
+    violationRules { // 커버리지의 범위와 퍼센테이지를 설정합니다.
+        rule {
+            element = 'CLASS'
+
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.90
+            }
+        }
+    }
 }
