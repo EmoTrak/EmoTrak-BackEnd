@@ -1,5 +1,6 @@
 package com.example.emotrak.repository;
 
+import com.example.emotrak.dto.report.ReportQueryDto;
 import com.example.emotrak.entity.Report;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,7 +30,7 @@ public interface AdminRepository extends JpaRepository<Report, Long> {
                  + "        ) c"
                  + "  WHERE a.daily_id = r.daily_id AND r.user_id = u.id"
                  + "  ORDER BY count DESC, reportId DESC", nativeQuery = true)
-    List<Object[]> getReportBoard(Pageable pageable);
+    List<ReportQueryDto> getReportBoard(Pageable pageable);
 
     @Query(value = "SELECT c.totalCount,"
                  + "       r.id AS reportId,"
@@ -51,5 +52,5 @@ public interface AdminRepository extends JpaRepository<Report, Long> {
                  + "       ) c"
                  + " WHERE a.comment_id = r.comment_id AND r.user_id = u.id"
                  + " ORDER BY count DESC, reportId DESC", nativeQuery = true)
-    List<Object[]> getReportComment(Pageable pageable);
+    List<ReportQueryDto> getReportComment(Pageable pageable);
 }

@@ -1,6 +1,7 @@
 package com.example.emotrak.service;
 
 import com.example.emotrak.dto.report.ReportHistoryDto;
+import com.example.emotrak.dto.report.ReportQueryDto;
 import com.example.emotrak.dto.report.ReportResponseDto;
 import com.example.emotrak.entity.Daily;
 import com.example.emotrak.entity.Report;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,18 +30,17 @@ public class AdminService {
     @Transactional(readOnly = true)
     public ReportResponseDto reportBoard(int page) {
         int size = 15;
-        Pageable pageable = PageRequest.of(page-1, size);  //첫번째 파라미터값 = 첫번째 페이지, 두번째 파라미터값 = 한페이지당 들어가는 데이터 갯수
-                                                         //페이지 정보와 사이즈 정보를 담은 객체생성
-        List<Object[]> objectList = adminRepository.getReportBoard(pageable);   //해당 페이지의 목록을 조회
+        Pageable pageable = PageRequest.of(page-1, size);
+        List<ReportQueryDto> reportQueryDtoList = adminRepository.getReportBoard(pageable);
 
         List<ReportHistoryDto> reportHistoryDtoList = new ArrayList<>();
         long totalCount = 0;
 
-        for(int i = 0; i < objectList.size(); i++) {
+        for(int i = 0; i < reportQueryDtoList.size(); i++) {
             if(i == 0) {
-                totalCount = ((BigInteger) objectList.get(0)[0]).longValue();
+                totalCount = reportQueryDtoList.get(0).getTotalCount();
             }
-            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(objectList.get(i));
+            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(reportQueryDtoList.get(i));
             reportHistoryDtoList.add(reportHistoryDto);
         }
         return new ReportResponseDto(totalCount, reportHistoryDtoList);
@@ -53,16 +52,16 @@ public class AdminService {
         int size = 15;
         Pageable pageable = PageRequest.of(page-1, size);
 
-        List<Object[]> objectList = adminRepository.getReportComment(pageable);
+        List<ReportQueryDto> reportQueryDtoList = adminRepository.getReportComment(pageable);
 
         List<ReportHistoryDto> reportHistoryDtoList = new ArrayList<>();
         long totalCount = 0;
 
-        for(int i = 0; i < objectList.size(); i++) {
+        for(int i = 0; i < reportQueryDtoList.size(); i++) {
             if(i == 0) {
-                totalCount = ((BigInteger)objectList.get(0)[0]).longValue();
+                totalCount = reportQueryDtoList.get(0).getTotalCount();
             }
-            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(objectList.get(i));
+            ReportHistoryDto reportHistoryDto = new ReportHistoryDto(reportQueryDtoList.get(i));
             reportHistoryDtoList.add(reportHistoryDto);
         }
         return new ReportResponseDto(totalCount, reportHistoryDtoList);

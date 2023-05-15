@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.math.BigInteger;
 
 @Getter
 @Setter
@@ -17,12 +16,12 @@ public class ReportHistoryDto {
     private String email;
     private String reason;
     private Long count;
-    public ReportHistoryDto(Object[] object) {
-        this.reportId = ((BigInteger) object[1]).longValue();
-        this.id = ((BigInteger) object[2]).longValue();
-        this.nickname = (String) object[3];
-        this.email = (String) object[4];
-        this.reason = (String) object[5];
-        this.count = ((BigInteger) object[6]).longValue();
+    public ReportHistoryDto(ReportQueryDto reportQueryDto) {
+        this.reportId = reportQueryDto.getReportId();
+        this.id = reportQueryDto.getId();
+        this.nickname = reportQueryDto.getNickname();
+        this.email = reportQueryDto.getEmail();
+        this.reason = reportQueryDto.getReason();
+        this.count = reportQueryDto.getCount();
     }
 }
